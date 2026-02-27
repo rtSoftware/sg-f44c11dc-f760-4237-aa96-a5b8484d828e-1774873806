@@ -110,35 +110,46 @@ export default function DashboardPage() {
               </div>
               
               <h3 className="text-2xl font-bold text-stone-900 mb-4">
-                Funcionalidad en Construcción
+                Bienvenido a tu Panel de Control
               </h3>
               
               <p className="text-stone-600 mb-8 leading-relaxed">
-                Estamos preparando una experiencia excepcional para ti. Pronto podrás acceder a:
+                Accede a todo el contenido de Experiencia Miguel
               </p>
+
+              {/* Main Action: Biblioteca */}
+              <Link href="/biblioteca">
+                <Button 
+                  size="lg"
+                  className="mb-6 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-lg px-8 py-6 h-auto"
+                >
+                  <BookOpen className="w-6 h-6 mr-3" />
+                  Ir a la Biblioteca
+                </Button>
+              </Link>
 
               <div className="grid sm:grid-cols-2 gap-4 mb-8">
                 <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
                   <h4 className="font-semibold text-stone-900 mb-2">📚 Biblioteca Digital</h4>
                   <p className="text-sm text-stone-600">Acceso completo al libro</p>
                 </div>
-                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200 opacity-50">
                   <h4 className="font-semibold text-stone-900 mb-2">👥 Comunidad</h4>
-                  <p className="text-sm text-stone-600">Foros y debates</p>
+                  <p className="text-sm text-stone-600">Próximamente</p>
                 </div>
-                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200 opacity-50">
                   <h4 className="font-semibold text-stone-900 mb-2">🎯 Ejercicios</h4>
-                  <p className="text-sm text-stone-600">Prácticas de oratoria</p>
+                  <p className="text-sm text-stone-600">Próximamente</p>
                 </div>
-                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200 opacity-50">
                   <h4 className="font-semibold text-stone-900 mb-2">🎓 Mentorías</h4>
-                  <p className="text-sm text-stone-600">Sesiones en vivo</p>
+                  <p className="text-sm text-stone-600">Próximamente</p>
                 </div>
               </div>
 
               <div className="pt-6 border-t border-stone-200">
                 <p className="text-sm text-stone-500">
-                  Tu cuenta está activa. Te notificaremos cuando las funcionalidades estén disponibles.
+                  ¿Necesitas configurar el contenido? Ve a Configuración usando el botón en la esquina inferior derecha.
                 </p>
               </div>
             </div>
