@@ -53,10 +53,17 @@ export async function upsertLibroContent(
       if (error) throw error;
       return { data, error: null };
     } else {
-      // Crear nuevo contenido
+      // Crear nuevo contenido - asegurar campos obligatorios
       const { data, error } = await supabase
         .from("libro")
-        .insert({ ...content, user_id: userId })
+        .insert({
+          user_id: userId,
+          titulo: content.titulo || "",
+          contenido: content.contenido || "",
+          descripcion: content.descripcion,
+          autor: content.autor,
+          portada_url: content.portada_url
+        })
         .select()
         .single();
 
