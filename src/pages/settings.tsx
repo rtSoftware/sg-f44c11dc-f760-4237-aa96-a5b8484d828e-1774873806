@@ -24,7 +24,9 @@ export default function Settings() {
     descripcion: "",
     contenido: "",
     autor: "",
-    portada_url: ""
+    portada_url: "",
+    audio_https: "",
+    audioAnalisis_https: ""
   });
 
   useEffect(() => {
@@ -58,7 +60,9 @@ export default function Settings() {
         descripcion: data.descripcion || "",
         contenido: data.contenido || "",
         autor: data.autor || "",
-        portada_url: data.portada_url || ""
+        portada_url: data.portada_url || "",
+        audio_https: data.audio_https || "",
+        audioAnalisis_https: data.audioAnalisis_https || ""
       });
     }
   }
@@ -189,6 +193,40 @@ export default function Settings() {
                     type="url"
                     className="border-amber-200 focus:border-amber-400 focus:ring-amber-400"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="audio_https" className="text-amber-900 font-semibold">
+                    URL del Audio Principal
+                  </Label>
+                  <Input
+                    id="audio_https"
+                    value={formData.audio_https}
+                    onChange={(e) => handleChange("audio_https", e.target.value)}
+                    placeholder="https://streaming.ejemplo.com/audio-libro.mp3"
+                    type="url"
+                    className="border-amber-200 focus:border-amber-400 focus:ring-amber-400"
+                  />
+                  <p className="text-sm text-amber-600">
+                    URL HTTPS al servidor de streaming para el audio del libro
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="audioAnalisis_https" className="text-amber-900 font-semibold">
+                    URL del Audio de Análisis
+                  </Label>
+                  <Input
+                    id="audioAnalisis_https"
+                    value={formData.audioAnalisis_https}
+                    onChange={(e) => handleChange("audioAnalisis_https", e.target.value)}
+                    placeholder="https://streaming.ejemplo.com/audio-analisis.mp3"
+                    type="url"
+                    className="border-amber-200 focus:border-amber-400 focus:ring-amber-400"
+                  />
+                  <p className="text-sm text-amber-600">
+                    URL HTTPS al servidor de streaming para el audio de análisis
+                  </p>
                 </div>
 
                 {message && (

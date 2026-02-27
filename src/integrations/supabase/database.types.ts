@@ -38,6 +38,8 @@ export type Database = {
       }
       libro: {
         Row: {
+          audio_https: string | null
+          audioanalisis_https: string | null
           autor: string | null
           casa_id: string
           categoria: string | null
@@ -53,6 +55,8 @@ export type Database = {
           visible: boolean | null
         }
         Insert: {
+          audio_https?: string | null
+          audioanalisis_https?: string | null
           autor?: string | null
           casa_id?: string
           categoria?: string | null
@@ -68,6 +72,8 @@ export type Database = {
           visible?: boolean | null
         }
         Update: {
+          audio_https?: string | null
+          audioanalisis_https?: string | null
           autor?: string | null
           casa_id?: string
           categoria?: string | null
