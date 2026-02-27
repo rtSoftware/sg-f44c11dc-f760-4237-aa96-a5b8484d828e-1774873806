@@ -27,13 +27,16 @@ export async function getLibroContent(): Promise<{ data: Libro | null; error: Er
 /**
  * Crear o actualizar contenido del libro
  */
-export async function upsertLibroContent(content: {
-  titulo?: string;
-  descripcion?: string;
-  contenido?: string;
-  autor?: string;
-  portada_url?: string;
-}): Promise<{ data: Libro | null; error: Error | null }> {
+export async function upsertLibroContent(
+  content: {
+    titulo?: string;
+    descripcion?: string;
+    contenido?: string;
+    autor?: string;
+    portada_url?: string;
+  },
+  userId: string
+): Promise<{ data: Libro | null; error: Error | null }> {
   try {
     // Primero verificamos si ya existe contenido
     const { data: existingData } = await getLibroContent();
@@ -53,7 +56,7 @@ export async function upsertLibroContent(content: {
       // Crear nuevo contenido
       const { data, error } = await supabase
         .from("libro")
-        .insert(content)
+        .insert({ ...content, user_id: userId })
         .select()
         .single();
 

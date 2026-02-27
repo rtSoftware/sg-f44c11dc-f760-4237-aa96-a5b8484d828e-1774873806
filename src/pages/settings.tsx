@@ -65,10 +65,12 @@ export default function Settings() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!user) return;
+
     setSaving(true);
     setMessage(null);
 
-    const { data, error } = await upsertLibroContent(formData);
+    const { data, error } = await upsertLibroContent(formData, user.id);
 
     if (error) {
       setMessage({ type: "error", text: "Error al guardar el contenido" });
