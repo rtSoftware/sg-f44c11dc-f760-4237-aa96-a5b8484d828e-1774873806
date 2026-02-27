@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Check, Star } from "lucide-react";
+import Link from "next/link";
 
 const plans = [
   {
@@ -113,15 +114,17 @@ export function PricingSection() {
                 ))}
               </ul>
 
-              <Button
-                className={`w-full py-6 text-lg font-bold rounded-xl transition-all duration-300 ${
-                  plan.highlighted
-                    ? "bg-white text-amber-700 hover:bg-amber-50 shadow-lg"
-                    : "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-md hover:shadow-lg"
-                }`}
-              >
-                Comenzar Ahora
-              </Button>
+              <Link href="/auth">
+                <Button
+                  className={`w-full py-6 text-lg font-bold rounded-xl transition-all duration-300 ${
+                    plan.highlighted
+                      ? "bg-white text-amber-700 hover:bg-amber-50 shadow-lg"
+                      : "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-md hover:shadow-lg"
+                  }`}
+                >
+                  Comenzar Ahora
+                </Button>
+              </Link>
             </div>
           ))}
         </div>
