@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail, MessageSquare, Send } from "lucide-react";
+import { Mail, MessageSquare, Send, Phone } from "lucide-react";
 import { useState } from "react";
 
 export function ContactSection() {
@@ -51,7 +51,18 @@ export function ContactSection() {
                 </div>
                 <div>
                   <h4 className="font-bold text-stone-900 mb-1">Email</h4>
-                  <p className="text-stone-600 text-sm">contacto@experienciamiguel.com</p>
+                  <p className="text-stone-600 text-sm">tapiara@iasos.com.mx</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 p-4 bg-green-50 rounded-xl border border-green-200/50">
+                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-stone-900 mb-1">WhatsApp</h4>
+                  <p className="text-stone-600 text-sm font-medium">5619 77 3576</p>
+                  <p className="text-stone-500 text-xs mt-1 italic">(No contesto llamadas directas, envía un mensaje)</p>
                 </div>
               </div>
 
