@@ -3,7 +3,8 @@ import { useRouter } from "next/router";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, LogOut, Loader2, User } from "lucide-react";
+import { BookOpen, LogOut, Loader2, User, Settings } from "lucide-react";
+import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 export default function DashboardPage() {
@@ -168,6 +169,17 @@ export default function DashboardPage() {
             </div>
           </div>
         </main>
+
+        {/* Floating Settings Button */}
+        <Link href="/settings">
+          <Button
+            size="icon"
+            className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-gradient-to-br from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+            title="Configuración"
+          >
+            <Settings className="w-5 h-5 text-white" />
+          </Button>
+        </Link>
       </div>
     </>
   );
