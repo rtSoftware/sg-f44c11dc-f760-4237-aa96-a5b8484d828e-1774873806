@@ -102,9 +102,9 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {/* Coming Soon Card */}
+          {/* Feature Cards */}
           <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-xl border border-stone-200 p-12 text-center">
+            <div className="bg-white rounded-2xl shadow-xl border border-stone-200 p-8 sm:p-12 text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <BookOpen className="w-10 h-10 text-amber-600" />
               </div>
@@ -117,33 +117,48 @@ export default function DashboardPage() {
                 Accede a todo el contenido de Experiencia Miguel
               </p>
 
-              {/* Main Action: Biblioteca */}
-              <Link href="/biblioteca">
-                <Button 
-                  size="lg"
-                  className="mb-6 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-lg px-8 py-6 h-auto"
-                >
-                  <BookOpen className="w-6 h-6 mr-3" />
-                  Ir a la Biblioteca
-                </Button>
-              </Link>
-
+              {/* Functional Feature Cards Grid */}
               <div className="grid sm:grid-cols-2 gap-4 mb-8">
-                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-                  <h4 className="font-semibold text-stone-900 mb-2">📚 Biblioteca Digital</h4>
-                  <p className="text-sm text-stone-600">Acceso completo al libro</p>
-                </div>
-                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200 opacity-50">
-                  <h4 className="font-semibold text-stone-900 mb-2">👥 Comunidad</h4>
+                {/* Biblioteca Digital - Active */}
+                <Link href="/biblioteca">
+                  <div className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-200 hover:border-amber-400 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+                    <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">📚</div>
+                    <h4 className="font-bold text-stone-900 mb-2 text-lg">Biblioteca Digital</h4>
+                    <p className="text-sm text-stone-600">Acceso completo al libro</p>
+                    <div className="mt-3 text-amber-600 text-sm font-semibold group-hover:translate-x-1 transition-transform duration-300">
+                      Acceder →
+                    </div>
+                  </div>
+                </Link>
+
+                {/* Comunidad - Coming Soon */}
+                <div className="p-6 bg-stone-50 rounded-xl border-2 border-stone-200 opacity-60 cursor-not-allowed">
+                  <div className="text-4xl mb-3">👥</div>
+                  <h4 className="font-bold text-stone-900 mb-2 text-lg">Comunidad</h4>
                   <p className="text-sm text-stone-600">Próximamente</p>
+                  <div className="mt-3 text-stone-400 text-sm font-semibold">
+                    En desarrollo...
+                  </div>
                 </div>
-                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200 opacity-50">
-                  <h4 className="font-semibold text-stone-900 mb-2">🎯 Ejercicios</h4>
+
+                {/* Ejercicios - Coming Soon */}
+                <div className="p-6 bg-stone-50 rounded-xl border-2 border-stone-200 opacity-60 cursor-not-allowed">
+                  <div className="text-4xl mb-3">🎯</div>
+                  <h4 className="font-bold text-stone-900 mb-2 text-lg">Ejercicios</h4>
                   <p className="text-sm text-stone-600">Próximamente</p>
+                  <div className="mt-3 text-stone-400 text-sm font-semibold">
+                    En desarrollo...
+                  </div>
                 </div>
-                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200 opacity-50">
-                  <h4 className="font-semibold text-stone-900 mb-2">🎓 Mentorías</h4>
+
+                {/* Mentorías - Coming Soon */}
+                <div className="p-6 bg-stone-50 rounded-xl border-2 border-stone-200 opacity-60 cursor-not-allowed">
+                  <div className="text-4xl mb-3">🎓</div>
+                  <h4 className="font-bold text-stone-900 mb-2 text-lg">Mentorías</h4>
                   <p className="text-sm text-stone-600">Próximamente</p>
+                  <div className="mt-3 text-stone-400 text-sm font-semibold">
+                    En desarrollo...
+                  </div>
                 </div>
               </div>
 
