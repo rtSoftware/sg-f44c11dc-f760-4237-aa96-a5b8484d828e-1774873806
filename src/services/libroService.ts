@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { getCasaId } from "@/services/casaService";
 
 export type Libro = Tables<"libro">;
 
@@ -8,9 +9,15 @@ export type Libro = Tables<"libro">;
  */
 export async function getLibroContent(): Promise<{ data: Libro | null; error: Error | null }> {
   try {
+    const casaId = getCasaId();
+    if (!casaId) {
+      return { data: null, error: new Error("No casa_id found") };
+    }
+
     const { data, error } = await supabase
       .from("libro")
       .select("*")
+      .eq("casa_id", casaId)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -38,6 +45,11 @@ export async function upsertLibroContent(
   userId: string
 ): Promise<{ data: Libro | null; error: Error | null }> {
   try {
+    const casaId = getCasaId();
+    if (!casaId) {
+      return { data: null, error: new Error("No casa_id found") };
+    }
+
     // Primero verificamos si ya existe contenido
     const { data: existingData } = await getLibroContent();
 
@@ -47,6 +59,7 @@ export async function upsertLibroContent(
         .from("libro")
         .update(content)
         .eq("id", existingData.id)
+        .eq("casa_id", casaId)
         .select()
         .single();
 
@@ -58,6 +71,7 @@ export async function upsertLibroContent(
         .from("libro")
         .insert({
           user_id: userId,
+          casa_id: casaId,
           titulo: content.titulo || "",
           contenido: content.contenido || "",
           descripcion: content.descripcion,
@@ -81,10 +95,16 @@ export async function upsertLibroContent(
  */
 export async function deleteLibroContent(id: string): Promise<{ success: boolean; error: Error | null }> {
   try {
+    const casaId = getCasaId();
+    if (!casaId) {
+      return { success: false, error: new Error("No casa_id found") };
+    }
+
     const { error } = await supabase
       .from("libro")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .eq("casa_id", casaId);
 
     if (error) throw error;
     return { success: true, error: null };

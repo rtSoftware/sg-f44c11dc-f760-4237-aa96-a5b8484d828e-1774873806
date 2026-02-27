@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
+import { initializeCasa, setCasaId } from "@/services/casaService";
 
 export interface AuthUser {
   id: string;
@@ -73,6 +74,14 @@ export const authService = {
         created_at: data.user.created_at
       } : null;
 
+      // Initialize casa after successful signup
+      if (authUser) {
+        const casaResult = await initializeCasa();
+        if (casaResult.success && casaResult.casa_id) {
+          setCasaId(casaResult.casa_id);
+        }
+      }
+
       return { user: authUser, error: null };
     } catch (error) {
       return { 
@@ -100,6 +109,14 @@ export const authService = {
         user_metadata: data.user.user_metadata,
         created_at: data.user.created_at
       } : null;
+
+      // Initialize casa after successful signin
+      if (authUser) {
+        const casaResult = await initializeCasa();
+        if (casaResult.success && casaResult.casa_id) {
+          setCasaId(casaResult.casa_id);
+        }
+      }
 
       return { user: authUser, error: null };
     } catch (error) {
