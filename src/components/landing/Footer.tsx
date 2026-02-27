@@ -45,11 +45,14 @@ export function Footer() {
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-amber-400" />
-                <span>contacto@experienciamiguel.com</span>
+                <span>tapiara@iasos.com.mx</span>
               </div>
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 text-amber-400" />
-                <span>Comunidad activa 24/7</span>
+              <div className="flex items-start gap-2">
+                <MessageCircle className="w-4 h-4 text-amber-400 mt-0.5" />
+                <div>
+                  <p>WhatsApp: 5619 77 3576</p>
+                  <p className="text-xs text-stone-500 italic">(No contesto llamadas directas, envía un mensaje)</p>
+                </div>
               </div>
             </div>
           </div>
