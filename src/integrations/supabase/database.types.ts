@@ -1,4 +1,4 @@
- 
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 export type Json =
   | string
   | number
@@ -15,9 +15,31 @@ export type Database = {
   }
   public: {
     Tables: {
+      casas: {
+        Row: {
+          casa_memo: Json | null
+          casa_nombre: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          casa_memo?: Json | null
+          casa_nombre: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          casa_memo?: Json | null
+          casa_nombre?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       libro: {
         Row: {
           autor: string | null
+          casa_id: string
           categoria: string | null
           contenido: string
           created_at: string | null
@@ -32,6 +54,7 @@ export type Database = {
         }
         Insert: {
           autor?: string | null
+          casa_id?: string
           categoria?: string | null
           contenido: string
           created_at?: string | null
@@ -46,6 +69,7 @@ export type Database = {
         }
         Update: {
           autor?: string | null
+          casa_id?: string
           categoria?: string | null
           contenido?: string
           created_at?: string | null
@@ -58,11 +82,20 @@ export type Database = {
           user_id?: string
           visible?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "libro_casa_id_fkey"
+            columns: ["casa_id"]
+            isOneToOne: false
+            referencedRelation: "casas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
           avatar_url: string | null
+          casa_id: string
           created_at: string | null
           email: string | null
           full_name: string | null
@@ -71,6 +104,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          casa_id?: string
           created_at?: string | null
           email?: string | null
           full_name?: string | null
@@ -79,13 +113,22 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          casa_id?: string
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_casa_id_fkey"
+            columns: ["casa_id"]
+            isOneToOne: false
+            referencedRelation: "casas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
