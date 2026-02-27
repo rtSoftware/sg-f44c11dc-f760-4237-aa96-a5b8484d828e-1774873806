@@ -1,4 +1,4 @@
- 
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 export type Json =
   | string
   | number
@@ -17,36 +17,42 @@ export type Database = {
     Tables: {
       libro: {
         Row: {
+          autor: string | null
           categoria: string | null
           contenido: string
           created_at: string | null
           descripcion: string | null
           id: string
           orden: number | null
+          portada_url: string | null
           titulo: string
           updated_at: string | null
           user_id: string
           visible: boolean | null
         }
         Insert: {
+          autor?: string | null
           categoria?: string | null
           contenido: string
           created_at?: string | null
           descripcion?: string | null
           id?: string
           orden?: number | null
+          portada_url?: string | null
           titulo: string
           updated_at?: string | null
           user_id: string
           visible?: boolean | null
         }
         Update: {
+          autor?: string | null
           categoria?: string | null
           contenido?: string
           created_at?: string | null
           descripcion?: string | null
           id?: string
           orden?: number | null
+          portada_url?: string | null
           titulo?: string
           updated_at?: string | null
           user_id?: string
