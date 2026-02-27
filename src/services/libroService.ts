@@ -42,7 +42,7 @@ export async function upsertLibroContent(
     autor?: string;
     portada_url?: string;
     audio_https?: string;
-    audioAnalisis_https?: string;
+    audioanalisis_https?: string;
   },
   userId: string
 ): Promise<{ data: Libro | null; error: Error | null }> {
@@ -80,7 +80,7 @@ export async function upsertLibroContent(
           autor: content.autor,
           portada_url: content.portada_url,
           audio_https: content.audio_https,
-          audioAnalisis_https: content.audioAnalisis_https
+          audioanalisis_https: content.audioanalisis_https
         })
         .select()
         .single();

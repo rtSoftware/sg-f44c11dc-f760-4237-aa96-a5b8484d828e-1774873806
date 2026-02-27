@@ -26,7 +26,7 @@ export default function Settings() {
     autor: "",
     portada_url: "",
     audio_https: "",
-    audioAnalisis_https: ""
+    audioanalisis_https: ""
   });
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function Settings() {
         autor: data.autor || "",
         portada_url: data.portada_url || "",
         audio_https: data.audio_https || "",
-        audioAnalisis_https: data.audioAnalisis_https || ""
+        audioanalisis_https: data.audioanalisis_https || ""
       });
     }
   }
@@ -213,13 +213,13 @@ export default function Settings() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="audioAnalisis_https" className="text-amber-900 font-semibold">
+                  <Label htmlFor="audioanalisis_https" className="text-amber-900 font-semibold">
                     URL del Audio de Análisis
                   </Label>
                   <Input
-                    id="audioAnalisis_https"
-                    value={formData.audioAnalisis_https}
-                    onChange={(e) => handleChange("audioAnalisis_https", e.target.value)}
+                    id="audioanalisis_https"
+                    value={formData.audioanalisis_https}
+                    onChange={(e) => handleChange("audioanalisis_https", e.target.value)}
                     placeholder="https://streaming.ejemplo.com/audio-analisis.mp3"
                     type="url"
                     className="border-amber-200 focus:border-amber-400 focus:ring-amber-400"
