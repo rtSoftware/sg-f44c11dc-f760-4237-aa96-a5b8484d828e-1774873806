@@ -6,17 +6,31 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Trash2, Plus } from "lucide-react";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
-import { getLibroContent, upsertLibroContent } from "@/services/libroService";
+import { getLibroContent, upsertLibroContent, deleteLibroContent } from "@/services/libroService";
 import type { User } from "@supabase/supabase-js";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Settings() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [libroId, setLibroId] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const [formData, setFormData] = useState({
@@ -51,10 +65,13 @@ export default function Settings() {
     
     if (error) {
       console.error("Error loading content:", error);
+      setIsEditMode(false);
       return;
     }
 
     if (data) {
+      setLibroId(data.id);
+      setIsEditMode(true);
       setFormData({
         titulo: data.titulo || "",
         descripcion: data.descripcion || "",
@@ -64,12 +81,20 @@ export default function Settings() {
         audio_https: data.audio_https || "",
         audioanalisis_https: data.audioanalisis_https || ""
       });
+    } else {
+      setIsEditMode(false);
     }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
+
+    // Validación básica
+    if (!formData.titulo.trim()) {
+      setMessage({ type: "error", text: "El título es obligatorio" });
+      return;
+    }
 
     setSaving(true);
     setMessage(null);
@@ -80,14 +105,70 @@ export default function Settings() {
       setMessage({ type: "error", text: "Error al guardar el contenido" });
       console.error("Save error:", error);
     } else {
-      setMessage({ type: "success", text: "Contenido guardado exitosamente" });
+      setMessage({ 
+        type: "success", 
+        text: isEditMode ? "Contenido actualizado exitosamente" : "Contenido creado exitosamente" 
+      });
+      
+      // Si era modo creación, cambiar a modo edición
+      if (!isEditMode && data) {
+        setLibroId(data.id);
+        setIsEditMode(true);
+      }
     }
 
     setSaving(false);
   }
 
+  async function handleDelete() {
+    if (!libroId) return;
+
+    setDeleting(true);
+    setMessage(null);
+
+    const { success, error } = await deleteLibroContent(libroId);
+
+    if (error) {
+      setMessage({ type: "error", text: "Error al eliminar el contenido" });
+      console.error("Delete error:", error);
+    } else {
+      setMessage({ type: "success", text: "Contenido eliminado exitosamente" });
+      
+      // Resetear formulario a modo creación
+      setLibroId(null);
+      setIsEditMode(false);
+      setFormData({
+        titulo: "",
+        descripcion: "",
+        contenido: "",
+        autor: "",
+        portada_url: "",
+        audio_https: "",
+        audioanalisis_https: ""
+      });
+    }
+
+    setDeleting(false);
+    setShowDeleteDialog(false);
+  }
+
   function handleChange(field: string, value: string) {
     setFormData(prev => ({ ...prev, [field]: value }));
+  }
+
+  function handleNewContent() {
+    setLibroId(null);
+    setIsEditMode(false);
+    setFormData({
+      titulo: "",
+      descripcion: "",
+      contenido: "",
+      autor: "",
+      portada_url: "",
+      audio_https: "",
+      audioanalisis_https: ""
+    });
+    setMessage(null);
   }
 
   if (loading) {
@@ -111,22 +192,51 @@ export default function Settings() {
               <ArrowLeft className="h-5 w-5" />
               <span className="font-semibold">Volver al Dashboard</span>
             </Link>
+            
+            {isEditMode && (
+              <Button
+                onClick={handleNewContent}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Nuevo Contenido
+              </Button>
+            )}
           </div>
         </header>
 
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Card className="border-amber-200 shadow-lg">
             <CardHeader className="border-b border-amber-100 bg-gradient-to-r from-amber-50 to-orange-50">
-              <CardTitle className="text-2xl text-amber-900">Configuración del Libro</CardTitle>
-              <CardDescription className="text-amber-700">
-                Administra el contenido que se mostrará en la biblioteca
-              </CardDescription>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-2xl text-amber-900">
+                    {isEditMode ? "Editar Contenido del Libro" : "Crear Nuevo Contenido"}
+                  </CardTitle>
+                  <CardDescription className="text-amber-700">
+                    {isEditMode 
+                      ? "Modifica el contenido que se mostrará en la biblioteca"
+                      : "Crea el primer contenido para tu biblioteca"
+                    }
+                  </CardDescription>
+                </div>
+                {isEditMode && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setShowDeleteDialog(true)}
+                    disabled={deleting}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="pt-6">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="titulo" className="text-amber-900 font-semibold">
-                    Título del Libro
+                    Título del Libro <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="titulo"
@@ -134,6 +244,7 @@ export default function Settings() {
                     onChange={(e) => handleChange("titulo", e.target.value)}
                     placeholder="Experiencia Miguel"
                     className="border-amber-200 focus:border-amber-400 focus:ring-amber-400"
+                    required
                   />
                 </div>
 
@@ -258,7 +369,7 @@ export default function Settings() {
                     ) : (
                       <>
                         <Save className="mr-2 h-4 w-4" />
-                        Guardar Cambios
+                        {isEditMode ? "Actualizar Cambios" : "Crear Contenido"}
                       </>
                     )}
                   </Button>
@@ -267,6 +378,41 @@ export default function Settings() {
             </CardContent>
           </Card>
         </main>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent className="bg-white">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-amber-900">¿Eliminar contenido del libro?</AlertDialogTitle>
+              <AlertDialogDescription className="text-amber-700">
+                Esta acción no se puede deshacer. El contenido del libro, incluyendo título, descripción, 
+                contenido completo y URLs de audio serán eliminados permanentemente.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-amber-300 text-amber-700 hover:bg-amber-50">
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={deleting}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Eliminando...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Eliminar
+                  </>
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </>
   );
