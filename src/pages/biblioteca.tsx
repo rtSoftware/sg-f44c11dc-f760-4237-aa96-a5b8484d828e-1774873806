@@ -2,21 +2,26 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { authService } from "@/services/authService";
-import { getLibroContent } from "@/services/libroService";
+import { getAllLibros } from "@/services/libroService";
 import { useCasa } from "@/contexts/CasaContext";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
-import { ArrowLeft, BookOpen, Headphones, User as UserIcon } from "lucide-react";
+import type { Libro } from "@/services/libroService";
+import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library } from "lucide-react";
 import Link from "next/link";
+
+type ViewMode = "grid" | "reader";
 
 export default function Biblioteca() {
   const router = useRouter();
   const { casaId } = useCasa();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [libro, setLibro] = useState<any>(null);
+  const [libros, setLibros] = useState<Libro[]>([]);
+  const [selectedLibro, setSelectedLibro] = useState<Libro | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   useEffect(() => {
     checkAuth();
@@ -24,7 +29,7 @@ export default function Biblioteca() {
 
   useEffect(() => {
     if (user && casaId) {
-      loadLibro();
+      loadLibros();
     }
   }, [user, casaId]);
 
@@ -38,18 +43,29 @@ export default function Biblioteca() {
     setLoading(false);
   }
 
-  async function loadLibro() {
-    const { data, error } = await getLibroContent();
+  async function loadLibros() {
+    const { data, error } = await getAllLibros();
     if (error) {
-      console.error("Error loading libro:", error);
+      console.error("Error loading libros:", error);
+      setLibros([]);
       return;
     }
-    setLibro(data);
+    setLibros(data || []);
   }
 
   async function handleLogout() {
     await authService.signOut();
     router.push("/");
+  }
+
+  function handleSelectLibro(libro: Libro) {
+    setSelectedLibro(libro);
+    setViewMode("reader");
+  }
+
+  function handleBackToGrid() {
+    setSelectedLibro(null);
+    setViewMode("grid");
   }
 
   if (loading) {
@@ -67,7 +83,7 @@ export default function Biblioteca() {
     <>
       <SEO
         title="Biblioteca | Experiencia Miguel"
-        description="Lee el contenido completo del libro Experiencia Miguel"
+        description="Explora la colección completa de libros de Experiencia Miguel"
       />
 
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
@@ -75,12 +91,24 @@ export default function Biblioteca() {
         <header className="bg-white/80 backdrop-blur-sm border-b border-amber-200 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex justify-between items-center">
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm" className="text-amber-700 hover:text-amber-900 hover:bg-amber-100">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Volver al Dashboard
+              {viewMode === "grid" ? (
+                <Link href="/dashboard">
+                  <Button variant="ghost" size="sm" className="text-amber-700 hover:text-amber-900 hover:bg-amber-100">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Volver al Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBackToGrid}
+                  className="text-amber-700 hover:text-amber-900 hover:bg-amber-100"
+                >
+                  <Library className="w-4 h-4 mr-2" />
+                  Volver a la Biblioteca
                 </Button>
-              </Link>
+              )}
               
               <div className="flex items-center gap-4">
                 <div className="hidden sm:flex items-center gap-2 text-sm text-amber-700">
@@ -101,57 +129,126 @@ export default function Biblioteca() {
         </header>
 
         {/* Main Content */}
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {!libro ? (
-            <Card className="bg-white/90 backdrop-blur-sm border-amber-200">
-              <CardContent className="p-12 text-center">
-                <BookOpen className="w-16 h-16 mx-auto text-amber-400 mb-4" />
-                <h2 className="text-2xl font-bold text-amber-900 mb-2">
-                  No hay contenido disponible
-                </h2>
-                <p className="text-amber-700 mb-6">
-                  El contenido del libro aún no ha sido configurado.
-                </p>
-                <Link href="/settings">
-                  <Button className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white">
-                    Ir a Configuración
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          ) : (
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {viewMode === "grid" ? (
+            // GRID VIEW - Selector de Libros
             <div className="space-y-8">
+              <div className="text-center">
+                <h1 className="text-4xl font-bold text-amber-900 mb-2 font-serif">
+                  Biblioteca Digital
+                </h1>
+                <p className="text-lg text-amber-700">
+                  Selecciona un libro para comenzar tu lectura
+                </p>
+              </div>
+
+              {libros.length === 0 ? (
+                <Card className="bg-white/90 backdrop-blur-sm border-amber-200">
+                  <CardContent className="p-12 text-center">
+                    <BookOpen className="w-16 h-16 mx-auto text-amber-400 mb-4" />
+                    <h2 className="text-2xl font-bold text-amber-900 mb-2">
+                      No hay libros disponibles
+                    </h2>
+                    <p className="text-amber-700 mb-6">
+                      Los libros aún no han sido configurados en esta biblioteca.
+                    </p>
+                    <Link href="/settings">
+                      <Button className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white">
+                        Ir a Configuración
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {libros.map((libro) => (
+                    <Card
+                      key={libro.id}
+                      className="border-amber-200 bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 group"
+                      onClick={() => handleSelectLibro(libro)}
+                    >
+                      <CardHeader className="border-b border-amber-100 bg-gradient-to-r from-amber-50 to-orange-50">
+                        {libro.portada_url ? (
+                          <div className="mb-4 -mt-6 -mx-6">
+                            <img
+                              src={libro.portada_url}
+                              alt={libro.titulo}
+                              className="w-full h-48 object-cover rounded-t-lg"
+                            />
+                          </div>
+                        ) : (
+                          <div className="mb-4 -mt-6 -mx-6 h-48 bg-gradient-to-br from-amber-200 to-orange-300 rounded-t-lg flex items-center justify-center">
+                            <BookOpen className="w-16 h-16 text-white opacity-50" />
+                          </div>
+                        )}
+                        <CardTitle className="text-xl text-amber-900 line-clamp-2 group-hover:text-orange-700 transition-colors">
+                          {libro.titulo}
+                        </CardTitle>
+                        {libro.autor && (
+                          <CardDescription className="text-amber-700 mt-1">
+                            por {libro.autor}
+                          </CardDescription>
+                        )}
+                      </CardHeader>
+                      <CardContent className="pt-4">
+                        {libro.descripcion && (
+                          <p className="text-sm text-amber-800 line-clamp-4 mb-4">
+                            {libro.descripcion}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between text-sm text-amber-600">
+                          <div className="flex items-center gap-2">
+                            {libro.audio_https && (
+                              <span className="flex items-center gap-1">
+                                <Headphones className="w-4 h-4" />
+                                Audio
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-orange-600 font-semibold group-hover:underline">
+                            Leer ahora →
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : selectedLibro ? (
+            // READER VIEW - Vista de Lectura del Libro Seleccionado
+            <div className="space-y-8 max-w-4xl mx-auto">
               {/* Book Header */}
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-amber-200 overflow-hidden">
                 <div className="p-8 sm:p-12">
                   {/* Title and Author */}
                   <div className="text-center mb-8">
                     <h1 className="text-4xl sm:text-5xl font-bold text-amber-900 mb-4 font-serif">
-                      {libro.titulo}
+                      {selectedLibro.titulo}
                     </h1>
-                    {libro.autor && (
+                    {selectedLibro.autor && (
                       <p className="text-xl text-amber-700 font-medium">
-                        por {libro.autor}
+                        por {selectedLibro.autor}
                       </p>
                     )}
                   </div>
 
                   {/* Cover Image */}
-                  {libro.portada_url && (
+                  {selectedLibro.portada_url && (
                     <div className="mb-8">
                       <img
-                        src={libro.portada_url}
-                        alt={libro.titulo}
+                        src={selectedLibro.portada_url}
+                        alt={selectedLibro.titulo}
                         className="max-w-md mx-auto rounded-lg shadow-lg"
                       />
                     </div>
                   )}
 
                   {/* Description */}
-                  {libro.descripcion && (
+                  {selectedLibro.descripcion && (
                     <div className="mb-8">
                       <p className="text-lg text-amber-800 leading-relaxed text-center italic">
-                        {libro.descripcion}
+                        {selectedLibro.descripcion}
                       </p>
                     </div>
                   )}
@@ -159,14 +256,14 @@ export default function Biblioteca() {
                   <Separator className="bg-amber-200" />
 
                   {/* Audio Players */}
-                  {(libro.audio_https || libro.audioanalisis_https) && (
+                  {(selectedLibro.audio_https || selectedLibro.audioanalisis_https) && (
                     <div className="mt-8 space-y-6">
                       <h3 className="text-2xl font-bold text-amber-900 flex items-center gap-2">
                         <Headphones className="w-6 h-6" />
                         Audio del Libro
                       </h3>
 
-                      {libro.audio_https && (
+                      {selectedLibro.audio_https && (
                         <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl p-6 border border-amber-300">
                           <h4 className="text-lg font-semibold text-amber-900 mb-3">
                             Audio Principal
@@ -176,13 +273,13 @@ export default function Biblioteca() {
                             className="w-full"
                             preload="metadata"
                           >
-                            <source src={libro.audio_https} type="audio/mpeg" />
+                            <source src={selectedLibro.audio_https} type="audio/mpeg" />
                             Tu navegador no soporta el elemento de audio.
                           </audio>
                         </div>
                       )}
 
-                      {libro.audioanalisis_https && (
+                      {selectedLibro.audioanalisis_https && (
                         <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl p-6 border border-amber-300">
                           <h4 className="text-lg font-semibold text-amber-900 mb-3">
                             Audio de Análisis
@@ -192,7 +289,7 @@ export default function Biblioteca() {
                             className="w-full"
                             preload="metadata"
                           >
-                            <source src={libro.audioanalisis_https} type="audio/mpeg" />
+                            <source src={selectedLibro.audioanalisis_https} type="audio/mpeg" />
                             Tu navegador no soporta el elemento de audio.
                           </audio>
                         </div>
@@ -203,7 +300,7 @@ export default function Biblioteca() {
               </div>
 
               {/* Book Content */}
-              {libro.contenido && (
+              {selectedLibro.contenido && (
                 <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-amber-200 p-8 sm:p-12">
                   <div 
                     className="prose prose-amber prose-lg max-w-none
@@ -215,13 +312,13 @@ export default function Biblioteca() {
                       prose-code:text-orange-700 prose-code:bg-amber-100
                       prose-pre:bg-amber-900 prose-pre:text-amber-50"
                     dangerouslySetInnerHTML={{ 
-                      __html: formatMarkdownContent(libro.contenido) 
+                      __html: formatMarkdownContent(selectedLibro.contenido) 
                     }}
                   />
                 </div>
               )}
             </div>
-          )}
+          ) : null}
         </main>
       </div>
     </>
