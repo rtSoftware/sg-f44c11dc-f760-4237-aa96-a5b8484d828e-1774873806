@@ -218,7 +218,7 @@ export default function Settings() {
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
               >
                 <Plus className="mr-2 h-4 w-4" />
-                Nuevo Libro
+                Nuevo Capítulo
               </Button>
             )}
           </div>
@@ -229,7 +229,7 @@ export default function Settings() {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold text-amber-900">Gestión de Libros</h1>
+                  <h1 className="text-3xl font-bold text-amber-900">Capítulos</h1>
                   <p className="text-amber-700 mt-2">Administra el contenido de tu biblioteca</p>
                 </div>
               </div>
