@@ -83,7 +83,7 @@ export default function Biblioteca() {
     <>
       <SEO
         title="Biblioteca | Experiencia Miguel"
-        description="Explora la colección completa de libros de Experiencia Miguel"
+        description="Explora la colección completa de capítulos de Experiencia Miguel"
       />
 
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
@@ -131,14 +131,14 @@ export default function Biblioteca() {
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {viewMode === "grid" ? (
-            // GRID VIEW - Selector de Libros
+            // GRID VIEW - Selector de Capítulos
             <div className="space-y-8">
               <div className="text-center">
                 <h1 className="text-4xl font-bold text-amber-900 mb-2 font-serif">
                   Biblioteca Digital
                 </h1>
                 <p className="text-lg text-amber-700">
-                  Selecciona un libro para comenzar tu lectura
+                  Selecciona un capítulo para comenzar tu lectura
                 </p>
               </div>
 
@@ -216,9 +216,9 @@ export default function Biblioteca() {
               )}
             </div>
           ) : selectedLibro ? (
-            // READER VIEW - Vista de Lectura del Libro Seleccionado
+            // READER VIEW - Vista de Lectura del Capítulo Seleccionado
             <div className="space-y-8 max-w-4xl mx-auto">
-              {/* Book Header */}
+              {/* Chapter Header */}
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-amber-200 overflow-hidden">
                 <div className="p-8 sm:p-12">
                   {/* Title and Author */}
@@ -260,7 +260,7 @@ export default function Biblioteca() {
                     <div className="mt-8 space-y-6">
                       <h3 className="text-2xl font-bold text-amber-900 flex items-center gap-2">
                         <Headphones className="w-6 h-6" />
-                        Audio del Libro
+                        Audio del Capítulo
                       </h3>
 
                       {selectedLibro.audio_https && (
@@ -299,7 +299,7 @@ export default function Biblioteca() {
                 </div>
               </div>
 
-              {/* Book Content */}
+              {/* Chapter Content */}
               {selectedLibro.contenido && (
                 <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-amber-200 p-8 sm:p-12">
                   <div 

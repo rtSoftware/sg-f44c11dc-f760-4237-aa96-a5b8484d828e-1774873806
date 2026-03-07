@@ -142,10 +142,10 @@ export default function Settings() {
       const { data, error } = await createLibro(formData, user.id);
 
       if (error) {
-        setMessage({ type: "error", text: "Error al crear el libro" });
+        setMessage({ type: "error", text: "Error al crear el capítulo" });
         console.error("Create error:", error);
       } else {
-        setMessage({ type: "success", text: "Libro creado exitosamente" });
+        setMessage({ type: "success", text: "Capítulo creado exitosamente" });
         await loadLibros();
         setTimeout(() => handleCancelForm(), 1500);
       }
@@ -153,10 +153,10 @@ export default function Settings() {
       const { data, error } = await updateLibro(selectedLibroId, formData);
 
       if (error) {
-        setMessage({ type: "error", text: "Error al actualizar el libro" });
+        setMessage({ type: "error", text: "Error al actualizar el capítulo" });
         console.error("Update error:", error);
       } else {
-        setMessage({ type: "success", text: "Libro actualizado exitosamente" });
+        setMessage({ type: "success", text: "Capítulo actualizado exitosamente" });
         await loadLibros();
         setTimeout(() => handleCancelForm(), 1500);
       }
@@ -174,10 +174,10 @@ export default function Settings() {
     const { success, error } = await deleteLibroContent(selectedLibroId);
 
     if (error) {
-      setMessage({ type: "error", text: "Error al eliminar el libro" });
+      setMessage({ type: "error", text: "Error al eliminar el capítulo" });
       console.error("Delete error:", error);
     } else {
-      setMessage({ type: "success", text: "Libro eliminado exitosamente" });
+      setMessage({ type: "success", text: "Capítulo eliminado exitosamente" });
       await loadLibros();
       setTimeout(() => handleCancelForm(), 1500);
     }
@@ -327,7 +327,7 @@ export default function Settings() {
                       id="titulo"
                       value={formData.titulo}
                       onChange={(e) => handleChange("titulo", e.target.value)}
-                      placeholder="Experiencia Miguel"
+                      placeholder="Capítulo 1: Introducción"
                       className="border-amber-200 focus:border-amber-400 focus:ring-amber-400"
                       required
                     />
@@ -354,7 +354,7 @@ export default function Settings() {
                       id="descripcion"
                       value={formData.descripcion}
                       onChange={(e) => handleChange("descripcion", e.target.value)}
-                      placeholder="Una breve descripción del libro..."
+                      placeholder="Una breve descripción del capítulo..."
                       rows={3}
                       className="border-amber-200 focus:border-amber-400 focus:ring-amber-400 resize-none"
                     />
@@ -368,7 +368,7 @@ export default function Settings() {
                       id="contenido"
                       value={formData.contenido}
                       onChange={(e) => handleChange("contenido", e.target.value)}
-                      placeholder="El contenido completo del libro en formato texto o Markdown..."
+                      placeholder="El contenido completo del capítulo en formato texto o Markdown..."
                       rows={15}
                       className="border-amber-200 focus:border-amber-400 focus:ring-amber-400 font-mono text-sm resize-y"
                     />
@@ -399,12 +399,12 @@ export default function Settings() {
                       id="audio_https"
                       value={formData.audio_https}
                       onChange={(e) => handleChange("audio_https", e.target.value)}
-                      placeholder="https://streaming.ejemplo.com/audio-libro.mp3"
+                      placeholder="https://streaming.ejemplo.com/audio-capitulo.mp3"
                       type="url"
                       className="border-amber-200 focus:border-amber-400 focus:ring-amber-400"
                     />
                     <p className="text-sm text-amber-600">
-                      URL HTTPS al servidor de streaming para el audio del libro
+                      URL HTTPS al servidor de streaming para el audio del capítulo
                     </p>
                   </div>
 
@@ -457,7 +457,7 @@ export default function Settings() {
                       ) : (
                         <>
                           <Save className="mr-2 h-4 w-4" />
-                          {mode === "create" ? "Crear Libro" : "Guardar Cambios"}
+                          {mode === "create" ? "Crear Capítulo" : "Guardar Cambios"}
                         </>
                       )}
                     </Button>
