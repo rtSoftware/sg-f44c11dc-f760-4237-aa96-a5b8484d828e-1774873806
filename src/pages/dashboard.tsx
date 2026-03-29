@@ -171,10 +171,10 @@ export default function DashboardPage() {
                   </div>
                 </Link>
 
-                {/* Comunidad - Coming Soon */}
+                {/* Notas - Coming Soon */}
                 <div className="p-6 bg-stone-50 rounded-xl border-2 border-stone-200 opacity-60 cursor-not-allowed">
-                  <div className="text-4xl mb-3">👥</div>
-                  <h4 className="font-bold text-stone-900 mb-2 text-lg">Comunidad</h4>
+                  <div className="text-4xl mb-3">📝</div>
+                  <h4 className="font-bold text-stone-900 mb-2 text-lg">Notas</h4>
                   <p className="text-sm text-stone-600">Próximamente</p>
                   <div className="mt-3 text-stone-400 text-sm font-semibold">
                     En desarrollo...
