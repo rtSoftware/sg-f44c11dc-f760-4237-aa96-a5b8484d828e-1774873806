@@ -22,6 +22,7 @@ export default function Biblioteca() {
   const [libros, setLibros] = useState<Libro[]>([]);
   const [selectedLibro, setSelectedLibro] = useState<Libro | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [hasTextSelection, setHasTextSelection] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -32,6 +33,20 @@ export default function Biblioteca() {
       loadLibros();
     }
   }, [user, casaId]);
+
+  useEffect(() => {
+    function handleSelectionChange() {
+      const selection = window.getSelection();
+      const selectedText = selection?.toString().trim() || "";
+      setHasTextSelection(selectedText.length > 0);
+    }
+
+    document.addEventListener("selectionchange", handleSelectionChange);
+
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+    };
+  }, []);
 
   async function checkAuth() {
     const currentUser = await authService.getCurrentUser();
@@ -322,16 +337,18 @@ export default function Biblioteca() {
           ) : null}
         </main>
 
-        {/* Floating Action Button - Centered vertically, extreme right */}
-        <div className="fixed top-1/2 right-6 -translate-y-1/2 z-40">
-          <Button
-            size="lg"
-            className="h-14 w-14 rounded-full shadow-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white border-2 border-white hover:scale-110 transition-all duration-300"
-            title="Funcionalidad próximamente"
-          >
-            <MessageCircle className="h-6 w-6" />
-          </Button>
-        </div>
+        {/* Floating Action Button - Centered vertically, extreme right - Only visible when text is selected */}
+        {hasTextSelection && (
+          <div className="fixed top-1/2 right-6 -translate-y-1/2 z-40 animate-in fade-in slide-in-from-right-5 duration-300">
+            <Button
+              size="lg"
+              className="h-14 w-14 rounded-full shadow-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white border-2 border-white hover:scale-110 transition-all duration-300"
+              title="Funcionalidad próximamente"
+            >
+              <MessageCircle className="h-6 w-6" />
+            </Button>
+          </div>
+        )}
       </div>
     </>
   );
