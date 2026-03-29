@@ -9,7 +9,7 @@ import { getAllLibros } from "@/services/libroService";
 import { useCasa } from "@/contexts/CasaContext";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { Libro } from "@/services/libroService";
-import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library } from "lucide-react";
+import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
 type ViewMode = "grid" | "reader";
@@ -320,6 +320,17 @@ export default function Biblioteca() {
             </div>
           ) : null}
         </main>
+
+        {/* Floating Action Button - Centered vertically, extreme right */}
+        <div className="fixed top-1/2 right-6 -translate-y-1/2 z-40">
+          <Button
+            size="lg"
+            className="h-14 w-14 rounded-full shadow-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white border-2 border-white hover:scale-110 transition-all duration-300"
+            title="Funcionalidad próximamente"
+          >
+            <MessageCircle className="h-6 w-6" />
+          </Button>
+        </div>
       </div>
     </>
   );
