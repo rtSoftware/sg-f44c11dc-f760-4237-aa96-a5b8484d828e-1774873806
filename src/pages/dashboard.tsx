@@ -201,12 +201,6 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
-
-              <div className="pt-6 border-t border-stone-200">
-                <p className="text-sm text-stone-500">
-                  ¿Necesitas configurar el contenido? Ve a Configuración usando el botón en la esquina inferior derecha.
-                </p>
-              </div>
             </div>
           </div>
         </main>
