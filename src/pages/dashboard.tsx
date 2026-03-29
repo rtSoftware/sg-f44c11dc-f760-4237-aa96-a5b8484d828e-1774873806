@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, LogOut, Loader2, User, Settings } from "lucide-react";
+import { BookOpen, LogOut, Loader2, User, Settings, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -70,13 +71,51 @@ export default function DashboardPage() {
               </div>
 
               {/* User Menu */}
-              <div className="flex items-center gap-4">
-                <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-stone-100 rounded-lg">
-                  <User className="w-4 h-4 text-stone-600" />
-                  <span className="text-sm text-stone-700">
-                    {user?.user_metadata?.full_name || user?.email}
-                  </span>
-                </div>
+              <div className="flex items-center gap-3">
+                {/* User Account Popover */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="border-stone-300 hover:bg-stone-100 gap-2"
+                    >
+                      <User className="w-4 h-4 text-stone-600" />
+                      <span className="text-sm text-stone-700 hidden sm:inline">
+                        {user?.user_metadata?.full_name || user?.email}
+                      </span>
+                      <ChevronDown className="w-4 h-4 text-stone-500" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80 p-6" align="end">
+                    <div>
+                      <h4 className="font-semibold text-stone-900 mb-4 flex items-center gap-2">
+                        <User className="w-5 h-5 text-amber-600" />
+                        Información de tu cuenta
+                      </h4>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center py-2 border-b border-stone-100">
+                          <span className="text-sm text-stone-600">Nombre:</span>
+                          <span className="text-sm font-medium text-stone-900">
+                            {user?.user_metadata?.full_name || "No especificado"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-stone-100">
+                          <span className="text-sm text-stone-600">Email:</span>
+                          <span className="text-sm font-medium text-stone-900 truncate max-w-[180px]" title={user?.email}>
+                            {user?.email}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-sm text-stone-600">Miembro desde:</span>
+                          <span className="text-sm font-medium text-stone-900">
+                            {user?.created_at ? new Date(user.created_at).toLocaleDateString("es-MX") : "Hoy"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+
                 <Button
                   onClick={handleLogout}
                   variant="outline"
@@ -84,7 +123,8 @@ export default function DashboardPage() {
                   className="border-stone-300 hover:bg-stone-100"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
-                  Cerrar Sesión
+                  <span className="hidden sm:inline">Cerrar Sesión</span>
+                  <span className="sm:hidden">Salir</span>
                 </Button>
               </div>
             </div>
@@ -166,31 +206,6 @@ export default function DashboardPage() {
                 <p className="text-sm text-stone-500">
                   ¿Necesitas configurar el contenido? Ve a Configuración usando el botón en la esquina inferior derecha.
                 </p>
-              </div>
-            </div>
-          </div>
-
-          {/* User Info Card */}
-          <div className="max-w-2xl mx-auto mt-8">
-            <div className="bg-white rounded-xl border border-stone-200 p-6">
-              <h4 className="font-semibold text-stone-900 mb-4">Información de tu cuenta</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center py-2 border-b border-stone-100">
-                  <span className="text-sm text-stone-600">Nombre:</span>
-                  <span className="text-sm font-medium text-stone-900">
-                    {user?.user_metadata?.full_name || "No especificado"}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-stone-100">
-                  <span className="text-sm text-stone-600">Email:</span>
-                  <span className="text-sm font-medium text-stone-900">{user?.email}</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm text-stone-600">Miembro desde:</span>
-                  <span className="text-sm font-medium text-stone-900">
-                    {user?.created_at ? new Date(user.created_at).toLocaleDateString("es-MX") : "Hoy"}
-                  </span>
-                </div>
               </div>
             </div>
           </div>
