@@ -284,14 +284,15 @@ export default function Biblioteca() {
                           <h4 className="text-lg font-semibold text-amber-900 mb-3">
                             Audio de Análisis
                           </h4>
-                          <audio
-                            controls
-                            className="w-full"
-                            preload="metadata"
+                          <a
+                            href={selectedLibro.audioanalisis_https}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
                           >
-                            <source src={selectedLibro.audioanalisis_https} type="audio/mpeg" />
-                            Tu navegador no soporta el elemento de audio.
-                          </audio>
+                            <Headphones className="w-5 h-5" />
+                            Escuchar Análisis
+                          </a>
                         </div>
                       )}
                     </div>
