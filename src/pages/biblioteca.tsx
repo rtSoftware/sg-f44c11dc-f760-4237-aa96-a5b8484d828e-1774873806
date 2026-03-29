@@ -304,7 +304,7 @@ export default function Biblioteca() {
               {selectedLibro.contenido && (
                 <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-amber-200 p-8 sm:p-12">
                   <div 
-                    className="prose prose-amber prose-lg max-w-none
+                    className="prose prose-amber prose-lg max-w-none select-text
                       prose-headings:text-amber-900 prose-headings:font-serif
                       prose-p:text-amber-800 prose-p:leading-relaxed
                       prose-strong:text-amber-900
