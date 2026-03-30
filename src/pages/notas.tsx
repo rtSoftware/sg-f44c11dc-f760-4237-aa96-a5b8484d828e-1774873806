@@ -33,7 +33,7 @@ import {
   type NotaWithLibro,
   type CreateNotaData,
 } from "@/services/notasService";
-import { getLibrosByCasa, type Libro } from "@/services/libroService";
+import { getAllLibros, type Libro } from "@/services/libroService";
 
 export default function NotasPage() {
   const router = useRouter();
@@ -78,13 +78,15 @@ export default function NotasPage() {
     if (!user || !casaId) return;
 
     try {
-      const [notasData, librosData] = await Promise.all([
+      const [notasData, librosResponse] = await Promise.all([
         getNotasByUserAndCasa(user.id, casaId),
-        getLibrosByCasa(casaId),
+        getAllLibros(),
       ]);
 
       setNotas(notasData);
-      setLibros(librosData);
+      if (librosResponse.data) {
+        setLibros(librosResponse.data);
+      }
     } catch (error) {
       console.error("Error loading data:", error);
     }
