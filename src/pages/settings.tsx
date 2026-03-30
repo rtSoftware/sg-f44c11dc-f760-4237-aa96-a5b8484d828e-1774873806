@@ -6,13 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check, User } from "lucide-react";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { getAllLibros, createLibro, updateLibro, deleteLibroContent } from "@/services/libroService";
 import { getAllCasas, createCasa, updateCasaNombre } from "@/services/casaService";
 import { useCasa } from "@/contexts/CasaContext";
-import type { User } from "@supabase/supabase-js";
+import type { User as UserType } from "@supabase/supabase-js";
 import type { Libro } from "@/services/libroService";
 import type { Tables } from "@/integrations/supabase/types";
 import {
@@ -35,12 +35,12 @@ import {
 } from "@/components/ui/dialog";
 
 type FormMode = "list" | "create" | "edit";
-type Section = "libros" | "casas";
+type Section = "libros" | "casas" | "perfil";
 
 export default function Settings() {
   const router = useRouter();
   const { casaId } = useCasa();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -56,6 +56,12 @@ export default function Settings() {
   const [editingCasaId, setEditingCasaId] = useState<string | null>(null);
   const [editCasaName, setEditCasaName] = useState("");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const [profileData, setProfileData] = useState({
+    full_name: "",
+    avatar_url: ""
+  });
+  const [loadingProfile, setLoadingProfile] = useState(false);
 
   const [formData, setFormData] = useState({
     titulo: "",
@@ -78,6 +84,12 @@ export default function Settings() {
       loadCasas();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (section === "perfil" && user) {
+      loadProfile();
+    }
+  }, [section, user]);
 
   async function checkUser() {
     const { data: { session } } = await supabase.auth.getSession();
@@ -113,6 +125,28 @@ export default function Settings() {
     }
 
     setCasas(data || []);
+  }
+
+  async function loadProfile() {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("full_name, avatar_url")
+      .eq("id", user.id)
+      .single();
+
+    if (error) {
+      console.error("Error loading profile:", error);
+      return;
+    }
+
+    if (data) {
+      setProfileData({
+        full_name: data.full_name || "",
+        avatar_url: data.avatar_url || ""
+      });
+    }
   }
 
   function handleNewLibro() {
@@ -219,6 +253,35 @@ export default function Settings() {
     }
 
     setSaving(false);
+  }
+
+  async function handleUpdateProfile(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user) return;
+
+    setLoadingProfile(true);
+    setMessage(null);
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        full_name: profileData.full_name,
+        avatar_url: profileData.avatar_url
+      })
+      .eq("id", user.id);
+
+    if (error) {
+      setMessage({ type: "error", text: "Error al actualizar el perfil" });
+      console.error("Update profile error:", error);
+    } else {
+      setMessage({ type: "success", text: "Perfil actualizado exitosamente" });
+      // Recargar contexto para reflejar cambios
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      }
+    }
+
+    setLoadingProfile(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -360,6 +423,19 @@ export default function Settings() {
               >
                 <Home className="mr-2 h-4 w-4" />
                 Casas
+              </Button>
+              <Button
+                variant={section === "perfil" ? "default" : "outline"}
+                onClick={() => {
+                  setSection("perfil");
+                  setMode("list");
+                }}
+                className={section === "perfil" 
+                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white" 
+                  : "border-purple-300 text-purple-700 hover:bg-purple-50"}
+              >
+                <User className="mr-2 h-4 w-4" />
+                Perfil
               </Button>
             </div>
           </div>
@@ -725,6 +801,115 @@ export default function Settings() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+        </main>
+
+        {/* Sección de Perfil */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {section === "perfil" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-amber-900">Mi Perfil</h1>
+                  <p className="text-amber-700 mt-2">Actualiza tu información personal</p>
+                </div>
+              </div>
+
+              {message && (
+                <div className={`p-4 rounded-lg ${
+                  message.type === "success" 
+                    ? "bg-green-50 text-green-800 border border-green-200" 
+                    : "bg-red-50 text-red-800 border border-red-200"
+                }`}>
+                  {message.text}
+                </div>
+              )}
+
+              <Card className="border-amber-200 shadow-lg max-w-2xl mx-auto">
+                <CardHeader className="border-b border-amber-100 bg-gradient-to-r from-purple-50 to-pink-50">
+                  <CardTitle className="text-2xl text-amber-900 text-center">
+                    Editar Perfil
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <form onSubmit={handleUpdateProfile} className="space-y-6">
+                    {/* Avatar Display */}
+                    <div className="flex flex-col items-center gap-4 pb-6 border-b border-amber-100">
+                      <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                        {profileData.avatar_url ? (
+                          <img 
+                            src={profileData.avatar_url} 
+                            alt="Avatar" 
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = "";
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <User className="w-16 h-16 text-purple-400" />
+                        )}
+                      </div>
+                      <p className="text-sm text-amber-600">
+                        Imagen de perfil actual
+                      </p>
+                    </div>
+
+                    {/* Full Name Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="full_name" className="text-amber-900 font-semibold">
+                        Nombre Completo
+                      </Label>
+                      <Input
+                        id="full_name"
+                        value={profileData.full_name}
+                        onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
+                        placeholder="Tu nombre completo"
+                        className="border-amber-200 focus:border-purple-400 focus:ring-purple-400"
+                      />
+                    </div>
+
+                    {/* Avatar URL Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="avatar_url" className="text-amber-900 font-semibold">
+                        URL del Avatar
+                      </Label>
+                      <Input
+                        id="avatar_url"
+                        value={profileData.avatar_url}
+                        onChange={(e) => setProfileData({ ...profileData, avatar_url: e.target.value })}
+                        placeholder="https://ejemplo.com/mi-avatar.jpg"
+                        type="url"
+                        className="border-amber-200 focus:border-purple-400 focus:ring-purple-400"
+                      />
+                      <p className="text-sm text-amber-600">
+                        URL de la imagen que deseas usar como avatar
+                      </p>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4">
+                      <Button 
+                        type="submit" 
+                        disabled={loadingProfile}
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                      >
+                        {loadingProfile ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Guardando...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            Guardar Cambios
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
             </div>
           )}
         </main>
