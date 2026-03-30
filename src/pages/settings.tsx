@@ -64,7 +64,8 @@ export default function Settings() {
     autor: "",
     portada_url: "",
     audio_https: "",
-    audioanalisis_https: ""
+    audioanalisis_https: "",
+    orden: 0
   });
 
   useEffect(() => {
@@ -124,7 +125,8 @@ export default function Settings() {
       autor: "",
       portada_url: "",
       audio_https: "",
-      audioanalisis_https: ""
+      audioanalisis_https: "",
+      orden: 0
     });
     setMessage(null);
   }
@@ -139,7 +141,8 @@ export default function Settings() {
       autor: libro.autor || "",
       portada_url: libro.portada_url || "",
       audio_https: libro.audio_https || "",
-      audioanalisis_https: libro.audioanalisis_https || ""
+      audioanalisis_https: libro.audioanalisis_https || "",
+      orden: libro.orden || 0
     });
     setMessage(null);
   }
@@ -154,7 +157,8 @@ export default function Settings() {
       autor: "",
       portada_url: "",
       audio_https: "",
-      audioanalisis_https: ""
+      audioanalisis_https: "",
+      orden: 0
     });
     setMessage(null);
   }
@@ -278,7 +282,11 @@ export default function Settings() {
   }
 
   function handleChange(field: string, value: string) {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === "orden") {
+      setFormData(prev => ({ ...prev, [field]: parseInt(value) || 0 }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
   }
 
   if (loading) {
@@ -477,6 +485,24 @@ export default function Settings() {
                       placeholder="Nombre del autor"
                       className="border-amber-200 focus:border-amber-400 focus:ring-amber-400"
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="orden" className="text-amber-900 font-semibold">
+                      Orden de Presentación
+                    </Label>
+                    <Input
+                      id="orden"
+                      type="number"
+                      value={formData.orden}
+                      onChange={(e) => handleChange("orden", e.target.value)}
+                      placeholder="0"
+                      className="border-amber-200 focus:border-amber-400 focus:ring-amber-400"
+                      min="0"
+                    />
+                    <p className="text-sm text-amber-600">
+                      Número que determina el orden de las tarjetas en la biblioteca (menor número = primero)
+                    </p>
                   </div>
 
                   <div className="space-y-2">

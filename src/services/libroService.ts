@@ -28,13 +28,14 @@ export async function getAllLibros(): Promise<{ data: Libro[] | null; error: Err
     
     if (!casaId) {
       console.error("getAllLibros - No casa_id found!");
-      return { data: [], error: null }; // Retornar array vacío en lugar de error
+      return { data: [], error: null };
     }
 
     const { data, error } = await supabase
       .from("libro")
       .select("*")
       .eq("casa_id", casaId)
+      .order("orden", { ascending: true })
       .order("created_at", { ascending: false });
 
     console.log("getAllLibros - Query result:", { 
@@ -45,7 +46,8 @@ export async function getAllLibros(): Promise<{ data: Libro[] | null; error: Err
     if (data && data.length > 0) {
       console.log("getAllLibros - Sample libro casa_ids:", data.slice(0, 3).map(l => ({ 
         titulo: l.titulo, 
-        casa_id: l.casa_id 
+        casa_id: l.casa_id,
+        orden: l.orden
       })));
     }
 
@@ -125,6 +127,7 @@ export async function createLibro(
     portada_url?: string;
     audio_https?: string;
     audioanalisis_https?: string;
+    orden?: number;
   },
   userId: string
 ): Promise<{ data: Libro | null; error: Error | null }> {
@@ -148,7 +151,8 @@ export async function createLibro(
         autor: content.autor,
         portada_url: content.portada_url,
         audio_https: content.audio_https,
-        audioanalisis_https: content.audioanalisis_https
+        audioanalisis_https: content.audioanalisis_https,
+        orden: content.orden || 0
       })
       .select()
       .single();
@@ -177,6 +181,7 @@ export async function updateLibro(
     portada_url?: string;
     audio_https?: string;
     audioanalisis_https?: string;
+    orden?: number;
   }
 ): Promise<{ data: Libro | null; error: Error | null }> {
   try {
