@@ -10,15 +10,30 @@ export type Libro = Tables<"libro">;
 export async function getAllLibros(): Promise<{ data: Libro[] | null; error: Error | null }> {
   try {
     const casaId = getCasaId();
+    console.log("getAllLibros - casa_id from getCasaId():", casaId);
+    
     if (!casaId) {
+      console.error("getAllLibros - No casa_id found!");
       return { data: null, error: new Error("No casa_id found") };
     }
 
+    console.log("getAllLibros - Querying libros with casa_id:", casaId);
+    
     const { data, error } = await supabase
       .from("libro")
       .select("*")
       .eq("casa_id", casaId)
       .order("created_at", { ascending: false });
+
+    console.log("getAllLibros - Query result:", { 
+      data: data?.length ? `${data.length} libros` : "no libros", 
+      error 
+    });
+    
+    if (data && data.length > 0) {
+      console.log("getAllLibros - First libro casa_id:", data[0].casa_id);
+      console.log("getAllLibros - All libro casa_ids:", data.map(l => l.casa_id));
+    }
 
     if (error) throw error;
 

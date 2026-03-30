@@ -59,13 +59,33 @@ export default function Biblioteca() {
   }
 
   async function loadLibros() {
+    console.log("=== loadLibros START ===");
+    console.log("Current casaId from context:", casaId);
+    console.log("Current user:", user?.id);
+    
     const { data, error } = await getAllLibros();
+    
+    console.log("loadLibros result:", { 
+      data: data?.length ? `${data.length} libros` : "no libros", 
+      error 
+    });
+    
     if (error) {
       console.error("Error loading libros:", error);
       setLibros([]);
       return;
     }
+    
+    if (data && data.length > 0) {
+      console.log("Libros loaded:", data.map(l => ({ 
+        id: l.id, 
+        titulo: l.titulo, 
+        casa_id: l.casa_id 
+      })));
+    }
+    
     setLibros(data || []);
+    console.log("=== loadLibros END ===");
   }
 
   async function handleLogout() {
