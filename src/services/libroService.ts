@@ -1,23 +1,36 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { getCasaId } from "@/services/casaService";
 
 export type Libro = Tables<"libro">;
 
 /**
+ * Obtener casa_id y user_id del contexto/localStorage
+ */
+function getAuthContext(): { casaId: string | null; userId: string | null } {
+  let casaId: string | null = null;
+  const userId: string | null = null;
+
+  if (typeof window !== "undefined") {
+    casaId = localStorage.getItem("casa_id");
+  }
+
+  return { casaId, userId };
+}
+
+/**
  * Obtener todos los libros de la casa actual
  */
-export async function getAllLibros(casaId: string): Promise<{ data: Libro[] | null; error: Error | null }> {
+export async function getAllLibros(): Promise<{ data: Libro[] | null; error: Error | null }> {
   try {
-    console.log("getAllLibros - Received casa_id parameter:", casaId);
+    const { casaId } = getAuthContext();
+    
+    console.log("getAllLibros - casa_id:", casaId);
     
     if (!casaId) {
-      console.error("getAllLibros - No casa_id provided!");
-      return { data: null, error: new Error("No casa_id provided") };
+      console.error("getAllLibros - No casa_id found!");
+      return { data: [], error: null }; // Retornar array vacío en lugar de error
     }
 
-    console.log("getAllLibros - Querying libros with casa_id:", casaId);
-    
     const { data, error } = await supabase
       .from("libro")
       .select("*")
@@ -30,7 +43,7 @@ export async function getAllLibros(casaId: string): Promise<{ data: Libro[] | nu
     });
     
     if (data && data.length > 0) {
-      console.log("getAllLibros - Libros casa_ids:", data.map(l => ({ 
+      console.log("getAllLibros - Sample libro casa_ids:", data.slice(0, 3).map(l => ({ 
         titulo: l.titulo, 
         casa_id: l.casa_id 
       })));
@@ -48,10 +61,12 @@ export async function getAllLibros(casaId: string): Promise<{ data: Libro[] | nu
 /**
  * Obtener un libro específico por ID
  */
-export async function getLibroById(id: string, casaId: string): Promise<{ data: Libro | null; error: Error | null }> {
+export async function getLibroById(id: string): Promise<{ data: Libro | null; error: Error | null }> {
   try {
+    const { casaId } = getAuthContext();
+    
     if (!casaId) {
-      return { data: null, error: new Error("No casa_id provided") };
+      return { data: null, error: new Error("No casa_id found") };
     }
 
     const { data, error } = await supabase
@@ -75,7 +90,8 @@ export async function getLibroById(id: string, casaId: string): Promise<{ data: 
  */
 export async function getLibroContent(): Promise<{ data: Libro | null; error: Error | null }> {
   try {
-    const casaId = getCasaId();
+    const { casaId } = getAuthContext();
+    
     if (!casaId) {
       return { data: null, error: new Error("No casa_id found") };
     }
@@ -113,10 +129,13 @@ export async function createLibro(
   userId: string
 ): Promise<{ data: Libro | null; error: Error | null }> {
   try {
-    const casaId = getCasaId();
+    const { casaId } = getAuthContext();
+    
     if (!casaId) {
       return { data: null, error: new Error("No casa_id found") };
     }
+
+    console.log("createLibro - Using casa_id:", casaId, "user_id:", userId);
 
     const { data, error } = await supabase
       .from("libro")
@@ -135,6 +154,9 @@ export async function createLibro(
       .single();
 
     if (error) throw error;
+    
+    console.log("createLibro - Success, libro created with casa_id:", data.casa_id);
+    
     return { data, error: null };
   } catch (error) {
     console.error("Error creating libro:", error);
@@ -147,7 +169,6 @@ export async function createLibro(
  */
 export async function updateLibro(
   id: string,
-  casaId: string,
   content: {
     titulo?: string;
     descripcion?: string;
@@ -159,8 +180,10 @@ export async function updateLibro(
   }
 ): Promise<{ data: Libro | null; error: Error | null }> {
   try {
+    const { casaId } = getAuthContext();
+    
     if (!casaId) {
-      return { data: null, error: new Error("No casa_id provided") };
+      return { data: null, error: new Error("No casa_id found") };
     }
 
     const { data, error } = await supabase
@@ -195,7 +218,8 @@ export async function upsertLibroContent(
   userId: string
 ): Promise<{ data: Libro | null; error: Error | null }> {
   try {
-    const casaId = getCasaId();
+    const { casaId } = getAuthContext();
+    
     if (!casaId) {
       return { data: null, error: new Error("No casa_id found") };
     }
@@ -245,10 +269,12 @@ export async function upsertLibroContent(
 /**
  * Eliminar contenido del libro
  */
-export async function deleteLibroContent(id: string, casaId: string): Promise<{ success: boolean; error: Error | null }> {
+export async function deleteLibroContent(id: string): Promise<{ success: boolean; error: Error | null }> {
   try {
+    const { casaId } = getAuthContext();
+    
     if (!casaId) {
-      return { success: false, error: new Error("No casa_id provided") };
+      return { success: false, error: new Error("No casa_id found") };
     }
 
     const { error } = await supabase

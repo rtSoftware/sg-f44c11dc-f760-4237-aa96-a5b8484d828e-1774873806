@@ -98,7 +98,7 @@ export default function NotasPage() {
     try {
       const [notasData, librosResponse] = await Promise.all([
         getNotasByUserAndCasa(user.id, casaId),
-        getAllLibros(casaId),
+        getAllLibros(),
       ]);
 
       setNotas(notasData);

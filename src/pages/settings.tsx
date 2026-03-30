@@ -91,13 +91,7 @@ export default function Settings() {
   }
 
   async function loadLibros() {
-    if (!casaId) {
-      console.error("loadLibros - No casaId available!");
-      setLibros([]);
-      return;
-    }
-
-    const { data, error } = await getAllLibros(casaId);
+    const { data, error } = await getAllLibros();
     
     if (error) {
       console.error("Error loading libros:", error);
@@ -226,10 +220,6 @@ export default function Settings() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
-    if (!casaId) {
-      setMessage({ type: "error", text: "No hay casa activa" });
-      return;
-    }
 
     setSaving(true);
     setMessage(null);
@@ -247,7 +237,7 @@ export default function Settings() {
           handleCancelForm();
         }
       } else if (mode === "edit" && selectedLibroId) {
-        const { data, error } = await updateLibro(selectedLibroId, casaId, formData);
+        const { data, error } = await updateLibro(selectedLibroId, formData);
         
         if (error) {
           setMessage({ type: "error", text: "Error al actualizar el capítulo" });
@@ -268,15 +258,11 @@ export default function Settings() {
 
   async function confirmDelete() {
     if (!selectedLibroId) return;
-    if (!casaId) {
-      setMessage({ type: "error", text: "No hay casa activa" });
-      return;
-    }
 
     setDeleting(true);
     setMessage(null);
 
-    const { success, error } = await deleteLibroContent(selectedLibroId, casaId);
+    const { success, error } = await deleteLibroContent(selectedLibroId);
 
     if (error) {
       setMessage({ type: "error", text: "Error al eliminar el capítulo" });

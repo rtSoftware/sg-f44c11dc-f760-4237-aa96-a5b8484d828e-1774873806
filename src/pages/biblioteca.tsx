@@ -61,15 +61,8 @@ export default function Biblioteca() {
   async function loadLibros() {
     console.log("=== loadLibros START ===");
     console.log("Current casaId from context:", casaId);
-    console.log("Current user:", user?.id);
     
-    if (!casaId) {
-      console.error("loadLibros - No casaId available from context!");
-      setLibros([]);
-      return;
-    }
-    
-    const { data, error } = await getAllLibros(casaId);
+    const { data, error } = await getAllLibros();
     
     console.log("loadLibros result:", { 
       data: data?.length ? `${data.length} libros` : "no libros", 
