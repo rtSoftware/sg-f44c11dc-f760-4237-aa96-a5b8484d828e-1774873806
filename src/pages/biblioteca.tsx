@@ -83,6 +83,21 @@ export default function Biblioteca() {
     setViewMode("grid");
   }
 
+  function handleCreateNote() {
+    const selection = window.getSelection();
+    const selectedText = selection?.toString().trim() || "";
+    
+    if (selectedText && selectedLibro) {
+      router.push({
+        pathname: "/notas",
+        query: {
+          libro_id: selectedLibro.id,
+          origen: selectedText,
+        },
+      });
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center">
@@ -342,8 +357,9 @@ export default function Biblioteca() {
           <div className="fixed top-1/2 right-6 -translate-y-1/2 z-40 animate-in fade-in slide-in-from-right-5 duration-300">
             <Button
               size="lg"
+              onClick={handleCreateNote}
               className="h-14 w-14 rounded-full shadow-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white border-2 border-white hover:scale-110 transition-all duration-300"
-              title="Funcionalidad próximamente"
+              title="Crear nota con texto seleccionado"
             >
               <MessageCircle className="h-6 w-6" />
             </Button>

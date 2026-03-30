@@ -60,6 +60,24 @@ export default function NotasPage() {
     }
   }, [user, casaId]);
 
+  useEffect(() => {
+    // Detectar parámetros de query para precargar formulario
+    if (router.query.libro_id && router.query.origen) {
+      const { libro_id, origen } = router.query;
+      
+      setFormData({
+        libro_id: libro_id as string,
+        origen: origen as string,
+        nota: "",
+      });
+      
+      setShowNewNotaDialog(true);
+      
+      // Limpiar query params de la URL sin recargar
+      router.replace("/notas", undefined, { shallow: true });
+    }
+  }, [router.query]);
+
   async function checkAuth() {
     const {
       data: { session },
@@ -346,6 +364,7 @@ export default function NotasPage() {
                   placeholder="Escribe tus reflexiones, ideas o comentarios..."
                   className="min-h-[150px] resize-none"
                   required
+                  autoFocus
                 />
                 <p className="text-xs text-stone-500">
                   Tus pensamientos, análisis o conclusiones sobre el texto
