@@ -11,7 +11,7 @@ import { useCasa } from "@/contexts/CasaContext";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { casaNombre } = useCasa();
+  const { casaNombre, fullName } = useCasa();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -77,15 +77,13 @@ export default function DashboardPage() {
                 {/* User Account Popover */}
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="border-stone-300 hover:bg-stone-100 gap-2"
+                    <Button 
+                      variant="ghost" 
+                      className="flex items-center gap-2 text-stone-700 hover:text-amber-700 hover:bg-amber-50"
                     >
-                      <User className="w-4 h-4 text-stone-600" />
-                      <span className="text-sm text-stone-700 hidden sm:inline">
-                        {user?.user_metadata?.full_name || user?.email}
-                      </span>
-                      <ChevronDown className="w-4 h-4 text-stone-500" />
+                      <User className="w-5 h-5" />
+                      <span className="font-medium">{fullName || "Usuario"}</span>
+                      <ChevronDown className="w-4 h-4" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-80 p-6" align="end">
@@ -114,6 +112,12 @@ export default function DashboardPage() {
                           </span>
                           <span className="text-sm font-medium text-blue-600">
                             {casaNombre || "No asignada"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-stone-100">
+                          <span className="text-sm text-stone-600">Alias:</span>
+                          <span className="text-sm font-medium text-stone-900">
+                            {fullName || "No especificado"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center py-2">

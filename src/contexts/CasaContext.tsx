@@ -7,6 +7,7 @@ interface CasaContextType {
   casaNombre: string | null;
   userId: string | null;
   user: User | null;
+  fullName: string | null;
   isLoading: boolean;
   error: Error | null;
   refreshCasaId: () => Promise<void>;
@@ -19,6 +20,7 @@ export function CasaProvider({ children }: { children: React.ReactNode }) {
   const [casaNombre, setCasaNombre] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [fullName, setFullName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -46,7 +48,7 @@ export function CasaProvider({ children }: { children: React.ReactNode }) {
       // Obtener casa_id y nombre desde el perfil del usuario
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("casa_id, casas(casa_nombre)")
+        .select("casa_id, full_name, casas(casa_nombre)")
         .eq("id", currentUser.id)
         .single();
 
@@ -66,8 +68,10 @@ export function CasaProvider({ children }: { children: React.ReactNode }) {
 
       console.log("Casa ID loaded from profile:", profile.casa_id);
       console.log("Casa info:", profile.casas);
+      console.log("Full name from profile:", profile.full_name);
       
       setCasaIdState(profile.casa_id);
+      setFullName(profile.full_name);
       
       // Extraer nombre de la casa si está disponible
       const nombreCasa = profile.casas && Array.isArray(profile.casas) && profile.casas.length > 0
@@ -82,6 +86,9 @@ export function CasaProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("casa_id", profile.casa_id);
         if (nombreCasa) {
           localStorage.setItem("casa_nombre", nombreCasa);
+        }
+        if (profile.full_name) {
+          localStorage.setItem("full_name", profile.full_name);
         }
       }
       
@@ -106,9 +113,11 @@ export function CasaProvider({ children }: { children: React.ReactNode }) {
         setCasaNombre(null);
         setUserId(null);
         setUser(null);
+        setFullName(null);
         if (typeof window !== "undefined") {
           localStorage.removeItem("casa_id");
           localStorage.removeItem("casa_nombre");
+          localStorage.removeItem("full_name");
         }
       }
     });
@@ -119,7 +128,7 @@ export function CasaProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <CasaContext.Provider value={{ casaId, casaNombre, userId, user, isLoading, error, refreshCasaId }}>
+    <CasaContext.Provider value={{ casaId, casaNombre, userId, user, fullName, isLoading, error, refreshCasaId }}>
       {children}
     </CasaContext.Provider>
   );
