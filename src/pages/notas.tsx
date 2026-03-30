@@ -123,7 +123,11 @@ export default function NotasPage() {
         casa_id: casaId,
       };
 
+      console.log("Attempting to create nota with data:", notaData);
+
       await createNota(notaData);
+
+      console.log("Nota created successfully");
 
       // Recargar notas
       await loadData();
@@ -133,7 +137,13 @@ export default function NotasPage() {
       setShowNewNotaDialog(false);
     } catch (error) {
       console.error("Error creating nota:", error);
-      alert("Error al crear la nota. Por favor intenta de nuevo.");
+      
+      // Mostrar mensaje de error más descriptivo
+      const errorMessage = error instanceof Error 
+        ? `Error: ${error.message}` 
+        : "Error desconocido al crear la nota";
+      
+      alert(`No se pudo crear la nota.\n\n${errorMessage}\n\nPor favor, revisa la consola del navegador (F12) para más detalles.`);
     } finally {
       setSubmitting(false);
     }
