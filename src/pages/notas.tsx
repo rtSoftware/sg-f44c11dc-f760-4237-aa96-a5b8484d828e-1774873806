@@ -112,7 +112,16 @@ export default function NotasPage() {
 
   async function handleCreateNota(e: React.FormEvent) {
     e.preventDefault();
-    if (!user || !casaId) return;
+    console.log("=== START handleCreateNota ===");
+    console.log("User:", user?.id);
+    console.log("Casa ID:", casaId);
+    console.log("Form Data:", formData);
+    
+    if (!user || !casaId) {
+      console.error("Missing user or casaId:", { user: user?.id, casaId });
+      alert("Error: No hay usuario o casa activa");
+      return;
+    }
 
     setSubmitting(true);
 
@@ -123,29 +132,46 @@ export default function NotasPage() {
         casa_id: casaId,
       };
 
-      console.log("Attempting to create nota with data:", notaData);
+      console.log("Prepared nota data:", notaData);
+      console.log("Calling createNota...");
 
-      await createNota(notaData);
+      const result = await createNota(notaData);
 
-      console.log("Nota created successfully");
+      console.log("Nota created successfully:", result);
 
       // Recargar notas
+      console.log("Reloading data...");
       await loadData();
 
       // Resetear formulario y cerrar dialog
       setFormData({ libro_id: "", origen: "", nota: "" });
       setShowNewNotaDialog(false);
+      
+      console.log("=== END handleCreateNota SUCCESS ===");
     } catch (error) {
-      console.error("Error creating nota:", error);
+      console.error("=== ERROR in handleCreateNota ===");
+      console.error("Error type:", typeof error);
+      console.error("Error object:", error);
+      console.error("Error string:", String(error));
+      
+      if (error && typeof error === 'object') {
+        console.error("Error keys:", Object.keys(error));
+        console.error("Error JSON:", JSON.stringify(error, null, 2));
+      }
       
       // Mostrar mensaje de error más descriptivo
-      const errorMessage = error instanceof Error 
-        ? `Error: ${error.message}` 
-        : "Error desconocido al crear la nota";
+      let errorMessage = "Error desconocido al crear la nota";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String((error as any).message);
+      }
       
       alert(`No se pudo crear la nota.\n\n${errorMessage}\n\nPor favor, revisa la consola del navegador (F12) para más detalles.`);
     } finally {
       setSubmitting(false);
+      console.log("=== END handleCreateNota (finally) ===");
     }
   }
 
