@@ -4,6 +4,7 @@ import type { User } from "@supabase/supabase-js";
 
 interface CasaContextType {
   casaId: string | null;
+  casaNombre: string | null;
   userId: string | null;
   user: User | null;
   isLoading: boolean;
@@ -15,6 +16,7 @@ const CasaContext = createContext<CasaContextType | undefined>(undefined);
 
 export function CasaProvider({ children }: { children: React.ReactNode }) {
   const [casaId, setCasaIdState] = useState<string | null>(null);
+  const [casaNombre, setCasaNombre] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,10 +43,10 @@ export function CasaProvider({ children }: { children: React.ReactNode }) {
       setUser(currentUser);
       setUserId(currentUser.id);
 
-      // Obtener casa_id desde el perfil del usuario
+      // Obtener casa_id y nombre desde el perfil del usuario
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("casa_id")
+        .select("casa_id, casas(casa_nombre)")
         .eq("id", currentUser.id)
         .single();
 
@@ -63,11 +65,24 @@ export function CasaProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log("Casa ID loaded from profile:", profile.casa_id);
+      console.log("Casa info:", profile.casas);
+      
       setCasaIdState(profile.casa_id);
+      
+      // Extraer nombre de la casa si está disponible
+      const nombreCasa = profile.casas && Array.isArray(profile.casas) && profile.casas.length > 0
+        ? profile.casas[0].casa_nombre
+        : (profile.casas as any)?.casa_nombre || null;
+      
+      setCasaNombre(nombreCasa);
+      console.log("Casa nombre:", nombreCasa);
       
       // Guardar en localStorage como backup
       if (typeof window !== "undefined") {
         localStorage.setItem("casa_id", profile.casa_id);
+        if (nombreCasa) {
+          localStorage.setItem("casa_nombre", nombreCasa);
+        }
       }
       
     } catch (err) {
@@ -88,10 +103,12 @@ export function CasaProvider({ children }: { children: React.ReactNode }) {
         refreshCasaId();
       } else if (event === "SIGNED_OUT") {
         setCasaIdState(null);
+        setCasaNombre(null);
         setUserId(null);
         setUser(null);
         if (typeof window !== "undefined") {
           localStorage.removeItem("casa_id");
+          localStorage.removeItem("casa_nombre");
         }
       }
     });
@@ -102,7 +119,7 @@ export function CasaProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <CasaContext.Provider value={{ casaId, userId, user, isLoading, error, refreshCasaId }}>
+    <CasaContext.Provider value={{ casaId, casaNombre, userId, user, isLoading, error, refreshCasaId }}>
       {children}
     </CasaContext.Provider>
   );
