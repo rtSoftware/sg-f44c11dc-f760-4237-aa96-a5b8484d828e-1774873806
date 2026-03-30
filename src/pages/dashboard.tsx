@@ -172,14 +172,16 @@ export default function DashboardPage() {
                 </Link>
 
                 {/* Notas - Coming Soon */}
-                <div className="p-6 bg-stone-50 rounded-xl border-2 border-stone-200 opacity-60 cursor-not-allowed">
-                  <div className="text-4xl mb-3">📝</div>
-                  <h4 className="font-bold text-stone-900 mb-2 text-lg">Notas</h4>
-                  <p className="text-sm text-stone-600">Próximamente</p>
-                  <div className="mt-3 text-stone-400 text-sm font-semibold">
-                    En desarrollo...
+                <Link href="/notas">
+                  <div className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-200 hover:border-amber-400 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+                    <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">📝</div>
+                    <h4 className="font-bold text-stone-900 mb-2 text-lg">Notas</h4>
+                    <p className="text-sm text-stone-600">Tus anotaciones personales</p>
+                    <div className="mt-3 text-amber-600 text-sm font-semibold group-hover:translate-x-1 transition-transform duration-300">
+                      Acceder →
+                    </div>
                   </div>
-                </div>
+                </Link>
 
                 {/* Ejercicios - Coming Soon */}
                 <div className="p-6 bg-stone-50 rounded-xl border-2 border-stone-200 opacity-60 cursor-not-allowed">
