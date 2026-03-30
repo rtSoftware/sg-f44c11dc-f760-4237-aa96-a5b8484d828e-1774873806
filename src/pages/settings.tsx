@@ -6,12 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check } from "lucide-react";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { getAllLibros, createLibro, updateLibro, deleteLibroContent } from "@/services/libroService";
+import { getAllCasas, createCasa, switchCasa } from "@/services/casaService";
+import { useCasa } from "@/contexts/CasaContext";
 import type { User } from "@supabase/supabase-js";
 import type { Libro } from "@/services/libroService";
+import type { Tables } from "@/integrations/supabase/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,19 +25,34 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type FormMode = "list" | "create" | "edit";
+type Section = "libros" | "casas";
 
 export default function Settings() {
   const router = useRouter();
+  const { casaId } = useCasa();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [mode, setMode] = useState<FormMode>("list");
+  const [section, setSection] = useState<Section>("libros");
   const [libros, setLibros] = useState<Libro[]>([]);
+  const [casas, setCasas] = useState<Tables<"casas">[]>([]);
   const [selectedLibroId, setSelectedLibroId] = useState<string | null>(null);
+  const [showNewCasaDialog, setShowNewCasaDialog] = useState(false);
+  const [newCasaName, setNewCasaName] = useState("");
+  const [switchingCasa, setSwitchingCasa] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const [formData, setFormData] = useState({
@@ -54,6 +72,7 @@ export default function Settings() {
   useEffect(() => {
     if (user) {
       loadLibros();
+      loadCasas();
     }
   }, [user]);
 
@@ -79,6 +98,18 @@ export default function Settings() {
     }
 
     setLibros(data || []);
+  }
+
+  async function loadCasas() {
+    const { data, error } = await getAllCasas();
+    
+    if (error) {
+      console.error("Error loading casas:", error);
+      setCasas([]);
+      return;
+    }
+
+    setCasas(data || []);
   }
 
   function handleNewLibro() {
@@ -124,6 +155,52 @@ export default function Settings() {
       audioanalisis_https: ""
     });
     setMessage(null);
+  }
+
+  async function handleCreateCasa(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newCasaName.trim()) {
+      setMessage({ type: "error", text: "El nombre de la casa es obligatorio" });
+      return;
+    }
+
+    setSaving(true);
+    setMessage(null);
+
+    const { success, error } = await createCasa(newCasaName);
+
+    if (error) {
+      setMessage({ type: "error", text: "Error al crear la casa" });
+      console.error("Create casa error:", error);
+    } else {
+      setMessage({ type: "success", text: "Casa creada exitosamente" });
+      await loadCasas();
+      setNewCasaName("");
+      setShowNewCasaDialog(false);
+    }
+
+    setSaving(false);
+  }
+
+  async function handleSwitchCasa(newCasaId: string) {
+    if (!user || newCasaId === casaId) return;
+
+    setSwitchingCasa(true);
+    setMessage(null);
+
+    const { success, error } = await switchCasa(user.id, newCasaId);
+
+    if (error) {
+      setMessage({ type: "error", text: "Error al cambiar de casa" });
+      console.error("Switch casa error:", error);
+    } else {
+      setMessage({ type: "success", text: "Casa cambiada exitosamente. Recargando..." });
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    }
+
+    setSwitchingCasa(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -206,26 +283,68 @@ export default function Settings() {
       />
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
         <header className="bg-white border-b border-amber-200 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <Link href="/dashboard" className="flex items-center gap-2 text-amber-900 hover:text-amber-700 transition-colors">
-              <ArrowLeft className="h-5 w-5" />
-              <span className="font-semibold">Volver al Dashboard</span>
-            </Link>
-            
-            {mode === "list" && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex justify-between items-center mb-4">
+              <Link href="/dashboard" className="flex items-center gap-2 text-amber-900 hover:text-amber-700 transition-colors">
+                <ArrowLeft className="h-5 w-5" />
+                <span className="font-semibold">Volver al Dashboard</span>
+              </Link>
+              
+              {section === "libros" && mode === "list" && (
+                <Button
+                  onClick={handleNewLibro}
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nuevo Capítulo
+                </Button>
+              )}
+
+              {section === "casas" && (
+                <Button
+                  onClick={() => setShowNewCasaDialog(true)}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nueva Casa
+                </Button>
+              )}
+            </div>
+
+            {/* Navegación de secciones */}
+            <div className="flex gap-2">
               <Button
-                onClick={handleNewLibro}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                variant={section === "libros" ? "default" : "outline"}
+                onClick={() => {
+                  setSection("libros");
+                  setMode("list");
+                }}
+                className={section === "libros" 
+                  ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white" 
+                  : "border-amber-300 text-amber-700 hover:bg-amber-50"}
               >
-                <Plus className="mr-2 h-4 w-4" />
-                Nuevo Capítulo
+                <Book className="mr-2 h-4 w-4" />
+                Capítulos
               </Button>
-            )}
+              <Button
+                variant={section === "casas" ? "default" : "outline"}
+                onClick={() => {
+                  setSection("casas");
+                  setMode("list");
+                }}
+                className={section === "casas" 
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white" 
+                  : "border-blue-300 text-blue-700 hover:bg-blue-50"}
+              >
+                <Home className="mr-2 h-4 w-4" />
+                Casas
+              </Button>
+            </div>
           </div>
         </header>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {mode === "list" && (
+          {section === "libros" && mode === "list" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -467,6 +586,171 @@ export default function Settings() {
             </Card>
           )}
         </main>
+
+        {/* Sección de Casas */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {section === "casas" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-amber-900">Gestión de Casas</h1>
+                  <p className="text-amber-700 mt-2">Administra tus comunidades y espacios</p>
+                </div>
+              </div>
+
+              {message && (
+                <div className={`p-4 rounded-lg ${
+                  message.type === "success" 
+                    ? "bg-green-50 text-green-800 border border-green-200" 
+                    : "bg-red-50 text-red-800 border border-red-200"
+                }`}>
+                  {message.text}
+                </div>
+              )}
+
+              {casas.length === 0 ? (
+                <Card className="border-amber-200 shadow-lg">
+                  <CardContent className="pt-6 text-center py-12">
+                    <Home className="h-16 w-16 text-amber-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-amber-900 mb-2">
+                      No hay casas configuradas
+                    </h3>
+                    <p className="text-amber-700 mb-6">
+                      Crea tu primera casa para comenzar a organizar tus comunidades
+                    </p>
+                    <Button
+                      onClick={() => setShowNewCasaDialog(true)}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Crear Primera Casa
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {casas.map((casa) => (
+                    <Card 
+                      key={casa.id} 
+                      className={`border-2 shadow-lg hover:shadow-xl transition-all ${
+                        casa.id === casaId 
+                          ? "border-blue-500 bg-blue-50" 
+                          : "border-amber-200 hover:border-amber-400"
+                      }`}
+                    >
+                      <CardHeader className={`border-b ${
+                        casa.id === casaId 
+                          ? "border-blue-200 bg-gradient-to-r from-blue-100 to-indigo-100" 
+                          : "border-amber-100 bg-gradient-to-r from-amber-50 to-orange-50"
+                      }`}>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-xl text-amber-900 flex items-center gap-2">
+                              <Home className="h-5 w-5" />
+                              {casa.casa_nombre}
+                              {casa.id === casaId && (
+                                <span className="ml-2 px-2 py-1 text-xs bg-blue-500 text-white rounded-full">
+                                  Activa
+                                </span>
+                              )}
+                            </CardTitle>
+                            <CardDescription className="text-amber-700 mt-1">
+                              Creada: {new Date(casa.created_at).toLocaleDateString()}
+                            </CardDescription>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-4">
+                        {casa.id !== casaId && (
+                          <Button
+                            onClick={() => handleSwitchCasa(casa.id)}
+                            disabled={switchingCasa}
+                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                          >
+                            {switchingCasa ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Cambiando...
+                              </>
+                            ) : (
+                              <>
+                                <Check className="mr-2 h-4 w-4" />
+                                Cambiar a esta Casa
+                              </>
+                            )}
+                          </Button>
+                        )}
+                        {casa.id === casaId && (
+                          <div className="text-center py-2 text-blue-600 font-semibold">
+                            Casa Actualmente Activa
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+
+        {/* Dialog para crear nueva casa */}
+        <Dialog open={showNewCasaDialog} onOpenChange={setShowNewCasaDialog}>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle className="text-amber-900">Crear Nueva Casa</DialogTitle>
+              <DialogDescription className="text-amber-700">
+                Ingresa el nombre para tu nueva comunidad o espacio
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleCreateCasa}>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="casa-nombre">Nombre de la Casa *</Label>
+                  <Input
+                    id="casa-nombre"
+                    value={newCasaName}
+                    onChange={(e) => setNewCasaName(e.target.value)}
+                    placeholder="Ej: Mi Comunidad de Lectura"
+                    className="border-amber-200 focus:border-amber-400"
+                    required
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowNewCasaDialog(false);
+                    setNewCasaName("");
+                  }}
+                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit"
+                  disabled={saving}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creando...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Crear Casa
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
 
         <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <AlertDialogContent className="bg-white">

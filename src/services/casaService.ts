@@ -152,3 +152,89 @@ export async function updateCasaMemo(
     return { success: false, error: error as Error };
   }
 }
+
+/**
+ * Crear una nueva casa
+ */
+export async function createCasa(
+  casaNombre: string,
+  memo?: Record<string, any>
+): Promise<{ success: boolean; casa_id?: string; error?: Error }> {
+  try {
+    const { data, error } = await supabase
+      .from("casas")
+      .insert({
+        casa_nombre: casaNombre,
+        casa_memo: memo || {
+          created_at: new Date().toISOString(),
+          created_by: "user",
+        },
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating casa:", error);
+      return { success: false, error: error as Error };
+    }
+
+    return { success: true, casa_id: data.id };
+  } catch (error) {
+    console.error("Error in createCasa:", error);
+    return { success: false, error: error as Error };
+  }
+}
+
+/**
+ * Obtener todas las casas
+ */
+export async function getAllCasas(): Promise<{
+  data: Tables<"casas">[] | null;
+  error: Error | null;
+}> {
+  try {
+    const { data, error } = await supabase
+      .from("casas")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching all casas:", error);
+      return { data: null, error: error as Error };
+    }
+
+    return { data, error: null };
+  } catch (error) {
+    console.error("Error in getAllCasas:", error);
+    return { data: null, error: error as Error };
+  }
+}
+
+/**
+ * Cambiar la casa activa del usuario
+ */
+export async function switchCasa(
+  userId: string,
+  newCasaId: string
+): Promise<{ success: boolean; error?: Error }> {
+  try {
+    // Actualizar el casa_id en el perfil del usuario
+    const { error } = await supabase
+      .from("profiles")
+      .update({ casa_id: newCasaId })
+      .eq("id", userId);
+
+    if (error) {
+      console.error("Error switching casa:", error);
+      return { success: false, error: error as Error };
+    }
+
+    // Actualizar localStorage
+    setCasaId(newCasaId);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in switchCasa:", error);
+    return { success: false, error: error as Error };
+  }
+}
