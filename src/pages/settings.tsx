@@ -91,7 +91,13 @@ export default function Settings() {
   }
 
   async function loadLibros() {
-    const { data, error } = await getAllLibros();
+    if (!casaId) {
+      console.error("loadLibros - No casaId available!");
+      setLibros([]);
+      return;
+    }
+
+    const { data, error } = await getAllLibros(casaId);
     
     if (error) {
       console.error("Error loading libros:", error);
@@ -220,49 +226,57 @@ export default function Settings() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
-
-    if (!formData.titulo.trim()) {
-      setMessage({ type: "error", text: "El título es obligatorio" });
+    if (!casaId) {
+      setMessage({ type: "error", text: "No hay casa activa" });
       return;
     }
 
     setSaving(true);
     setMessage(null);
 
-    if (mode === "create") {
-      const { data, error } = await createLibro(formData, user.id);
-
-      if (error) {
-        setMessage({ type: "error", text: "Error al crear el capítulo" });
-        console.error("Create error:", error);
-      } else {
-        setMessage({ type: "success", text: "Capítulo creado exitosamente" });
-        await loadLibros();
-        setTimeout(() => handleCancelForm(), 1500);
+    try {
+      if (mode === "create") {
+        const { data, error } = await createLibro(formData, user.id);
+        
+        if (error) {
+          setMessage({ type: "error", text: "Error al crear el capítulo" });
+          console.error("Create error:", error);
+        } else {
+          setMessage({ type: "success", text: "Capítulo creado exitosamente" });
+          await loadLibros();
+          handleCancelForm();
+        }
+      } else if (mode === "edit" && selectedLibroId) {
+        const { data, error } = await updateLibro(selectedLibroId, casaId, formData);
+        
+        if (error) {
+          setMessage({ type: "error", text: "Error al actualizar el capítulo" });
+          console.error("Update error:", error);
+        } else {
+          setMessage({ type: "success", text: "Capítulo actualizado exitosamente" });
+          await loadLibros();
+          handleCancelForm();
+        }
       }
-    } else if (mode === "edit" && selectedLibroId) {
-      const { data, error } = await updateLibro(selectedLibroId, formData);
-
-      if (error) {
-        setMessage({ type: "error", text: "Error al actualizar el capítulo" });
-        console.error("Update error:", error);
-      } else {
-        setMessage({ type: "success", text: "Capítulo actualizado exitosamente" });
-        await loadLibros();
-        setTimeout(() => handleCancelForm(), 1500);
-      }
+    } catch (error) {
+      setMessage({ type: "error", text: "Error inesperado" });
+      console.error("Submit error:", error);
     }
 
     setSaving(false);
   }
 
-  async function handleDelete() {
+  async function confirmDelete() {
     if (!selectedLibroId) return;
+    if (!casaId) {
+      setMessage({ type: "error", text: "No hay casa activa" });
+      return;
+    }
 
     setDeleting(true);
     setMessage(null);
 
-    const { success, error } = await deleteLibroContent(selectedLibroId);
+    const { success, error } = await deleteLibroContent(selectedLibroId, casaId);
 
     if (error) {
       setMessage({ type: "error", text: "Error al eliminar el capítulo" });
@@ -270,11 +284,11 @@ export default function Settings() {
     } else {
       setMessage({ type: "success", text: "Capítulo eliminado exitosamente" });
       await loadLibros();
-      setTimeout(() => handleCancelForm(), 1500);
+      setShowDeleteDialog(false);
+      setSelectedLibroId(null);
     }
 
     setDeleting(false);
-    setShowDeleteDialog(false);
   }
 
   function handleChange(field: string, value: string) {
@@ -834,7 +848,7 @@ export default function Settings() {
                 Cancelar
               </AlertDialogCancel>
               <AlertDialogAction
-                onClick={handleDelete}
+                onClick={confirmDelete}
                 disabled={deleting}
                 className="bg-red-600 hover:bg-red-700 text-white"
               >

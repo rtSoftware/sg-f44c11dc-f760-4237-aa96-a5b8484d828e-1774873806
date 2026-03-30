@@ -7,14 +7,13 @@ export type Libro = Tables<"libro">;
 /**
  * Obtener todos los libros de la casa actual
  */
-export async function getAllLibros(): Promise<{ data: Libro[] | null; error: Error | null }> {
+export async function getAllLibros(casaId: string): Promise<{ data: Libro[] | null; error: Error | null }> {
   try {
-    const casaId = getCasaId();
-    console.log("getAllLibros - casa_id from getCasaId():", casaId);
+    console.log("getAllLibros - Received casa_id parameter:", casaId);
     
     if (!casaId) {
-      console.error("getAllLibros - No casa_id found!");
-      return { data: null, error: new Error("No casa_id found") };
+      console.error("getAllLibros - No casa_id provided!");
+      return { data: null, error: new Error("No casa_id provided") };
     }
 
     console.log("getAllLibros - Querying libros with casa_id:", casaId);
@@ -26,13 +25,15 @@ export async function getAllLibros(): Promise<{ data: Libro[] | null; error: Err
       .order("created_at", { ascending: false });
 
     console.log("getAllLibros - Query result:", { 
-      data: data?.length ? `${data.length} libros` : "no libros", 
-      error 
+      rowCount: data?.length || 0,
+      error: error?.message 
     });
     
     if (data && data.length > 0) {
-      console.log("getAllLibros - First libro casa_id:", data[0].casa_id);
-      console.log("getAllLibros - All libro casa_ids:", data.map(l => l.casa_id));
+      console.log("getAllLibros - Libros casa_ids:", data.map(l => ({ 
+        titulo: l.titulo, 
+        casa_id: l.casa_id 
+      })));
     }
 
     if (error) throw error;
@@ -47,11 +48,10 @@ export async function getAllLibros(): Promise<{ data: Libro[] | null; error: Err
 /**
  * Obtener un libro específico por ID
  */
-export async function getLibroById(id: string): Promise<{ data: Libro | null; error: Error | null }> {
+export async function getLibroById(id: string, casaId: string): Promise<{ data: Libro | null; error: Error | null }> {
   try {
-    const casaId = getCasaId();
     if (!casaId) {
-      return { data: null, error: new Error("No casa_id found") };
+      return { data: null, error: new Error("No casa_id provided") };
     }
 
     const { data, error } = await supabase
@@ -147,6 +147,7 @@ export async function createLibro(
  */
 export async function updateLibro(
   id: string,
+  casaId: string,
   content: {
     titulo?: string;
     descripcion?: string;
@@ -158,9 +159,8 @@ export async function updateLibro(
   }
 ): Promise<{ data: Libro | null; error: Error | null }> {
   try {
-    const casaId = getCasaId();
     if (!casaId) {
-      return { data: null, error: new Error("No casa_id found") };
+      return { data: null, error: new Error("No casa_id provided") };
     }
 
     const { data, error } = await supabase
@@ -245,11 +245,10 @@ export async function upsertLibroContent(
 /**
  * Eliminar contenido del libro
  */
-export async function deleteLibroContent(id: string): Promise<{ success: boolean; error: Error | null }> {
+export async function deleteLibroContent(id: string, casaId: string): Promise<{ success: boolean; error: Error | null }> {
   try {
-    const casaId = getCasaId();
     if (!casaId) {
-      return { success: false, error: new Error("No casa_id found") };
+      return { success: false, error: new Error("No casa_id provided") };
     }
 
     const { error } = await supabase
