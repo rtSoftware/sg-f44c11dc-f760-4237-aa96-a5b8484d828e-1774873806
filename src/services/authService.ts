@@ -74,29 +74,9 @@ export const authService = {
         created_at: data.user.created_at
       } : null;
 
-      // Initialize casa and update profile after successful signup
-      if (authUser) {
-        console.log("User registered, initializing casa and updating profile...");
-        
-        const casaResult = await initializeCasa();
-        
-        if (casaResult.success && casaResult.casa_id) {
-          console.log("Casa initialized:", casaResult.casa_id);
-          setCasaId(casaResult.casa_id);
-          
-          // Update the profile with the casa_id
-          const { error: profileError } = await supabase
-            .from("profiles")
-            .update({ casa_id: casaResult.casa_id })
-            .eq("id", authUser.id);
-          
-          if (profileError) {
-            console.error("Error updating profile with casa_id:", profileError);
-          } else {
-            console.log("Profile updated with casa_id successfully");
-          }
-        }
-      }
+      // NOTE: No asignamos casa_id automáticamente aquí
+      // El usuario seleccionará su casa después del registro
+      // El trigger de base de datos ya creó el perfil sin casa_id
 
       return { user: authUser, error: null };
     } catch (error) {
