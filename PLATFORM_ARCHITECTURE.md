@@ -119,6 +119,39 @@ otrositio.com → Casa B (ID: uuid-2)
 
 ---
 
+### 4️⃣ Tabla: `notas`
+
+**Propósito:** Almacenamiento de notas/anotaciones personales sobre el contenido del libro
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `id` | UUID (PK) | Identificador único de la nota |
+| `user_id` | UUID (FK) | Usuario que creó la nota |
+| `casa_id` | UUID (FK) | Casa a la que pertenece |
+| `libro_id` | UUID (FK) | Referencia al capítulo del libro |
+| `origen` | Text (NOT NULL) | Texto original seleccionado del libro |
+| `nota` | Text (NOT NULL) | Contenido de la nota del usuario |
+| `created_at` | Timestamp | Fecha de creación |
+
+**Foreign Keys:**
+- `user_id` → `auth.users.id` (CASCADE DELETE)
+- `casa_id` → `casas.id` (CASCADE DELETE)
+- `libro_id` → `libro.id` (CASCADE DELETE)
+
+**Índices:**
+- `casa_id` - Búsquedas por casa
+- `user_id` - Búsquedas por usuario
+- `libro_id` - Búsquedas por capítulo
+- `created_at` - Ordenamiento cronológico
+
+**RLS (Row Level Security):**
+- ✅ SELECT: Usuarios pueden ver solo sus propias notas
+- ✅ INSERT: Usuarios autenticados pueden crear notas en su casa
+- ✅ UPDATE: Solo el autor puede modificar sus notas
+- ✅ DELETE: Solo el autor puede eliminar sus notas
+
+---
+
 ## 🔄 Flujos de Datos
 
 ### Flujo de Autenticación e Inicialización

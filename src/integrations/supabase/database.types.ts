@@ -1,4 +1,4 @@
- 
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 export type Json =
   | string
   | number
@@ -94,6 +94,51 @@ export type Database = {
             columns: ["casa_id"]
             isOneToOne: false
             referencedRelation: "casas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notas: {
+        Row: {
+          casa_id: string
+          created_at: string | null
+          id: string
+          libro_id: string
+          nota: string
+          origen: string
+          user_id: string
+        }
+        Insert: {
+          casa_id: string
+          created_at?: string | null
+          id?: string
+          libro_id: string
+          nota: string
+          origen: string
+          user_id: string
+        }
+        Update: {
+          casa_id?: string
+          created_at?: string | null
+          id?: string
+          libro_id?: string
+          nota?: string
+          origen?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notas_casa_id_fkey"
+            columns: ["casa_id"]
+            isOneToOne: false
+            referencedRelation: "casas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notas_libro_id_fkey"
+            columns: ["libro_id"]
+            isOneToOne: false
+            referencedRelation: "libro"
             referencedColumns: ["id"]
           },
         ]
