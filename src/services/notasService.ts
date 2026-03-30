@@ -50,6 +50,8 @@ export async function getNotasByUserAndCasa(
  * Crear una nueva nota
  */
 export async function createNota(notaData: CreateNotaData): Promise<Nota> {
+  console.log("createNota - Input data:", notaData);
+  
   const { data, error } = await supabase
     .from("notas")
     .insert({
@@ -62,10 +64,15 @@ export async function createNota(notaData: CreateNotaData): Promise<Nota> {
     .select()
     .single();
 
-  console.log("createNota:", { data, error });
+  console.log("createNota - Response:", { data, error });
 
   if (error) {
-    console.error("Error creating nota:", error);
+    console.error("createNota - Detailed error:", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+    });
     throw error;
   }
 
