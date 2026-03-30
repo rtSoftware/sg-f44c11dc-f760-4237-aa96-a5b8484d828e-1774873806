@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import ReactMarkdown from "react-markdown";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -352,7 +353,7 @@ export default function Biblioteca() {
               {/* Chapter Content */}
               {selectedLibro.contenido && (
                 <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-amber-200 p-8 sm:p-12">
-                  <div 
+                  <ReactMarkdown 
                     className="prose prose-amber prose-lg max-w-none select-text
                       prose-headings:text-amber-900 prose-headings:font-serif
                       prose-p:text-amber-800 prose-p:leading-relaxed
@@ -360,11 +361,12 @@ export default function Biblioteca() {
                       prose-a:text-orange-600 prose-a:no-underline hover:prose-a:underline
                       prose-blockquote:border-l-amber-500 prose-blockquote:text-amber-700
                       prose-code:text-orange-700 prose-code:bg-amber-100
-                      prose-pre:bg-amber-900 prose-pre:text-amber-50"
-                    dangerouslySetInnerHTML={{ 
-                      __html: formatMarkdownContent(selectedLibro.contenido) 
-                    }}
-                  />
+                      prose-pre:bg-amber-900 prose-pre:text-amber-50
+                      prose-ul:text-amber-800 prose-ol:text-amber-800
+                      prose-li:text-amber-800"
+                  >
+                    {selectedLibro.contenido}
+                  </ReactMarkdown>
                 </div>
               )}
             </div>
@@ -387,38 +389,4 @@ export default function Biblioteca() {
       </div>
     </>
   );
-}
-
-// Simple Markdown-like formatter
-function formatMarkdownContent(content: string): string {
-  if (!content) return "";
-  
-  let html = content;
-  
-  // Headers
-  html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-  html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-  html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-  
-  // Bold
-  html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
-  
-  // Italic
-  html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
-  
-  // Links
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2">$1</a>');
-  
-  // Line breaks
-  html = html.replace(/\n\n/g, '</p><p>');
-  html = html.replace(/\n/g, '<br>');
-  
-  // Wrap in paragraphs
-  html = '<p>' + html + '</p>';
-  
-  // Clean up empty paragraphs
-  html = html.replace(/<p><\/p>/g, '');
-  html = html.replace(/<p><br><\/p>/g, '');
-  
-  return html;
 }
