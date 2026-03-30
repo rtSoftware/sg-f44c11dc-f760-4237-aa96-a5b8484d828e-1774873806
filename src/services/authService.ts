@@ -74,11 +74,27 @@ export const authService = {
         created_at: data.user.created_at
       } : null;
 
-      // Initialize casa after successful signup
+      // Initialize casa and update profile after successful signup
       if (authUser) {
+        console.log("User registered, initializing casa and updating profile...");
+        
         const casaResult = await initializeCasa();
+        
         if (casaResult.success && casaResult.casa_id) {
+          console.log("Casa initialized:", casaResult.casa_id);
           setCasaId(casaResult.casa_id);
+          
+          // Update the profile with the casa_id
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .update({ casa_id: casaResult.casa_id })
+            .eq("id", authUser.id);
+          
+          if (profileError) {
+            console.error("Error updating profile with casa_id:", profileError);
+          } else {
+            console.log("Profile updated with casa_id successfully");
+          }
         }
       }
 
@@ -110,11 +126,37 @@ export const authService = {
         created_at: data.user.created_at
       } : null;
 
-      // Initialize casa after successful signin
+      // Initialize casa and ensure profile has casa_id after successful signin
       if (authUser) {
+        console.log("User signed in, checking profile and casa...");
+        
         const casaResult = await initializeCasa();
+        
         if (casaResult.success && casaResult.casa_id) {
+          console.log("Casa initialized:", casaResult.casa_id);
           setCasaId(casaResult.casa_id);
+          
+          // Ensure the profile has the casa_id (in case it's missing)
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("casa_id")
+            .eq("id", authUser.id)
+            .single();
+          
+          if (profile && !profile.casa_id) {
+            console.log("Profile missing casa_id, updating...");
+            
+            const { error: profileError } = await supabase
+              .from("profiles")
+              .update({ casa_id: casaResult.casa_id })
+              .eq("id", authUser.id);
+            
+            if (profileError) {
+              console.error("Error updating profile with casa_id:", profileError);
+            } else {
+              console.log("Profile updated with casa_id successfully");
+            }
+          }
         }
       }
 
