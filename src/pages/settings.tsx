@@ -10,7 +10,7 @@ import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check } from 
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { getAllLibros, createLibro, updateLibro, deleteLibroContent } from "@/services/libroService";
-import { getAllCasas, createCasa } from "@/services/casaService";
+import { getAllCasas, createCasa, updateCasaNombre } from "@/services/casaService";
 import { useCasa } from "@/contexts/CasaContext";
 import type { User } from "@supabase/supabase-js";
 import type { Libro } from "@/services/libroService";
@@ -52,6 +52,9 @@ export default function Settings() {
   const [selectedLibroId, setSelectedLibroId] = useState<string | null>(null);
   const [showNewCasaDialog, setShowNewCasaDialog] = useState(false);
   const [newCasaName, setNewCasaName] = useState("");
+  const [showEditCasaDialog, setShowEditCasaDialog] = useState(false);
+  const [editingCasaId, setEditingCasaId] = useState<string | null>(null);
+  const [editCasaName, setEditCasaName] = useState("");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const [formData, setFormData] = useState({
@@ -176,6 +179,39 @@ export default function Settings() {
       await loadCasas();
       setNewCasaName("");
       setShowNewCasaDialog(false);
+    }
+
+    setSaving(false);
+  }
+
+  async function handleEditCasa(casa: Tables<"casas">) {
+    setEditingCasaId(casa.id);
+    setEditCasaName(casa.casa_nombre);
+    setShowEditCasaDialog(true);
+    setMessage(null);
+  }
+
+  async function handleUpdateCasaNombre(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingCasaId || !editCasaName.trim()) {
+      setMessage({ type: "error", text: "El nombre de la casa es obligatorio" });
+      return;
+    }
+
+    setSaving(true);
+    setMessage(null);
+
+    const { success, error } = await updateCasaNombre(editingCasaId, editCasaName);
+
+    if (error) {
+      setMessage({ type: "error", text: "Error al actualizar el nombre de la casa" });
+      console.error("Update casa nombre error:", error);
+    } else {
+      setMessage({ type: "success", text: "Nombre actualizado exitosamente" });
+      await loadCasas();
+      setEditingCasaId(null);
+      setEditCasaName("");
+      setShowEditCasaDialog(false);
     }
 
     setSaving(false);
@@ -636,6 +672,14 @@ export default function Settings() {
                               Creada: {new Date(casa.created_at).toLocaleDateString()}
                             </CardDescription>
                           </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditCasa(casa)}
+                            className="text-amber-600 hover:text-amber-700 hover:bg-amber-100"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
                         </div>
                       </CardHeader>
                       <CardContent className="pt-4">
@@ -709,6 +753,65 @@ export default function Settings() {
                     <>
                       <Plus className="mr-2 h-4 w-4" />
                       Crear Casa
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog para editar nombre de casa */}
+        <Dialog open={showEditCasaDialog} onOpenChange={setShowEditCasaDialog}>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle className="text-amber-900">Editar Nombre de Casa</DialogTitle>
+              <DialogDescription className="text-amber-700">
+                Modifica el nombre de tu comunidad o espacio
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleUpdateCasaNombre}>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-casa-nombre">Nombre de la Casa *</Label>
+                  <Input
+                    id="edit-casa-nombre"
+                    value={editCasaName}
+                    onChange={(e) => setEditCasaName(e.target.value)}
+                    placeholder="Ej: Mi Comunidad de Lectura"
+                    className="border-amber-200 focus:border-amber-400"
+                    required
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowEditCasaDialog(false);
+                    setEditingCasaId(null);
+                    setEditCasaName("");
+                  }}
+                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit"
+                  disabled={saving}
+                  className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Guardando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Guardar Cambios
                     </>
                   )}
                 </Button>

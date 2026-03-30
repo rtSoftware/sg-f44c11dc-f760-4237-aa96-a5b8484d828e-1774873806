@@ -209,3 +209,35 @@ export async function getAllCasas(): Promise<{
     return { data: null, error: error as Error };
   }
 }
+
+/**
+ * Actualizar el nombre de una casa (solo casa_nombre, nunca casa_id)
+ */
+export async function updateCasaNombre(
+  casaId: string,
+  nuevoNombre: string
+): Promise<{ success: boolean; error?: Error }> {
+  try {
+    if (!nuevoNombre.trim()) {
+      return { 
+        success: false, 
+        error: new Error("El nombre de la casa no puede estar vacío") 
+      };
+    }
+
+    const { error } = await supabase
+      .from("casas")
+      .update({ casa_nombre: nuevoNombre })
+      .eq("id", casaId);
+
+    if (error) {
+      console.error("Error updating casa nombre:", error);
+      return { success: false, error: error as Error };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in updateCasaNombre:", error);
+    return { success: false, error: error as Error };
+  }
+}
