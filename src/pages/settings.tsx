@@ -10,7 +10,7 @@ import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check } from 
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { getAllLibros, createLibro, updateLibro, deleteLibroContent } from "@/services/libroService";
-import { getAllCasas, createCasa, switchCasa } from "@/services/casaService";
+import { getAllCasas, createCasa } from "@/services/casaService";
 import { useCasa } from "@/contexts/CasaContext";
 import type { User } from "@supabase/supabase-js";
 import type { Libro } from "@/services/libroService";
@@ -52,7 +52,6 @@ export default function Settings() {
   const [selectedLibroId, setSelectedLibroId] = useState<string | null>(null);
   const [showNewCasaDialog, setShowNewCasaDialog] = useState(false);
   const [newCasaName, setNewCasaName] = useState("");
-  const [switchingCasa, setSwitchingCasa] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const [formData, setFormData] = useState({
@@ -180,27 +179,6 @@ export default function Settings() {
     }
 
     setSaving(false);
-  }
-
-  async function handleSwitchCasa(newCasaId: string) {
-    if (!user || newCasaId === casaId) return;
-
-    setSwitchingCasa(true);
-    setMessage(null);
-
-    const { success, error } = await switchCasa(user.id, newCasaId);
-
-    if (error) {
-      setMessage({ type: "error", text: "Error al cambiar de casa" });
-      console.error("Switch casa error:", error);
-    } else {
-      setMessage({ type: "success", text: "Casa cambiada exitosamente. Recargando..." });
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
-    }
-
-    setSwitchingCasa(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -635,7 +613,7 @@ export default function Settings() {
                       className={`border-2 shadow-lg hover:shadow-xl transition-all ${
                         casa.id === casaId 
                           ? "border-blue-500 bg-blue-50" 
-                          : "border-amber-200 hover:border-amber-400"
+                          : "border-amber-200"
                       }`}
                     >
                       <CardHeader className={`border-b ${
@@ -650,7 +628,7 @@ export default function Settings() {
                               {casa.casa_nombre}
                               {casa.id === casaId && (
                                 <span className="ml-2 px-2 py-1 text-xs bg-blue-500 text-white rounded-full">
-                                  Activa
+                                  Tu Casa
                                 </span>
                               )}
                             </CardTitle>
@@ -661,30 +639,17 @@ export default function Settings() {
                         </div>
                       </CardHeader>
                       <CardContent className="pt-4">
-                        {casa.id !== casaId && (
-                          <Button
-                            onClick={() => handleSwitchCasa(casa.id)}
-                            disabled={switchingCasa}
-                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-                          >
-                            {switchingCasa ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Cambiando...
-                              </>
-                            ) : (
-                              <>
-                                <Check className="mr-2 h-4 w-4" />
-                                Cambiar a esta Casa
-                              </>
-                            )}
-                          </Button>
-                        )}
-                        {casa.id === casaId && (
-                          <div className="text-center py-2 text-blue-600 font-semibold">
-                            Casa Actualmente Activa
-                          </div>
-                        )}
+                        <div className="text-center py-2 text-stone-600 text-sm">
+                          {casa.id === casaId ? (
+                            <span className="font-semibold text-blue-600">
+                              Esta es tu casa activa
+                            </span>
+                          ) : (
+                            <span className="text-stone-500">
+                              Comunidad registrada
+                            </span>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}

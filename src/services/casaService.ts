@@ -209,32 +209,3 @@ export async function getAllCasas(): Promise<{
     return { data: null, error: error as Error };
   }
 }
-
-/**
- * Cambiar la casa activa del usuario
- */
-export async function switchCasa(
-  userId: string,
-  newCasaId: string
-): Promise<{ success: boolean; error?: Error }> {
-  try {
-    // Actualizar el casa_id en el perfil del usuario
-    const { error } = await supabase
-      .from("profiles")
-      .update({ casa_id: newCasaId })
-      .eq("id", userId);
-
-    if (error) {
-      console.error("Error switching casa:", error);
-      return { success: false, error: error as Error };
-    }
-
-    // Actualizar localStorage
-    setCasaId(newCasaId);
-
-    return { success: true };
-  } catch (error) {
-    console.error("Error in switchCasa:", error);
-    return { success: false, error: error as Error };
-  }
-}
