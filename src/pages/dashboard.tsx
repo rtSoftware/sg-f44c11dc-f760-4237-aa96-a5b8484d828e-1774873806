@@ -4,12 +4,14 @@ import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, LogOut, Loader2, User, Settings, ChevronDown } from "lucide-react";
+import { BookOpen, LogOut, Loader2, User, Settings, ChevronDown, Home } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { useCasa } from "@/contexts/CasaContext";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { casaNombre } = useCasa();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -103,6 +105,15 @@ export default function DashboardPage() {
                           <span className="text-sm text-stone-600">Email:</span>
                           <span className="text-sm font-medium text-stone-900 truncate max-w-[180px]" title={user?.email}>
                             {user?.email}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-stone-100">
+                          <span className="text-sm text-stone-600 flex items-center gap-1">
+                            <Home className="w-4 h-4" />
+                            Casa:
+                          </span>
+                          <span className="text-sm font-medium text-blue-600">
+                            {casaNombre || "No asignada"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center py-2">
