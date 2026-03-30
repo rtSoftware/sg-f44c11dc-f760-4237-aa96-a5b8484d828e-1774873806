@@ -353,8 +353,7 @@ export default function Biblioteca() {
               {/* Chapter Content */}
               {selectedLibro.contenido && (
                 <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-amber-200 p-8 sm:p-12">
-                  <ReactMarkdown 
-                    className="prose prose-amber prose-lg max-w-none select-text
+                  <div className="prose prose-amber prose-lg max-w-none select-text
                       prose-headings:text-amber-900 prose-headings:font-serif
                       prose-p:text-amber-800 prose-p:leading-relaxed
                       prose-strong:text-amber-900
@@ -365,8 +364,10 @@ export default function Biblioteca() {
                       prose-ul:text-amber-800 prose-ol:text-amber-800
                       prose-li:text-amber-800"
                   >
-                    {selectedLibro.contenido}
-                  </ReactMarkdown>
+                    <ReactMarkdown>
+                      {selectedLibro.contenido}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               )}
             </div>
