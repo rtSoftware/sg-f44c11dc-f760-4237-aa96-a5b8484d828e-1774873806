@@ -298,7 +298,7 @@ export default function Biblioteca() {
                     <div className="mt-8">
                       <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl p-6 border border-amber-300">
                         <h4 className="text-lg font-semibold text-amber-900 mb-3">
-                          Audio de Análisis
+                          Mentorías
                         </h4>
                         <div className="flex flex-wrap gap-3">
                           <a
