@@ -695,6 +695,57 @@ export default function Settings() {
                     />
                   </div>
 
+                  {/* Sección de subida de imagen */}
+                  <div className="space-y-4 p-6 bg-amber-50 rounded-lg border-2 border-dashed border-amber-300">
+                    <Label className="text-amber-900 font-semibold flex items-center gap-2">
+                      <Upload className="h-4 w-4" />
+                      Subir Imagen de Portada
+                    </Label>
+                    
+                    {previewUrl ? (
+                      <div className="space-y-4">
+                        <div className="relative w-full max-w-md mx-auto">
+                          <img 
+                            src={previewUrl} 
+                            alt="Vista previa" 
+                            className="w-full h-64 object-cover rounded-lg shadow-md"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            onClick={handleRemoveImage}
+                            className="absolute top-2 right-2 shadow-lg"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <p className="text-sm text-amber-700 text-center">
+                          {selectedFile ? "Nueva imagen seleccionada" : "Imagen actual"}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Input
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          onChange={handleFileSelect}
+                          className="border-amber-300 cursor-pointer"
+                        />
+                        <p className="text-sm text-amber-600">
+                          Formatos permitidos: JPG, PNG, WebP. Tamaño máximo: 5MB
+                        </p>
+                      </div>
+                    )}
+
+                    {uploadingImage && (
+                      <div className="flex items-center gap-2 text-amber-700">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span className="text-sm">Subiendo imagen...</span>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Audio Principal Field */}
                   <div className="space-y-2">
                     <Label htmlFor="audio_https" className="text-amber-900 font-semibold">
