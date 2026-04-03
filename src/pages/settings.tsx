@@ -219,13 +219,7 @@ export default function Settings() {
       return;
     }
 
-    // Validar tamaño (5MB máximo)
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      setMessage({ type: "error", text: "El archivo es demasiado grande. Máximo 5MB." });
-      return;
-    }
-
+    // NO validar tamaño aquí - la compresión se encargará de reducirlo
     setSelectedFile(file);
     
     // Crear preview URL
