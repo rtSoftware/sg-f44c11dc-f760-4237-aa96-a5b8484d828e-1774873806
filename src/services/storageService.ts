@@ -124,20 +124,18 @@ export async function uploadPortada(
       };
     }
 
-    // Comprimir imagen si excede el tamaño máximo
-    let fileToUpload = file;
-    if (file.size > MAX_SIZE) {
-      console.log(`Imagen original: ${(file.size / 1024).toFixed(2)}KB - Iniciando compresión...`);
-      try {
-        fileToUpload = await compressImage(file);
-        console.log(`Compresión completada: ${(fileToUpload.size / 1024).toFixed(2)}KB`);
-      } catch (compressError) {
-        console.error("Error durante la compresión:", compressError);
-        return {
-          url: null,
-          error: new Error("Error al comprimir la imagen. Intenta con una imagen más pequeña.")
-        };
-      }
+    // SIEMPRE comprimir imágenes para optimizar tamaño
+    console.log(`Imagen original: ${(file.size / 1024).toFixed(2)}KB - Iniciando compresión...`);
+    let fileToUpload: File;
+    try {
+      fileToUpload = await compressImage(file);
+      console.log(`Compresión completada: ${(fileToUpload.size / 1024).toFixed(2)}KB`);
+    } catch (compressError) {
+      console.error("Error durante la compresión:", compressError);
+      return {
+        url: null,
+        error: new Error("Error al comprimir la imagen. Intenta con una imagen más pequeña.")
+      };
     }
 
     // Validar tamaño final
