@@ -271,18 +271,6 @@ export default function Biblioteca() {
               {/* Chapter Header */}
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-amber-200 overflow-hidden">
                 <div className="p-8 sm:p-12">
-                  {/* Title and Author */}
-                  <div className="text-center mb-8">
-                    <h1 className="text-4xl sm:text-5xl font-bold text-amber-900 mb-4 font-serif">
-                      {selectedLibro.titulo}
-                    </h1>
-                    {selectedLibro.autor && (
-                      <p className="text-xl text-amber-700 font-medium">
-                        por {selectedLibro.autor}
-                      </p>
-                    )}
-                  </div>
-
                   {/* Cover Image */}
                   {selectedLibro.portada_url && (
                     <div className="mb-8">
@@ -305,14 +293,9 @@ export default function Biblioteca() {
 
                   <Separator className="bg-amber-200" />
 
-                  {/* Audio Players */}
+                  {/* Audio de Análisis */}
                   {selectedLibro.audioanalisis_https && (
-                    <div className="mt-8 space-y-6">
-                      <h3 className="text-2xl font-bold text-amber-900 flex items-center gap-2">
-                        <Headphones className="w-6 h-6" />
-                        Audio del Capítulo
-                      </h3>
-
+                    <div className="mt-8">
                       <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl p-6 border border-amber-300">
                         <h4 className="text-lg font-semibold text-amber-900 mb-3">
                           Audio de Análisis
