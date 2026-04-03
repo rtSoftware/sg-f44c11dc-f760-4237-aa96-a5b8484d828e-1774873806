@@ -9,7 +9,7 @@ const MAX_DIMENSION = 2000; // Dimensión máxima en píxeles
  * - Público para permitir acceso directo a las imágenes
  * - Tamaño máximo: 5MB
  * - Tipos permitidos: image/jpeg, image/png, image/webp
- * - Compresión automática si excede el tamaño máximo
+ * - Compresión automática para todas las imágenes
  */
 
 /**
@@ -18,19 +18,32 @@ const MAX_DIMENSION = 2000; // Dimensión máxima en píxeles
  * @returns Archivo comprimido o error
  */
 async function compressImage(file: File): Promise<File> {
+  console.log("🖼️ INICIANDO COMPRESIÓN:", {
+    nombre: file.name,
+    tamaño: `${(file.size / 1024).toFixed(2)}KB`,
+    tipo: file.type
+  });
+
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     
     reader.onload = (e) => {
+      console.log("📖 Archivo leído, creando imagen...");
       const img = new Image();
       
       img.onload = () => {
+        console.log("✅ Imagen cargada:", {
+          ancho: img.width,
+          alto: img.height
+        });
+
         // Calcular nuevas dimensiones manteniendo aspect ratio
         let width = img.width;
         let height = img.height;
         
         // Redimensionar si excede el máximo
         if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+          console.log(`📏 Redimensionando desde ${width}x${height}`);
           if (width > height) {
             height = (height / width) * MAX_DIMENSION;
             width = MAX_DIMENSION;
@@ -38,6 +51,7 @@ async function compressImage(file: File): Promise<File> {
             width = (width / height) * MAX_DIMENSION;
             height = MAX_DIMENSION;
           }
+          console.log(`📏 Nueva dimensión: ${width}x${height}`);
         }
         
         // Crear canvas
@@ -47,24 +61,30 @@ async function compressImage(file: File): Promise<File> {
         
         const ctx = canvas.getContext("2d");
         if (!ctx) {
+          console.error("❌ Error: No se pudo crear el contexto del canvas");
           reject(new Error("No se pudo crear el contexto del canvas"));
           return;
         }
         
+        console.log("🎨 Canvas creado, dibujando imagen...");
         // Dibujar imagen redimensionada
         ctx.drawImage(img, 0, 0, width, height);
         
         // Comprimir progresivamente
         let quality = 0.9;
         const attemptCompression = () => {
+          console.log(`🔄 Intentando compresión con calidad ${quality.toFixed(1)}...`);
+          
           canvas.toBlob(
             (blob) => {
               if (!blob) {
+                console.error("❌ Error: No se pudo generar blob");
                 reject(new Error("Error al comprimir la imagen"));
                 return;
               }
               
-              console.log(`Compresión con calidad ${quality}: ${(blob.size / 1024).toFixed(2)}KB`);
+              const blobSizeKB = (blob.size / 1024).toFixed(2);
+              console.log(`📊 Resultado calidad ${quality.toFixed(1)}: ${blobSizeKB}KB`);
               
               // Si el tamaño es aceptable, crear archivo
               if (blob.size <= MAX_SIZE || quality <= 0.1) {
@@ -73,11 +93,18 @@ async function compressImage(file: File): Promise<File> {
                   lastModified: Date.now()
                 });
                 
-                console.log(`Imagen comprimida: ${(compressedFile.size / 1024).toFixed(2)}KB (calidad: ${quality})`);
+                console.log("✅ COMPRESIÓN COMPLETADA:", {
+                  "tamaño original": `${(file.size / 1024).toFixed(2)}KB`,
+                  "tamaño final": `${(compressedFile.size / 1024).toFixed(2)}KB`,
+                  "reducción": `${(((file.size - compressedFile.size) / file.size) * 100).toFixed(1)}%`,
+                  "calidad final": quality.toFixed(1)
+                });
+                
                 resolve(compressedFile);
               } else {
                 // Reducir calidad y reintentar
                 quality -= 0.1;
+                console.log(`⚠️ Tamaño ${blobSizeKB}KB aún excede límite, reduciendo calidad a ${quality.toFixed(1)}`);
                 attemptCompression();
               }
             },
@@ -90,6 +117,7 @@ async function compressImage(file: File): Promise<File> {
       };
       
       img.onerror = () => {
+        console.error("❌ Error al cargar la imagen en el objeto Image");
         reject(new Error("Error al cargar la imagen"));
       };
       
@@ -97,9 +125,11 @@ async function compressImage(file: File): Promise<File> {
     };
     
     reader.onerror = () => {
+      console.error("❌ Error al leer el archivo con FileReader");
       reject(new Error("Error al leer el archivo"));
     };
     
+    console.log("📂 Leyendo archivo...");
     reader.readAsDataURL(file);
   });
 }
@@ -114,24 +144,31 @@ export async function uploadPortada(
   file: File,
   userId: string
 ): Promise<{ url: string | null; error: Error | null }> {
+  console.log("🚀 INICIO uploadPortada:", {
+    archivo: file.name,
+    tamaño: `${(file.size / 1024).toFixed(2)}KB`,
+    tipo: file.type,
+    usuario: userId
+  });
+
   try {
     // Validar tipo de archivo
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
+      console.error("❌ Tipo de archivo no permitido:", file.type);
       return {
         url: null,
         error: new Error("Tipo de archivo no permitido. Usa JPG, PNG o WebP.")
       };
     }
 
-    // SIEMPRE comprimir imágenes para optimizar tamaño
-    console.log(`Imagen original: ${(file.size / 1024).toFixed(2)}KB - Iniciando compresión...`);
+    // SIEMPRE comprimir todas las imágenes
+    console.log("🔧 Iniciando proceso de compresión obligatoria...");
     let fileToUpload: File;
     try {
       fileToUpload = await compressImage(file);
-      console.log(`Compresión completada: ${(fileToUpload.size / 1024).toFixed(2)}KB`);
     } catch (compressError) {
-      console.error("Error durante la compresión:", compressError);
+      console.error("❌ Error durante la compresión:", compressError);
       return {
         url: null,
         error: new Error("Error al comprimir la imagen. Intenta con una imagen más pequeña.")
@@ -140,6 +177,10 @@ export async function uploadPortada(
 
     // Validar tamaño final
     if (fileToUpload.size > MAX_SIZE) {
+      console.error("❌ Imagen aún excede límite después de compresión:", {
+        tamaño: `${(fileToUpload.size / 1024).toFixed(2)}KB`,
+        límite: `${(MAX_SIZE / 1024).toFixed(2)}KB`
+      });
       return {
         url: null,
         error: new Error("No se pudo reducir la imagen a menos de 5MB. Intenta con una imagen diferente.")
@@ -154,7 +195,10 @@ export async function uploadPortada(
     const randomStr = Math.random().toString(36).substring(2, 15);
     const fileName = `${userId}/${timestamp}_${randomStr}.${fileExt}`;
 
-    console.log("Uploading portada:", fileName, `(${(fileToUpload.size / 1024).toFixed(2)}KB)`);
+    console.log("📤 Subiendo a Storage:", {
+      ruta: fileName,
+      tamaño: `${(fileToUpload.size / 1024).toFixed(2)}KB`
+    });
 
     // Subir archivo a Storage
     const { data, error: uploadError } = await supabase.storage
@@ -165,22 +209,22 @@ export async function uploadPortada(
       });
 
     if (uploadError) {
-      console.error("Upload error:", uploadError);
+      console.error("❌ Error en upload a Storage:", uploadError);
       throw uploadError;
     }
 
-    console.log("Upload successful:", data);
+    console.log("✅ Upload exitoso:", data);
 
     // Obtener URL pública
     const { data: urlData } = supabase.storage
       .from(BUCKET_NAME)
       .getPublicUrl(fileName);
 
-    console.log("Public URL:", urlData.publicUrl);
+    console.log("🔗 URL pública generada:", urlData.publicUrl);
 
     return { url: urlData.publicUrl, error: null };
   } catch (error) {
-    console.error("Error uploading portada:", error);
+    console.error("❌ Error general en uploadPortada:", error);
     return { url: null, error: error as Error };
   }
 }
