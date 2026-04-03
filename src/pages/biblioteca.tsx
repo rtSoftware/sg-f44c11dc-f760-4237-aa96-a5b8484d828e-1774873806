@@ -10,7 +10,7 @@ import { getAllLibros } from "@/services/libroService";
 import { useCasa } from "@/contexts/CasaContext";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { Libro } from "@/services/libroService";
-import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle } from "lucide-react";
+import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle, FileText } from "lucide-react";
 import Link from "next/link";
 
 type ViewMode = "grid" | "reader";
@@ -300,15 +300,29 @@ export default function Biblioteca() {
                         <h4 className="text-lg font-semibold text-amber-900 mb-3">
                           Audio de Análisis
                         </h4>
-                        <a
-                          href={selectedLibro.audioanalisis_https}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
-                        >
-                          <Headphones className="w-5 h-5" />
-                          Escuchar Análisis
-                        </a>
+                        <div className="flex flex-wrap gap-3">
+                          <a
+                            href={selectedLibro.audioanalisis_https}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+                          >
+                            <Headphones className="w-5 h-5" />
+                            Escuchar Análisis
+                          </a>
+                          
+                          {selectedLibro.audio_https && (
+                            <a
+                              href={selectedLibro.audio_https}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+                            >
+                              <FileText className="w-5 h-5" />
+                              PDF
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
