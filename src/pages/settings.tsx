@@ -626,20 +626,21 @@ export default function Settings() {
                     />
                   </div>
 
+                  {/* Audio Principal Field */}
                   <div className="space-y-2">
                     <Label htmlFor="audio_https" className="text-amber-900 font-semibold">
-                      URL del Audio Principal
+                      URL PDF
                     </Label>
                     <Input
                       id="audio_https"
                       value={formData.audio_https}
-                      onChange={(e) => handleChange("audio_https", e.target.value)}
-                      placeholder="https://streaming.ejemplo.com/audio-capitulo.mp3"
+                      onChange={(e) => setFormData({ ...formData, audio_https: e.target.value })}
+                      placeholder="https://ejemplo.com/audio-capitulo.mp3"
                       type="url"
                       className="border-amber-200 focus:border-amber-400 focus:ring-amber-400"
                     />
                     <p className="text-sm text-amber-600">
-                      URL HTTPS al servidor de streaming para el audio del capítulo
+                      URL del archivo de audio principal del capítulo
                     </p>
                   </div>
 
