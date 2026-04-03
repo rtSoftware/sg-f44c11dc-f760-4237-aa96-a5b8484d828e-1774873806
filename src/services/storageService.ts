@@ -1,13 +1,108 @@
 import { supabase } from "@/integrations/supabase/client";
 
 const BUCKET_NAME = "portadas";
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB en bytes
+const MAX_DIMENSION = 2000; // Dimensión máxima en píxeles
 
 /**
  * Configuración del bucket de portadas
  * - Público para permitir acceso directo a las imágenes
  * - Tamaño máximo: 5MB
  * - Tipos permitidos: image/jpeg, image/png, image/webp
+ * - Compresión automática si excede el tamaño máximo
  */
+
+/**
+ * Comprimir una imagen usando Canvas API
+ * @param file - Archivo de imagen original
+ * @returns Archivo comprimido o error
+ */
+async function compressImage(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calcular nuevas dimensiones manteniendo aspect ratio
+        let width = img.width;
+        let height = img.height;
+        
+        // Redimensionar si excede el máximo
+        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+          if (width > height) {
+            height = (height / width) * MAX_DIMENSION;
+            width = MAX_DIMENSION;
+          } else {
+            width = (width / height) * MAX_DIMENSION;
+            height = MAX_DIMENSION;
+          }
+        }
+        
+        // Crear canvas
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("No se pudo crear el contexto del canvas"));
+          return;
+        }
+        
+        // Dibujar imagen redimensionada
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Comprimir progresivamente
+        let quality = 0.9;
+        const attemptCompression = () => {
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error("Error al comprimir la imagen"));
+                return;
+              }
+              
+              console.log(`Compresión con calidad ${quality}: ${(blob.size / 1024).toFixed(2)}KB`);
+              
+              // Si el tamaño es aceptable, crear archivo
+              if (blob.size <= MAX_SIZE || quality <= 0.1) {
+                const compressedFile = new File([blob], file.name, {
+                  type: file.type === "image/png" ? "image/jpeg" : file.type,
+                  lastModified: Date.now()
+                });
+                
+                console.log(`Imagen comprimida: ${(compressedFile.size / 1024).toFixed(2)}KB (calidad: ${quality})`);
+                resolve(compressedFile);
+              } else {
+                // Reducir calidad y reintentar
+                quality -= 0.1;
+                attemptCompression();
+              }
+            },
+            file.type === "image/png" ? "image/jpeg" : file.type,
+            quality
+          );
+        };
+        
+        attemptCompression();
+      };
+      
+      img.onerror = () => {
+        reject(new Error("Error al cargar la imagen"));
+      };
+      
+      img.src = e.target?.result as string;
+    };
+    
+    reader.onerror = () => {
+      reject(new Error("Error al leer el archivo"));
+    };
+    
+    reader.readAsDataURL(file);
+  });
+}
 
 /**
  * Subir una imagen de portada a Supabase Storage
@@ -29,27 +124,44 @@ export async function uploadPortada(
       };
     }
 
-    // Validar tamaño (5MB máximo)
-    const maxSize = 5 * 1024 * 1024; // 5MB en bytes
-    if (file.size > maxSize) {
+    // Comprimir imagen si excede el tamaño máximo
+    let fileToUpload = file;
+    if (file.size > MAX_SIZE) {
+      console.log(`Imagen original: ${(file.size / 1024).toFixed(2)}KB - Iniciando compresión...`);
+      try {
+        fileToUpload = await compressImage(file);
+        console.log(`Compresión completada: ${(fileToUpload.size / 1024).toFixed(2)}KB`);
+      } catch (compressError) {
+        console.error("Error durante la compresión:", compressError);
+        return {
+          url: null,
+          error: new Error("Error al comprimir la imagen. Intenta con una imagen más pequeña.")
+        };
+      }
+    }
+
+    // Validar tamaño final
+    if (fileToUpload.size > MAX_SIZE) {
       return {
         url: null,
-        error: new Error("El archivo es demasiado grande. Máximo 5MB.")
+        error: new Error("No se pudo reducir la imagen a menos de 5MB. Intenta con una imagen diferente.")
       };
     }
 
     // Generar nombre único para el archivo
-    const fileExt = file.name.split(".").pop();
+    const fileExt = fileToUpload.type === "image/jpeg" || fileToUpload.type === "image/jpg" ? "jpg" : 
+                    fileToUpload.type === "image/png" ? "jpg" : // PNG se convierte a JPG en compresión
+                    "webp";
     const timestamp = Date.now();
     const randomStr = Math.random().toString(36).substring(2, 15);
     const fileName = `${userId}/${timestamp}_${randomStr}.${fileExt}`;
 
-    console.log("Uploading portada:", fileName);
+    console.log("Uploading portada:", fileName, `(${(fileToUpload.size / 1024).toFixed(2)}KB)`);
 
     // Subir archivo a Storage
     const { data, error: uploadError } = await supabase.storage
       .from(BUCKET_NAME)
-      .upload(fileName, file, {
+      .upload(fileName, fileToUpload, {
         cacheControl: "3600",
         upsert: false
       });
