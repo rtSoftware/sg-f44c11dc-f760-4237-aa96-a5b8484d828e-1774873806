@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check, User } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check, User, Upload, X } from "lucide-react";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { getAllLibros, createLibro, updateLibro, deleteLibroContent } from "@/services/libroService";
 import { getAllCasas, createCasa, updateCasaNombre } from "@/services/casaService";
+import { uploadPortada, deletePortada } from "@/services/storageService";
 import { useCasa } from "@/contexts/CasaContext";
 import type { User as UserType } from "@supabase/supabase-js";
 import type { Libro } from "@/services/libroService";
@@ -73,6 +74,10 @@ export default function Settings() {
     audioanalisis_https: "",
     orden: 0
   });
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -162,6 +167,8 @@ export default function Settings() {
       audioanalisis_https: "",
       orden: 0
     });
+    setSelectedFile(null);
+    setPreviewUrl("");
     setMessage(null);
   }
 
@@ -178,6 +185,8 @@ export default function Settings() {
       audioanalisis_https: libro.audioanalisis_https || "",
       orden: libro.orden || 0
     });
+    setSelectedFile(null);
+    setPreviewUrl(libro.portada_url || "");
     setMessage(null);
   }
 
@@ -194,7 +203,43 @@ export default function Settings() {
       audioanalisis_https: "",
       orden: 0
     });
+    setSelectedFile(null);
+    setPreviewUrl("");
     setMessage(null);
+  }
+
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      setMessage({ type: "error", text: "Tipo de archivo no permitido. Usa JPG, PNG o WebP." });
+      return;
+    }
+
+    // Validar tamaño (5MB máximo)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setMessage({ type: "error", text: "El archivo es demasiado grande. Máximo 5MB." });
+      return;
+    }
+
+    setSelectedFile(file);
+    
+    // Crear preview URL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleRemoveImage() {
+    setSelectedFile(null);
+    setPreviewUrl("");
+    setFormData(prev => ({ ...prev, portada_url: "" }));
   }
 
   async function handleCreateCasa(e: React.FormEvent) {
@@ -292,8 +337,32 @@ export default function Settings() {
     setMessage(null);
 
     try {
+      let portadaUrl = formData.portada_url;
+
+      // Si hay un archivo seleccionado, subirlo primero
+      if (selectedFile) {
+        setUploadingImage(true);
+        const { url, error: uploadError } = await uploadPortada(selectedFile, user.id);
+        setUploadingImage(false);
+
+        if (uploadError) {
+          setMessage({ type: "error", text: `Error al subir la imagen: ${uploadError.message}` });
+          setSaving(false);
+          return;
+        }
+
+        if (url) {
+          portadaUrl = url;
+        }
+      }
+
+      const dataToSave = {
+        ...formData,
+        portada_url: portadaUrl
+      };
+
       if (mode === "create") {
-        const { data, error } = await createLibro(formData, user.id);
+        const { data, error } = await createLibro(dataToSave, user.id);
         
         if (error) {
           setMessage({ type: "error", text: "Error al crear el capítulo" });
@@ -304,7 +373,7 @@ export default function Settings() {
           handleCancelForm();
         }
       } else if (mode === "edit" && selectedLibroId) {
-        const { data, error } = await updateLibro(selectedLibroId, formData);
+        const { data, error } = await updateLibro(selectedLibroId, dataToSave);
         
         if (error) {
           setMessage({ type: "error", text: "Error al actualizar el capítulo" });
