@@ -306,45 +306,27 @@ export default function Biblioteca() {
                   <Separator className="bg-amber-200" />
 
                   {/* Audio Players */}
-                  {(selectedLibro.audio_https || selectedLibro.audioanalisis_https) && (
+                  {selectedLibro.audioanalisis_https && (
                     <div className="mt-8 space-y-6">
                       <h3 className="text-2xl font-bold text-amber-900 flex items-center gap-2">
                         <Headphones className="w-6 h-6" />
                         Audio del Capítulo
                       </h3>
 
-                      {selectedLibro.audio_https && (
-                        <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl p-6 border border-amber-300">
-                          <h4 className="text-lg font-semibold text-amber-900 mb-3">
-                            Audio Principal
-                          </h4>
-                          <audio
-                            controls
-                            className="w-full"
-                            preload="metadata"
-                          >
-                            <source src={selectedLibro.audio_https} type="audio/mpeg" />
-                            Tu navegador no soporta el elemento de audio.
-                          </audio>
-                        </div>
-                      )}
-
-                      {selectedLibro.audioanalisis_https && (
-                        <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl p-6 border border-amber-300">
-                          <h4 className="text-lg font-semibold text-amber-900 mb-3">
-                            Audio de Análisis
-                          </h4>
-                          <a
-                            href={selectedLibro.audioanalisis_https}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
-                          >
-                            <Headphones className="w-5 h-5" />
-                            Escuchar Análisis
-                          </a>
-                        </div>
-                      )}
+                      <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl p-6 border border-amber-300">
+                        <h4 className="text-lg font-semibold text-amber-900 mb-3">
+                          Audio de Análisis
+                        </h4>
+                        <a
+                          href={selectedLibro.audioanalisis_https}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+                        >
+                          <Headphones className="w-5 h-5" />
+                          Escuchar Análisis
+                        </a>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -368,24 +350,6 @@ export default function Biblioteca() {
                       {selectedLibro.contenido}
                     </ReactMarkdown>
                   </div>
-                </div>
-              )}
-
-              {/* Audio de Análisis */}
-              {selectedLibro.audioanalisis_https && (
-                <div className="bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl p-6 border border-amber-300">
-                  <h4 className="text-lg font-semibold text-amber-900 mb-3">
-                    Audio de Análisis
-                  </h4>
-                  <a
-                    href={selectedLibro.audioanalisis_https}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
-                  >
-                    <Headphones className="w-5 h-5" />
-                    Escuchar Análisis
-                  </a>
                 </div>
               )}
             </div>
