@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check, User, Upload, X } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check, User, Upload, X, Search } from "lucide-react";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { getAllLibros, createLibro, updateLibro, deleteLibroContent } from "@/services/libroService";
@@ -57,6 +57,7 @@ export default function Settings() {
   const [editingCasaId, setEditingCasaId] = useState<string | null>(null);
   const [editCasaName, setEditCasaName] = useState("");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [profileData, setProfileData] = useState({
     full_name: "",
@@ -430,6 +431,11 @@ export default function Settings() {
     }
   }
 
+  // Filtrar libros por título
+  const filteredLibros = libros.filter(libro => 
+    libro.titulo.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center">
@@ -529,6 +535,43 @@ export default function Settings() {
                 </div>
               </div>
 
+              {/* Barra de búsqueda */}
+              {libros.length > 0 && (
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-amber-400" />
+                  <Input
+                    type="text"
+                    placeholder="Buscar por título..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 border-amber-300 focus:border-amber-500 focus:ring-amber-500 bg-white"
+                  />
+                  {searchTerm && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSearchTerm("")}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0 text-amber-600 hover:text-amber-800 hover:bg-amber-100"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {/* Contador de resultados */}
+              {searchTerm && (
+                <div className="text-sm text-amber-700">
+                  {filteredLibros.length === 0 ? (
+                    <span>No se encontraron resultados para "{searchTerm}"</span>
+                  ) : (
+                    <span>
+                      {filteredLibros.length} {filteredLibros.length === 1 ? "resultado" : "resultados"} encontrado{filteredLibros.length === 1 ? "" : "s"}
+                    </span>
+                  )}
+                </div>
+              )}
+
               {libros.length === 0 ? (
                 <Card className="border-amber-200 shadow-lg">
                   <CardContent className="pt-6 text-center py-12">
@@ -548,9 +591,28 @@ export default function Settings() {
                     </Button>
                   </CardContent>
                 </Card>
+              ) : filteredLibros.length === 0 ? (
+                <Card className="border-amber-200 shadow-lg">
+                  <CardContent className="pt-6 text-center py-12">
+                    <Search className="h-16 w-16 text-amber-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-amber-900 mb-2">
+                      No se encontraron resultados
+                    </h3>
+                    <p className="text-amber-700 mb-6">
+                      Intenta con otro término de búsqueda
+                    </p>
+                    <Button
+                      onClick={() => setSearchTerm("")}
+                      variant="outline"
+                      className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                    >
+                      Limpiar búsqueda
+                    </Button>
+                  </CardContent>
+                </Card>
               ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {libros.map((libro) => (
+                  {filteredLibros.map((libro) => (
                     <Card key={libro.id} className="border-amber-200 shadow-lg hover:shadow-xl transition-shadow">
                       <CardHeader className="border-b border-amber-100 bg-gradient-to-r from-amber-50 to-orange-50">
                         <div className="flex items-start justify-between">
