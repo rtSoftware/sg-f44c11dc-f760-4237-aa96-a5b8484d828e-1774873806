@@ -13,7 +13,7 @@ export default function Home() {
         description="Más que palabras: la habilidad olvidada que define tu inteligencia. Únete a la comunidad de lectores que están transformando su pensamiento crítico a través de la oratoria consciente."
         image="/og-image.png"
       />
-      <main className="min-h-screen bg-gradient-to-b from-amber-50 via-white to-stone-50">
+      <main className="min-h-screen">
         <Hero />
         <BookDescription />
         <PricingSection />
