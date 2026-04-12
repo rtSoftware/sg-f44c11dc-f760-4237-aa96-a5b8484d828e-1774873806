@@ -135,10 +135,12 @@ export async function createLibro(
     const { casaId } = getAuthContext();
     
     if (!casaId) {
+      console.error("createLibro - No casa_id found!");
       return { data: null, error: new Error("No casa_id found") };
     }
 
     console.log("createLibro - Using casa_id:", casaId, "user_id:", userId);
+    console.log("createLibro - Content:", content);
 
     const { data, error } = await supabase
       .from("libro")
@@ -157,13 +159,16 @@ export async function createLibro(
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("createLibro - Supabase error:", error);
+      throw error;
+    }
     
     console.log("createLibro - Success, libro created with casa_id:", data.casa_id);
     
     return { data, error: null };
   } catch (error) {
-    console.error("Error creating libro:", error);
+    console.error("createLibro - Exception:", error);
     return { data: null, error: error as Error };
   }
 }
@@ -188,8 +193,12 @@ export async function updateLibro(
     const { casaId } = getAuthContext();
     
     if (!casaId) {
+      console.error("updateLibro - No casa_id found!");
       return { data: null, error: new Error("No casa_id found") };
     }
+
+    console.log("updateLibro - ID:", id, "casa_id:", casaId);
+    console.log("updateLibro - Content:", content);
 
     const { data, error } = await supabase
       .from("libro")
@@ -199,10 +208,15 @@ export async function updateLibro(
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("updateLibro - Supabase error:", error);
+      throw error;
+    }
+    
+    console.log("updateLibro - Success:", data);
     return { data, error: null };
   } catch (error) {
-    console.error("Error updating libro:", error);
+    console.error("updateLibro - Exception:", error);
     return { data: null, error: error as Error };
   }
 }

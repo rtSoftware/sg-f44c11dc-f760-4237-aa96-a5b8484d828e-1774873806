@@ -340,7 +340,11 @@ export default function Settings() {
         setUploadingImage(false);
 
         if (uploadError) {
-          setMessage({ type: "error", text: `Error al subir la imagen: ${uploadError.message}` });
+          console.error("Upload error details:", uploadError);
+          setMessage({ 
+            type: "error", 
+            text: `Error al subir la imagen: ${uploadError.message || "Error desconocido"}` 
+          });
           setSaving(false);
           return;
         }
@@ -355,13 +359,19 @@ export default function Settings() {
         portada_url: portadaUrl
       };
 
+      console.log("Saving libro data:", { mode, selectedLibroId, dataToSave });
+
       if (mode === "create") {
         const { data, error } = await createLibro(dataToSave, user.id);
         
         if (error) {
-          setMessage({ type: "error", text: "Error al crear el capítulo" });
-          console.error("Create error:", error);
+          console.error("Create error details:", error);
+          setMessage({ 
+            type: "error", 
+            text: `Error al crear el capítulo: ${error.message || "Error desconocido"}` 
+          });
         } else {
+          console.log("Create successful:", data);
           setMessage({ type: "success", text: "Capítulo creado exitosamente" });
           await loadLibros();
           handleCancelForm();
@@ -370,17 +380,22 @@ export default function Settings() {
         const { data, error } = await updateLibro(selectedLibroId, dataToSave);
         
         if (error) {
-          setMessage({ type: "error", text: "Error al actualizar el capítulo" });
-          console.error("Update error:", error);
+          console.error("Update error details:", error);
+          setMessage({ 
+            type: "error", 
+            text: `Error al actualizar el capítulo: ${error.message || "Error desconocido"}` 
+          });
         } else {
+          console.log("Update successful:", data);
           setMessage({ type: "success", text: "Capítulo actualizado exitosamente" });
           await loadLibros();
           handleCancelForm();
         }
       }
     } catch (error) {
-      setMessage({ type: "error", text: "Error inesperado" });
-      console.error("Submit error:", error);
+      console.error("Submit error details:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      setMessage({ type: "error", text: `Error inesperado: ${errorMessage}` });
     }
 
     setSaving(false);
