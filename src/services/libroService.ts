@@ -190,38 +190,59 @@ export async function updateLibro(
   }
 ): Promise<{ data: Libro | null; error: Error | null }> {
   try {
-    const { casaId } = getAuthContext();
-    
-    if (!casaId) {
-      console.error("updateLibro - No casa_id found!");
-      return { data: null, error: new Error("No casa_id found") };
-    }
+    console.log("========================================");
+    console.log("🔄 ACTUALIZANDO LIBRO");
+    console.log("ID:", id);
+    console.log("Content:", content);
+    console.log("========================================");
 
-    console.log("updateLibro - ID:", id, "casa_id:", casaId);
-    console.log("updateLibro - Content:", content);
-
+    // RLS policy verifica que auth.uid() = user_id automáticamente
+    // NO necesitamos filtrar por casa_id aquí
     const { data, error } = await supabase
       .from("libro")
       .update(content)
       .eq("id", id)
-      .eq("casa_id", casaId)
       .select()
       .maybeSingle();
 
     if (error) {
-      console.error("updateLibro - Supabase error:", error);
+      console.error("❌ Supabase error:", error);
       throw error;
     }
     
     if (!data) {
-      console.error("updateLibro - No data returned (libro not found or no permission)");
+      console.error("❌ No data returned");
+      console.error("Posibles causas:");
+      console.error("1. El libro no existe (ID incorrecto)");
+      console.error("2. No tienes permisos para editar este libro (no eres el creador)");
+      console.error("3. RLS bloqueó la operación");
+      
+      // Intentar obtener el libro para ver si existe
+      const { data: existingLibro, error: fetchError } = await supabase
+        .from("libro")
+        .select("id, user_id, titulo")
+        .eq("id", id)
+        .maybeSingle();
+      
+      if (fetchError) {
+        console.error("Error al verificar existencia:", fetchError);
+      } else if (!existingLibro) {
+        console.error("El libro no existe en la base de datos");
+        return { data: null, error: new Error("El libro no existe o fue eliminado.") };
+      } else {
+        console.error("El libro existe:", existingLibro);
+        console.error("Pero no puedes editarlo. Solo el creador puede editar un libro.");
+        return { data: null, error: new Error("No tienes permisos para editar este libro. Solo el creador puede editarlo.") };
+      }
+      
       return { data: null, error: new Error("No se pudo actualizar el libro. Verifica que existe y tienes permisos.") };
     }
     
-    console.log("updateLibro - Success:", data);
+    console.log("✅ UPDATE EXITOSO:", data);
+    console.log("========================================");
     return { data, error: null };
   } catch (error) {
-    console.error("updateLibro - Exception:", error);
+    console.error("❌ Exception:", error);
     return { data: null, error: error as Error };
   }
 }
