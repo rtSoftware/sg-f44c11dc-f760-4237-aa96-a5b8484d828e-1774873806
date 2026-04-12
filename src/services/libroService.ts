@@ -76,7 +76,7 @@ export async function getLibroById(id: string): Promise<{ data: Libro | null; er
       .select("*")
       .eq("id", id)
       .eq("casa_id", casaId)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
 
@@ -157,14 +157,14 @@ export async function createLibro(
         orden: content.orden || 0
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("createLibro - Supabase error:", error);
       throw error;
     }
     
-    console.log("createLibro - Success, libro created with casa_id:", data.casa_id);
+    console.log("createLibro - Success, libro created with casa_id:", data?.casa_id);
     
     return { data, error: null };
   } catch (error) {
@@ -206,11 +206,16 @@ export async function updateLibro(
       .eq("id", id)
       .eq("casa_id", casaId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("updateLibro - Supabase error:", error);
       throw error;
+    }
+    
+    if (!data) {
+      console.error("updateLibro - No data returned (libro not found or no permission)");
+      return { data: null, error: new Error("No se pudo actualizar el libro. Verifica que existe y tienes permisos.") };
     }
     
     console.log("updateLibro - Success:", data);
@@ -254,7 +259,7 @@ export async function upsertLibroContent(
         .eq("id", existingData.id)
         .eq("casa_id", casaId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return { data, error: null };
@@ -274,7 +279,7 @@ export async function upsertLibroContent(
           audioanalisis_https: content.audioanalisis_https
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return { data, error: null };
