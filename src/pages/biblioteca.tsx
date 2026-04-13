@@ -136,7 +136,7 @@ export default function Biblioteca() {
         description="Explora la colección completa de capítulos de Experiencia Miguel"
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
+      <div className="min-h-screen">
         {/* Header */}
         <header className="bg-white/80 backdrop-blur-sm border-b border-amber-200 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

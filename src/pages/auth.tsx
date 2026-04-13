@@ -170,7 +170,7 @@ export default function AuthPage() {
         description="Accede a la comunidad de Experiencia Miguel"
       />
       
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-stone-100 flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           {/* Logo and Title */}
           <div className="text-center mb-8">

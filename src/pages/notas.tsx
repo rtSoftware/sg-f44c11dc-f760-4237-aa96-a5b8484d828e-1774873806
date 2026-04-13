@@ -205,7 +205,7 @@ export default function NotasPage() {
         description="Gestiona tus notas y anotaciones personales"
       />
 
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-stone-100">
+      <div className="min-h-screen">
         {/* Header */}
         <header className="bg-white border-b border-stone-200 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
