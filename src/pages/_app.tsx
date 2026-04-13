@@ -4,8 +4,9 @@ import { ThemeProvider } from "@/contexts/ThemeProvider";
 import { CasaProvider } from "@/contexts/CasaContext";
 import { Toaster } from "@/components/ui/toaster";
 import { AnimatePresence } from "framer-motion";
-import { PageTransition } from "@/components/PageTransition";
 import { useRouter } from "next/router";
+import { PageTransition } from "@/components/PageTransition";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <ThemeProvider>
       <CasaProvider>
+        <AnimatedBackground />
         <AnimatePresence mode="wait" initial={false}>
           <PageTransition key={router.asPath}>
             <Component {...pageProps} />
