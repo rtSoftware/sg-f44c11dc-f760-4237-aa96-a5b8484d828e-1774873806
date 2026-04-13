@@ -549,7 +549,7 @@ export default function Settings() {
         title="Configuración - Experiencia Miguel"
         description="Gestión de contenido de la biblioteca"
       />
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
+      <div className="min-h-screen">
         <header className="bg-white border-b border-amber-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex justify-between items-center mb-4">
