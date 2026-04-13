@@ -205,10 +205,10 @@ export default function Biblioteca() {
                   {libros.map((libro) => (
                     <Card
                       key={libro.id}
-                      className="border-amber-200 bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 group"
+                      className="border-stone-200 bg-white backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 group"
                       onClick={() => handleSelectLibro(libro)}
                     >
-                      <CardHeader className="border-b border-amber-100 bg-gradient-to-r from-amber-50 to-orange-50">
+                      <CardHeader className="border-b border-stone-100">
                         {libro.portada_url ? (
                           <div className="mb-4 -mt-6 -mx-6">
                             <img
@@ -218,26 +218,26 @@ export default function Biblioteca() {
                             />
                           </div>
                         ) : (
-                          <div className="mb-4 -mt-6 -mx-6 h-48 bg-gradient-to-br from-amber-200 to-orange-300 rounded-t-lg flex items-center justify-center">
+                          <div className="mb-4 -mt-6 -mx-6 h-48 bg-gradient-to-br from-stone-200 to-stone-300 rounded-t-lg flex items-center justify-center">
                             <BookOpen className="w-16 h-16 text-white opacity-50" />
                           </div>
                         )}
-                        <CardTitle className="text-xl text-amber-900 line-clamp-2 group-hover:text-orange-700 transition-colors">
+                        <CardTitle className="text-xl text-stone-900 line-clamp-2 group-hover:text-amber-700 transition-colors">
                           {libro.titulo}
                         </CardTitle>
                         {libro.autor && (
-                          <CardDescription className="text-amber-700 mt-1">
+                          <CardDescription className="text-stone-600 mt-1">
                             por {libro.autor}
                           </CardDescription>
                         )}
                       </CardHeader>
                       <CardContent className="pt-4">
                         {libro.descripcion && (
-                          <p className="text-sm text-amber-800 line-clamp-4 mb-4">
+                          <p className="text-sm text-stone-700 line-clamp-4 mb-4">
                             {libro.descripcion}
                           </p>
                         )}
-                        <div className="flex items-center justify-between text-sm text-amber-600">
+                        <div className="flex items-center justify-between text-sm text-stone-600">
                           <div className="flex items-center gap-2">
                             {libro.audio_https && (
                               <span className="flex items-center gap-1">
@@ -246,7 +246,7 @@ export default function Biblioteca() {
                               </span>
                             )}
                           </div>
-                          <span className="text-orange-600 font-semibold group-hover:underline">
+                          <span className="text-amber-600 font-semibold group-hover:underline">
                             Leer ahora →
                           </span>
                         </div>
