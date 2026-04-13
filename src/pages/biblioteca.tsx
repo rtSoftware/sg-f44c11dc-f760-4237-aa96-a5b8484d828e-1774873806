@@ -183,15 +183,6 @@ export default function Biblioteca() {
           {viewMode === "grid" ? (
             // GRID VIEW - Selector de Capítulos
             <div className="space-y-8">
-              <div className="text-center">
-                <h1 className="text-4xl font-bold text-amber-900 mb-2 font-serif">
-                  Biblioteca Digital
-                </h1>
-                <p className="text-lg text-amber-700">
-                  Selecciona un capítulo para comenzar tu lectura
-                </p>
-              </div>
-
               {libros.length === 0 ? (
                 <Card className="bg-white/90 backdrop-blur-sm border-amber-200">
                   <CardContent className="p-12 text-center">
