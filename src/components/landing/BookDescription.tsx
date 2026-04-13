@@ -99,7 +99,7 @@ export function BookDescription() {
           <div className="relative">
             <div className="aspect-[3/4] rounded-2xl shadow-2xl overflow-hidden">
               <img
-                src="/Screenshot_20260410-090848_1_.png"
+                src="/em.jpg"
                 alt="Portada del libro Experiencia Miguel"
                 className="w-full h-full object-cover"
               />
