@@ -22,7 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Plus, Loader2, BookOpen, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Loader2, BookOpen, Trash2, FileText, Search } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { useCasa } from "@/contexts/CasaContext";
@@ -189,11 +189,134 @@ export default function NotasPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-stone-100 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-amber-600 animate-spin mx-auto mb-4" />
-          <p className="text-stone-600">Cargando...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100">
+        <AnimatedBackground />
+
+        {/* Header */}
+        <header className="bg-white/90 backdrop-blur-sm border-b border-stone-200 sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <BookOpen className="w-6 h-6 text-stone-900" />
+                <h1 className="text-xl font-bold text-stone-900">Mis Notas</h1>
+              </div>
+              <div className="flex items-center gap-3">
+                <ThemeSwitch />
+                <Link href="/dashboard">
+                  <Button variant="outline" size="sm" className="border-stone-300 text-stone-700 hover:bg-stone-100">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Volver
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Filters */}
+          <div className="mb-6 flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-stone-400" />
+                <Input
+                  type="text"
+                  placeholder="Buscar en notas..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 border-stone-300 focus:border-stone-500"
+                />
+              </div>
+            </div>
+            <Select value={selectedLibroFilter} onValueChange={setSelectedLibroFilter}>
+              <SelectTrigger className="w-full sm:w-64 border-stone-300">
+                <SelectValue placeholder="Filtrar por libro" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los libros</SelectItem>
+                {libros.map((libro) => (
+                  <SelectItem key={libro.id} value={libro.id}>
+                    {libro.titulo}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Notes Grid */}
+          {filteredNotas.length === 0 ? (
+            <Card className="bg-white border-stone-200">
+              <CardContent className="p-12 text-center">
+                <FileText className="w-16 h-16 mx-auto text-stone-400 mb-4" />
+                <h2 className="text-2xl font-bold text-stone-900 mb-2">
+                  No hay notas disponibles
+                </h2>
+                <p className="text-stone-600 mb-6">
+                  {searchTerm || selectedLibroFilter !== "all"
+                    ? "No se encontraron notas con los filtros aplicados."
+                    : "Aún no has creado ninguna nota. Comienza a tomar notas mientras lees."}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredNotas.map((nota) => {
+                const libro = libros.find((l) => l.id === nota.libro_id);
+                return (
+                  <Card
+                    key={nota.id}
+                    className="border-stone-200 bg-white hover:shadow-lg transition-all duration-300 group"
+                  >
+                    <CardHeader className="border-b border-stone-100">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg text-stone-900 line-clamp-2">
+                            {nota.titulo || "Sin título"}
+                          </CardTitle>
+                          {libro && (
+                            <CardDescription className="text-stone-600 mt-1 flex items-center gap-1">
+                              <BookOpen className="w-3 h-3" />
+                              {libro.titulo}
+                            </CardDescription>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteNota(nota.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <p className="text-sm text-stone-700 line-clamp-4 whitespace-pre-wrap">
+                        {nota.contenido}
+                      </p>
+                      <div className="mt-4 flex items-center justify-between text-xs text-stone-500">
+                        <span>
+                          {new Date(nota.created_at).toLocaleDateString("es-ES", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </span>
+                        {nota.pagina_numero && (
+                          <span className="flex items-center gap-1">
+                            <FileText className="w-3 h-3" />
+                            Pág. {nota.pagina_numero}
+                          </span>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </main>
       </div>
     );
   }

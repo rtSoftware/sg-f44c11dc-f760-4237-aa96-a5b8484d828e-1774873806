@@ -1,4 +1,5 @@
-import { Brain, MessageCircle, Users, Lightbulb, Target, Rocket } from "lucide-react";
+import { Brain, MessageCircle, Users, Lightbulb, Target, Rocket, BookOpen, Headphones, FileText, CheckCircle2, Clock } from "lucide-react";
+import Link from "next/link";
 
 const sections = [
   {
@@ -81,109 +82,135 @@ const sections = [
 
 export function BookDescription() {
   return (
-    <section className="py-24 px-6 bg-white">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-20">
-          <h2 className="text-5xl md:text-6xl font-black text-stone-900 mb-6">
-            Vivimos en la era del ruido
+    <section id="descripcion" className="py-24 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 mb-4">
+            Sobre el Libro
           </h2>
-          <p className="text-xl md:text-2xl text-stone-600 max-w-3xl mx-auto leading-relaxed font-light">
-            Mensajes, notificaciones, opiniones, datos infinitos… y, sin embargo, cada vez menos personas saben pensar en voz alta con claridad, lógica y profundidad.
+          <p className="text-xl text-stone-600 max-w-3xl mx-auto">
+            Una obra transformadora que te guiará en tu camino de autodescubrimiento
           </p>
-          <div className="mt-8 p-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border-2 border-amber-200/50 max-w-3xl mx-auto">
-            <p className="text-lg text-stone-800 font-medium">
-              <span className="font-black text-amber-800">Experiencia Miguel</span> no es solo un libro de oratoria.<br />
-              Es un manual para recuperar la habilidad que define nuestra inteligencia: <span className="font-bold text-orange-700">la oralidad consciente.</span>
-            </p>
-          </div>
         </div>
 
-        <div className="space-y-16">
-          {sections.map((section, index) => (
-            <div key={index} className="group">
-              <div className="flex items-start gap-4 mb-6">
-                <div className="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <section.icon className="w-7 h-7 text-white" />
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Imagen del libro */}
+          <div className="relative">
+            <div className="aspect-[3/4] bg-gradient-to-br from-stone-200 to-stone-300 rounded-2xl shadow-2xl flex items-center justify-center">
+              <BookOpen className="w-24 h-24 text-white opacity-50" />
+            </div>
+          </div>
+
+          {/* Contenido */}
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center">
+                  <BookOpen className="w-6 h-6 text-stone-900" />
                 </div>
-                <h3 className="text-3xl md:text-4xl font-black text-stone-900 leading-tight pt-2">
-                  {section.title}
-                </h3>
-              </div>
-
-              <div className="ml-18 space-y-4">
-                {section.content && section.content.map((paragraph, pIndex) => (
-                  <p key={pIndex} className="text-lg text-stone-700 leading-relaxed">
-                    {paragraph}
+                <div>
+                  <h3 className="text-xl font-semibold text-stone-900 mb-2">
+                    Contenido Profundo
+                  </h3>
+                  <p className="text-stone-600">
+                    Capítulos diseñados para explorar aspectos fundamentales del crecimiento personal
                   </p>
-                ))}
+                </div>
+              </div>
 
-                {section.skills && (
-                  <ul className="space-y-3 mt-6">
-                    {section.skills.map((skill, sIndex) => (
-                      <li key={sIndex} className="flex items-start gap-3 text-lg">
-                        <span className="flex-shrink-0 w-2 h-2 bg-amber-500 rounded-full mt-2.5" />
-                        <span className="text-stone-800">{skill}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center">
+                  <Lightbulb className="w-6 h-6 text-stone-900" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-stone-900 mb-2">
+                    Ejercicios Prácticos
+                  </h3>
+                  <p className="text-stone-600">
+                    Herramientas y actividades para aplicar los conceptos en tu vida diaria
+                  </p>
+                </div>
+              </div>
 
-                {section.highlight && (
-                  <div className="mt-6 p-5 bg-stone-900 rounded-xl border-l-4 border-amber-500">
-                    <p className="text-lg text-amber-50 font-medium italic">
-                      {section.highlight}
-                    </p>
-                  </div>
-                )}
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-6 h-6 text-stone-900" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-stone-900 mb-2">
+                    Comunidad Activa
+                  </h3>
+                  <p className="text-stone-600">
+                    Comparte experiencias y aprende junto a otros lectores en el mismo camino
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center">
+                  <Target className="w-6 h-6 text-stone-900" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-stone-900 mb-2">
+                    Resultados Medibles
+                  </h3>
+                  <p className="text-stone-600">
+                    Sistema de seguimiento para observar tu evolución y celebrar tus logros
+                  </p>
+                </div>
               </div>
             </div>
-          ))}
-        </div>
 
-        <div className="mt-20 p-10 bg-gradient-to-br from-stone-900 to-stone-800 rounded-3xl shadow-2xl">
-          <h3 className="text-4xl md:text-5xl font-black text-amber-400 mb-6 text-center">
-            La oratoria no es un lujo.<br />Es una necesidad democrática.
-          </h3>
-          
-          <div className="space-y-4 mb-8">
-            <p className="text-xl text-stone-200 text-center">
-              Una sociedad que no sabe dialogar se polariza.
-            </p>
-            <p className="text-xl text-stone-200 text-center">
-              Una generación que no sabe argumentar es manipulable.
-            </p>
-            <p className="text-xl text-stone-200 text-center">
-              Una mente que no sabe expresar lo que piensa termina obedeciendo lo que otros dictan.
-            </p>
-          </div>
-
-          <p className="text-2xl text-amber-300 font-bold text-center mb-8">
-            La palabra es el vehículo de la libertad.
-          </p>
-
-          <div className="p-6 bg-amber-500/10 backdrop-blur-sm rounded-2xl border border-amber-500/30">
-            <p className="text-xl text-amber-100 text-center font-medium">
-              ¿Estamos formando personas capaces de conducir su propio destino…<br />
-              o simples repetidores de discursos que no comprenden?
-            </p>
+            <div className="pt-6">
+              <Link href="/auth">
+                <Button size="lg" className="bg-stone-900 hover:bg-stone-800 text-white">
+                  Comenzar tu Viaje
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 
-        <div className="mt-16 text-center space-y-6">
-          <h3 className="text-4xl md:text-5xl font-black text-stone-900">
-            La verdadera transformación comienza cuando aprendes a pensar en voz alta
-          </h3>
-          
-          <div className="flex flex-wrap justify-center gap-4 pt-6">
-            <div className="px-6 py-3 bg-amber-100 rounded-full border-2 border-amber-300">
-              <p className="text-lg font-bold text-amber-900">👉 Recupera tu voz</p>
+        {/* Características adicionales */}
+        <div className="mt-24 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Headphones className="w-8 h-8 text-stone-900" />
             </div>
-            <div className="px-6 py-3 bg-orange-100 rounded-full border-2 border-orange-300">
-              <p className="text-lg font-bold text-orange-900">👉 Ordena tu pensamiento</p>
+            <h4 className="text-lg font-semibold text-stone-900 mb-2">Audio Disponible</h4>
+            <p className="text-stone-600">
+              Escucha el libro en formato audio mientras viajas o haces ejercicio
+            </p>
+          </div>
+
+          <div className="text-center">
+            <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-8 h-8 text-stone-900" />
             </div>
-            <div className="px-6 py-3 bg-amber-100 rounded-full border-2 border-amber-300">
-              <p className="text-lg font-bold text-amber-900">👉 Eleva tu influencia</p>
+            <h4 className="text-lg font-semibold text-stone-900 mb-2">Notas Personales</h4>
+            <p className="text-stone-600">
+              Toma notas mientras lees y organiza tus reflexiones
+            </p>
+          </div>
+
+          <div className="text-center">
+            <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-8 h-8 text-stone-900" />
             </div>
+            <h4 className="text-lg font-semibold text-stone-900 mb-2">Progreso Visual</h4>
+            <p className="text-stone-600">
+              Visualiza tu avance a través de cada capítulo del libro
+            </p>
+          </div>
+
+          <div className="text-center">
+            <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Clock className="w-8 h-8 text-stone-900" />
+            </div>
+            <h4 className="text-lg font-semibold text-stone-900 mb-2">A tu Ritmo</h4>
+            <p className="text-stone-600">
+              Avanza según tu tiempo y necesidades sin presiones
+            </p>
           </div>
         </div>
       </div>
