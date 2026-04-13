@@ -97,8 +97,12 @@ export function BookDescription() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Imagen del libro */}
           <div className="relative">
-            <div className="aspect-[3/4] bg-stone-100 border border-stone-200 rounded-2xl shadow-xl flex items-center justify-center">
-              <BookOpen className="w-24 h-24 text-stone-300" />
+            <div className="aspect-[3/4] rounded-2xl shadow-2xl overflow-hidden">
+              <img
+                src="/Screenshot_20260410-090848_1_.png"
+                alt="Portada del libro Experiencia Miguel"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
 
