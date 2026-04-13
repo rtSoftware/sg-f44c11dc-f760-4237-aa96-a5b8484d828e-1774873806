@@ -335,3 +335,131 @@ export async function deleteLibroContent(id: string): Promise<{ success: boolean
     return { success: false, error: error as Error };
   }
 }
+
+/**
+ * Mover libro a otra casa (incluye reasignación automática de user_id y notas)
+ */
+export async function moverLibroACasa(
+  libroId: string,
+  nuevaCasaId: string
+): Promise<{ success: boolean; error: Error | null }> {
+  try {
+    // 1. Buscar un usuario válido en la nueva casa
+    const { data: perfilEnNuevaCasa, error: perfilError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("casa_id", nuevaCasaId)
+      .limit(1)
+      .maybeSingle();
+
+    if (perfilError) throw perfilError;
+    
+    if (!perfilEnNuevaCasa) {
+      return { 
+        success: false, 
+        error: new Error("No hay usuarios en la casa de destino") 
+      };
+    }
+
+    // 2. Actualizar libro (casa_id + user_id simultáneamente)
+    const { error: updateError } = await supabase
+      .from("libro")
+      .update({
+        casa_id: nuevaCasaId,
+        user_id: perfilEnNuevaCasa.id
+      })
+      .eq("id", libroId);
+
+    if (updateError) throw updateError;
+
+    // 3. Mover todas las notas asociadas
+    const { error: notasError } = await supabase
+      .from("notas")
+      .update({ casa_id: nuevaCasaId })
+      .eq("libro_id", libroId);
+
+    // No bloqueamos si no hay notas o hay error menor
+    if (notasError) {
+      console.warn("Error moviendo notas:", notasError);
+    }
+
+    return { success: true, error: null };
+  } catch (error) {
+    console.error("Error moviendo libro a nueva casa:", error);
+    return { success: false, error: error as Error };
+  }
+}
+
+/**
+ * Detectar libros huérfanos (user_id no está en la misma casa que libro.casa_id)
+ */
+export async function detectarLibrosHuerfanos(): Promise<{
+  data: Array<Libro & { user_casa_id: string | null }> | null;
+  error: Error | null;
+}> {
+  try {
+    const { data, error } = await supabase
+      .from("libro")
+      .select(`
+        *,
+        profiles!libro_user_id_fkey(casa_id)
+      `);
+
+    if (error) throw error;
+
+    // Filtrar libros donde casa_id del libro != casa_id del perfil del usuario
+    const huerfanos = data?.filter(libro => {
+      const perfiles = libro.profiles as any;
+      const userCasaId = perfiles?.casa_id || null;
+      return libro.casa_id !== userCasaId;
+    }).map(libro => ({
+      ...libro,
+      user_casa_id: (libro.profiles as any)?.casa_id || null
+    })) || [];
+
+    return { data: huerfanos, error: null };
+  } catch (error) {
+    console.error("Error detectando libros huérfanos:", error);
+    return { data: null, error: error as Error };
+  }
+}
+
+/**
+ * Reasignar user_id de un libro huérfano a un usuario válido en su casa actual
+ */
+export async function reasignarLibroHuerfano(
+  libroId: string,
+  casaIdActual: string
+): Promise<{ success: boolean; error: Error | null }> {
+  try {
+    // 1. Buscar usuario válido en la casa actual del libro
+    const { data: perfilValido, error: perfilError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("casa_id", casaIdActual)
+      .limit(1)
+      .maybeSingle();
+
+    if (perfilError) throw perfilError;
+    
+    if (!perfilValido) {
+      return { 
+        success: false, 
+        error: new Error("No hay usuarios válidos en esta casa") 
+      };
+    }
+
+    // 2. Reasignar user_id
+    const { error: updateError } = await supabase
+      .from("libro")
+      .update({ user_id: perfilValido.id })
+      .eq("id", libroId);
+
+    if (updateError) throw updateError;
+
+    return { success: true, error: null };
+  } catch (error) {
+    console.error("Error reasignando libro huérfano:", error);
+    return { success: false, error: error as Error };
+  }
+}

@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check, User, Upload, X, Search } from "lucide-react";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
-import { getAllLibros, createLibro, updateLibro, deleteLibroContent } from "@/services/libroService";
+import { getAllLibros, createLibro, updateLibro, deleteLibroContent, moverLibroACasa, detectarLibrosHuerfanos, reasignarLibroHuerfano } from "@/services/libroService";
 import { getAllCasas, createCasa, updateCasaNombre } from "@/services/casaService";
 import { uploadPortada, deletePortada } from "@/services/storageService";
 import { useCasa } from "@/contexts/CasaContext";
@@ -64,6 +64,16 @@ export default function Settings() {
     avatar_url: ""
   });
   const [loadingProfile, setLoadingProfile] = useState(false);
+
+  // Estados para migración de libros
+  const [showMoverLibroDialog, setShowMoverLibroDialog] = useState(false);
+  const [libroAMover, setLibroAMover] = useState<Libro | null>(null);
+  const [casaDestinoId, setCasaDestinoId] = useState<string>("");
+  const [moviendoLibro, setMoviendoLibro] = useState(false);
+  const [showHuerfanosDialog, setShowHuerfanosDialog] = useState(false);
+  const [librosHuerfanos, setLibrosHuerfanos] = useState<Array<Libro & { user_casa_id: string | null }>>([]);
+  const [loadingHuerfanos, setLoadingHuerfanos] = useState(false);
+  const [reasignandoHuerfano, setReasignandoHuerfano] = useState(false);
 
   const [formData, setFormData] = useState({
     titulo: "",
@@ -324,6 +334,73 @@ export default function Settings() {
     setLoadingProfile(false);
   }
 
+  async function handleMoverLibro(libro: Libro) {
+    setLibroAMover(libro);
+    setCasaDestinoId("");
+    setShowMoverLibroDialog(true);
+    setMessage(null);
+  }
+
+  async function confirmarMoverLibro(e: React.FormEvent) {
+    e.preventDefault();
+    if (!libroAMover || !casaDestinoId) return;
+
+    setMoviendoLibro(true);
+    setMessage(null);
+
+    const { success, error } = await moverLibroACasa(libroAMover.id, casaDestinoId);
+
+    if (error) {
+      setMessage({ type: "error", text: `Error al mover el libro: ${error.message}` });
+      console.error("Error moviendo libro:", error);
+    } else {
+      setMessage({ type: "success", text: "Libro movido exitosamente a la nueva casa" });
+      await loadLibros();
+      setShowMoverLibroDialog(false);
+      setLibroAMover(null);
+      setCasaDestinoId("");
+    }
+
+    setMoviendoLibro(false);
+  }
+
+  async function handleDetectarHuerfanos() {
+    setLoadingHuerfanos(true);
+    setShowHuerfanosDialog(true);
+    setMessage(null);
+
+    const { data, error } = await detectarLibrosHuerfanos();
+
+    if (error) {
+      setMessage({ type: "error", text: "Error al detectar libros huérfanos" });
+      console.error("Error detectando huérfanos:", error);
+      setLibrosHuerfanos([]);
+    } else {
+      setLibrosHuerfanos(data || []);
+    }
+
+    setLoadingHuerfanos(false);
+  }
+
+  async function handleReasignarHuerfano(libro: Libro & { user_casa_id: string | null }) {
+    setReasignandoHuerfano(true);
+    setMessage(null);
+
+    const { success, error } = await reasignarLibroHuerfano(libro.id, libro.casa_id);
+
+    if (error) {
+      setMessage({ type: "error", text: `Error al reasignar libro: ${error.message}` });
+      console.error("Error reasignando huérfano:", error);
+    } else {
+      setMessage({ type: "success", text: "Libro reasignado exitosamente" });
+      // Recargar lista de huérfanos
+      handleDetectarHuerfanos();
+      await loadLibros();
+    }
+
+    setReasignandoHuerfano(false);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
@@ -466,6 +543,17 @@ export default function Settings() {
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Nuevo Capítulo
+                </Button>
+              )}
+
+              {section === "libros" && mode === "list" && libros.length > 0 && (
+                <Button
+                  onClick={handleDetectarHuerfanos}
+                  variant="outline"
+                  className="border-orange-300 text-orange-700 hover:bg-orange-50 ml-2"
+                >
+                  <Home className="mr-2 h-4 w-4" />
+                  Detectar Huérfanos
                 </Button>
               )}
 
@@ -642,6 +730,15 @@ export default function Settings() {
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                           </Button>
+                          {casas.length > 1 && (
+                            <Button
+                              onClick={() => handleMoverLibro(libro)}
+                              variant="outline"
+                              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                            >
+                              <Home className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button
                             variant="destructive"
                             size="icon"
@@ -1220,6 +1317,163 @@ export default function Settings() {
                 </Button>
               </DialogFooter>
             </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog para mover libro a otra casa */}
+        <Dialog open={showMoverLibroDialog} onOpenChange={setShowMoverLibroDialog}>
+          <DialogContent className="bg-white">
+            <DialogHeader>
+              <DialogTitle className="text-amber-900">Mover Libro a Otra Casa</DialogTitle>
+              <DialogDescription className="text-amber-700">
+                Selecciona la casa de destino. El libro será reasignado automáticamente a un usuario válido de esa casa.
+              </DialogDescription>
+            </DialogHeader>
+            {libroAMover && (
+              <form onSubmit={confirmarMoverLibro}>
+                <div className="space-y-4 py-4">
+                  <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <p className="text-sm font-semibold text-amber-900">Libro seleccionado:</p>
+                    <p className="text-sm text-amber-700">{libroAMover.titulo}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="casa-destino">Casa de Destino *</Label>
+                    <select
+                      id="casa-destino"
+                      value={casaDestinoId}
+                      onChange={(e) => setCasaDestinoId(e.target.value)}
+                      className="w-full px-3 py-2 border border-amber-200 rounded-md focus:border-amber-400 focus:ring-amber-400"
+                      required
+                    >
+                      <option value="">Selecciona una casa...</option>
+                      {casas
+                        .filter(casa => casa.id !== libroAMover.casa_id)
+                        .map(casa => (
+                          <option key={casa.id} value={casa.id}>
+                            {casa.casa_nombre}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-xs text-blue-800">
+                      ℹ️ El libro será transferido completamente a la nueva casa, incluyendo todas sus notas asociadas.
+                    </p>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setShowMoverLibroDialog(false);
+                      setLibroAMover(null);
+                      setCasaDestinoId("");
+                    }}
+                    className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit"
+                    disabled={moviendoLibro || !casaDestinoId}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                  >
+                    {moviendoLibro ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Moviendo...
+                      </>
+                    ) : (
+                      <>
+                        <Home className="mr-2 h-4 w-4" />
+                        Mover Libro
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </form>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog para detectar y reasignar libros huérfanos */}
+        <Dialog open={showHuerfanosDialog} onOpenChange={setShowHuerfanosDialog}>
+          <DialogContent className="bg-white max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-amber-900">Libros Huérfanos Detectados</DialogTitle>
+              <DialogDescription className="text-amber-700">
+                Libros cuyo creador ya no pertenece a la casa actual del libro
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              {loadingHuerfanos ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+                </div>
+              ) : librosHuerfanos.length === 0 ? (
+                <div className="text-center py-8">
+                  <Check className="h-16 w-16 text-green-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-amber-900 mb-2">
+                    ¡Ningún libro huérfano!
+                  </h3>
+                  <p className="text-amber-700">
+                    Todos los libros están correctamente asignados a usuarios de sus casas.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {librosHuerfanos.map((libro) => {
+                    const casaDelLibro = casas.find(c => c.id === libro.casa_id);
+                    const casaDelUser = casas.find(c => c.id === libro.user_casa_id);
+                    return (
+                      <Card key={libro.id} className="border-orange-200">
+                        <CardContent className="pt-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-amber-900">{libro.titulo}</h4>
+                              <div className="mt-2 space-y-1 text-sm">
+                                <p className="text-amber-700">
+                                  📚 Casa del libro: <span className="font-medium">{casaDelLibro?.casa_nombre || "Desconocida"}</span>
+                                </p>
+                                <p className="text-orange-700">
+                                  👤 Casa del creador: <span className="font-medium">{casaDelUser?.casa_nombre || "Sin casa"}</span>
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              onClick={() => handleReasignarHuerfano(libro)}
+                              disabled={reasignandoHuerfano}
+                              size="sm"
+                              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                            >
+                              {reasignandoHuerfano ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <Check className="mr-2 h-4 w-4" />
+                                  Reasignar
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowHuerfanosDialog(false)}
+                className="border-amber-300 text-amber-700 hover:bg-amber-50"
+              >
+                Cerrar
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 
