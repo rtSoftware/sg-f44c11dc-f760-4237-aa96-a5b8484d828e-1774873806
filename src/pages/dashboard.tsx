@@ -147,16 +147,16 @@ export default function DashboardPage() {
         </header>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
           {/* Feature Cards Grid */}
-          <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 max-w-3xl mx-auto">
             {/* Biblioteca Digital - Active */}
             <Link href="/biblioteca">
-              <div className="p-6 bg-white/90 backdrop-blur-sm rounded-xl border-2 border-amber-200 hover:border-amber-400 hover:shadow-lg transition-all duration-300 cursor-pointer group">
-                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">📚</div>
-                <h4 className="font-bold text-stone-900 mb-2 text-lg">Biblioteca Digital</h4>
-                <p className="text-sm text-stone-600">Acceso completo al libro</p>
-                <div className="mt-3 text-amber-600 text-sm font-semibold group-hover:translate-x-1 transition-transform duration-300">
+              <div className="p-8 sm:p-6 bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-xl border-2 border-amber-200 hover:border-amber-400 hover:shadow-lg transition-all duration-300 cursor-pointer group active:scale-95 min-h-[160px] sm:min-h-0 flex flex-col justify-center">
+                <div className="text-5xl sm:text-4xl mb-4 sm:mb-3 group-hover:scale-110 transition-transform duration-300">📚</div>
+                <h4 className="font-bold text-stone-900 mb-2 text-xl sm:text-lg">Biblioteca Digital</h4>
+                <p className="text-base sm:text-sm text-stone-600">Acceso completo al libro</p>
+                <div className="mt-4 sm:mt-3 text-amber-600 text-base sm:text-sm font-semibold group-hover:translate-x-1 transition-transform duration-300">
                   Acceder →
                 </div>
               </div>
@@ -164,32 +164,32 @@ export default function DashboardPage() {
 
             {/* Notas - Active */}
             <Link href="/notas">
-              <div className="p-6 bg-white/90 backdrop-blur-sm rounded-xl border-2 border-amber-200 hover:border-amber-400 hover:shadow-lg transition-all duration-300 cursor-pointer group">
-                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">📝</div>
-                <h4 className="font-bold text-stone-900 mb-2 text-lg">Notas</h4>
-                <p className="text-sm text-stone-600">Tus anotaciones personales</p>
-                <div className="mt-3 text-amber-600 text-sm font-semibold group-hover:translate-x-1 transition-transform duration-300">
+              <div className="p-8 sm:p-6 bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-xl border-2 border-amber-200 hover:border-amber-400 hover:shadow-lg transition-all duration-300 cursor-pointer group active:scale-95 min-h-[160px] sm:min-h-0 flex flex-col justify-center">
+                <div className="text-5xl sm:text-4xl mb-4 sm:mb-3 group-hover:scale-110 transition-transform duration-300">📝</div>
+                <h4 className="font-bold text-stone-900 mb-2 text-xl sm:text-lg">Notas</h4>
+                <p className="text-base sm:text-sm text-stone-600">Tus anotaciones personales</p>
+                <div className="mt-4 sm:mt-3 text-amber-600 text-base sm:text-sm font-semibold group-hover:translate-x-1 transition-transform duration-300">
                   Acceder →
                 </div>
               </div>
             </Link>
 
             {/* Ejercicios - Coming Soon */}
-            <div className="p-6 bg-white/90 backdrop-blur-sm rounded-xl border-2 border-stone-200 opacity-60 cursor-not-allowed">
-              <div className="text-4xl mb-3">🎯</div>
-              <h4 className="font-bold text-stone-900 mb-2 text-lg">Ejercicios</h4>
-              <p className="text-sm text-stone-600">Próximamente</p>
-              <div className="mt-3 text-stone-400 text-sm font-semibold">
+            <div className="p-8 sm:p-6 bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-xl border-2 border-stone-200 opacity-60 cursor-not-allowed min-h-[160px] sm:min-h-0 flex flex-col justify-center">
+              <div className="text-5xl sm:text-4xl mb-4 sm:mb-3">🎯</div>
+              <h4 className="font-bold text-stone-900 mb-2 text-xl sm:text-lg">Ejercicios</h4>
+              <p className="text-base sm:text-sm text-stone-600">Próximamente</p>
+              <div className="mt-4 sm:mt-3 text-stone-400 text-base sm:text-sm font-semibold">
                 En desarrollo...
               </div>
             </div>
 
             {/* Mentorías - Coming Soon */}
-            <div className="p-6 bg-white/90 backdrop-blur-sm rounded-xl border-2 border-stone-200 opacity-60 cursor-not-allowed">
-              <div className="text-4xl mb-3">🎓</div>
-              <h4 className="font-bold text-stone-900 mb-2 text-lg">Mentorías</h4>
-              <p className="text-sm text-stone-600">Próximamente</p>
-              <div className="mt-3 text-stone-400 text-sm font-semibold">
+            <div className="p-8 sm:p-6 bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-xl border-2 border-stone-200 opacity-60 cursor-not-allowed min-h-[160px] sm:min-h-0 flex flex-col justify-center">
+              <div className="text-5xl sm:text-4xl mb-4 sm:mb-3">🎓</div>
+              <h4 className="font-bold text-stone-900 mb-2 text-xl sm:text-lg">Mentorías</h4>
+              <p className="text-base sm:text-sm text-stone-600">Próximamente</p>
+              <div className="mt-4 sm:mt-3 text-stone-400 text-base sm:text-sm font-semibold">
                 En desarrollo...
               </div>
             </div>
