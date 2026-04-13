@@ -1,69 +1,102 @@
-import { BookOpen, Mail, MessageCircle } from "lucide-react";
+import Link from "next/link";
+import { BookOpen, Mail, MapPin, Phone } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gradient-to-br from-stone-900 to-stone-800 text-stone-300 py-16 px-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-3 gap-12 mb-12">
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-white">EXPERIENCIA</h3>
-                <p className="text-sm text-amber-400">MIGUEL</p>
-              </div>
+    <footer className="bg-white border-t border-stone-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Brand */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-6 h-6 text-stone-900" />
+              <span className="text-xl font-bold text-stone-900">Experiencia Miguel</span>
             </div>
-            <p className="text-sm text-stone-400 leading-relaxed">
-              Oratoria para liberar la mente. Una comunidad dedicada al desarrollo del pensamiento crítico y la elocuencia consciente.
+            <p className="text-sm text-stone-600">
+              Transformando vidas a través de la lectura reflexiva y el crecimiento personal.
             </p>
           </div>
 
+          {/* Enlaces rápidos */}
           <div>
-            <h4 className="text-white font-bold mb-4">Enlaces Rápidos</h4>
-            <ul className="space-y-2 text-sm">
+            <h3 className="font-semibold text-stone-900 mb-4">Enlaces Rápidos</h3>
+            <ul className="space-y-2">
               <li>
-                <a href="#" className="hover:text-amber-400 transition-colors">Inicio</a>
+                <Link href="/#descripcion" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">
+                  Sobre el Libro
+                </Link>
               </li>
               <li>
-                <a href="#pricing" className="hover:text-amber-400 transition-colors">Planes</a>
+                <Link href="/#precios" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">
+                  Precios
+                </Link>
               </li>
               <li>
-                <a href="#contact" className="hover:text-amber-400 transition-colors">Contacto</a>
+                <Link href="/#contacto" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">
+                  Contacto
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-amber-400 transition-colors">Acceder a la Plataforma</a>
+                <Link href="/auth" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">
+                  Iniciar Sesión
+                </Link>
               </li>
             </ul>
           </div>
 
+          {/* Recursos */}
           <div>
-            <h4 className="text-white font-bold mb-4">Contacto</h4>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-amber-400" />
-                <span>tapiara@iasos.com.mx</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <MessageCircle className="w-4 h-4 text-amber-400 mt-0.5" />
-                <div>
-                  <p>WhatsApp: 5619 77 3576</p>
-                  <p className="text-xs text-stone-500 italic">(No contesto llamadas directas, envía un mensaje)</p>
-                </div>
-              </div>
-            </div>
+            <h3 className="font-semibold text-stone-900 mb-4">Recursos</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/biblioteca" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">
+                  Biblioteca Digital
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">
+                  Dashboard
+                </Link>
+              </li>
+              <li>
+                <a href="#" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">
+                  Guía de Estudio
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-sm text-stone-600 hover:text-stone-900 transition-colors">
+                  Preguntas Frecuentes
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contacto */}
+          <div>
+            <h3 className="font-semibold text-stone-900 mb-4">Contacto</h3>
+            <ul className="space-y-2">
+              <li className="flex items-center gap-2 text-sm text-stone-600">
+                <Mail className="w-4 h-4" />
+                contacto@experienciamiguel.com
+              </li>
+              <li className="flex items-center gap-2 text-sm text-stone-600">
+                <Phone className="w-4 h-4" />
+                +1 (555) 123-4567
+              </li>
+              <li className="flex items-center gap-2 text-sm text-stone-600">
+                <MapPin className="w-4 h-4" />
+                Ciudad, País
+              </li>
+            </ul>
           </div>
         </div>
 
-        <div className="pt-8 border-t border-stone-700 text-center">
-          <p className="text-sm text-stone-400">
+        {/* Copyright */}
+        <div className="mt-12 pt-8 border-t border-stone-200">
+          <p className="text-center text-sm text-stone-600">
             © {currentYear} Experiencia Miguel. Todos los derechos reservados.
-          </p>
-          <p className="text-xs text-stone-500 mt-2 italic">
-            "La verdadera transformación comienza cuando aprendes a pensar en voz alta"
           </p>
         </div>
       </div>
