@@ -10,7 +10,7 @@ import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check, User, 
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { getAllLibros, createLibro, updateLibro, deleteLibroContent, moverLibroACasa, detectarLibrosHuerfanos, reasignarLibroHuerfano } from "@/services/libroService";
-import { getAllCasas, createCasa, updateCasaNombre } from "@/services/casaService";
+import { getAllCasas, createCasa, updateCasaNombre, getUsuariosPorCasa } from "@/services/casaService";
 import { uploadPortada, deletePortada } from "@/services/storageService";
 import { useCasa } from "@/contexts/CasaContext";
 import type { User as UserType } from "@supabase/supabase-js";
@@ -50,6 +50,7 @@ export default function Settings() {
   const [section, setSection] = useState<Section>("libros");
   const [libros, setLibros] = useState<Libro[]>([]);
   const [casas, setCasas] = useState<Tables<"casas">[]>([]);
+  const [usuariosPorCasa, setUsuariosPorCasa] = useState<Record<string, Array<{ id: string; email: string | null; full_name: string | null; avatar_url: string | null }>>>({});
   const [selectedLibroId, setSelectedLibroId] = useState<string | null>(null);
   const [showNewCasaDialog, setShowNewCasaDialog] = useState(false);
   const [newCasaName, setNewCasaName] = useState("");
@@ -107,6 +108,12 @@ export default function Settings() {
     }
   }, [section, user]);
 
+  useEffect(() => {
+    if (section === "casas" && casas.length > 0) {
+      loadUsuariosParaCasas();
+    }
+  }, [section, casas]);
+
   async function checkUser() {
     const { data: { session } } = await supabase.auth.getSession();
     
@@ -141,6 +148,21 @@ export default function Settings() {
     }
 
     setCasas(data || []);
+  }
+
+  async function loadUsuariosParaCasas() {
+    const usuariosMap: Record<string, Array<{ id: string; email: string | null; full_name: string | null; avatar_url: string | null }>> = {};
+    
+    for (const casa of casas) {
+      const { data, error } = await getUsuariosPorCasa(casa.id);
+      if (!error && data) {
+        usuariosMap[casa.id] = data;
+      } else {
+        usuariosMap[casa.id] = [];
+      }
+    }
+    
+    setUsuariosPorCasa(usuariosMap);
   }
 
   async function loadProfile() {
@@ -1074,7 +1096,52 @@ export default function Settings() {
                         </div>
                       </CardHeader>
                       <CardContent className="pt-4">
-                        <div className="text-center py-2 text-stone-600 text-sm">
+                        {/* Sección de usuarios */}
+                        <div className="mb-4">
+                          <h4 className="text-sm font-semibold text-amber-900 mb-2 flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            Usuarios ({usuariosPorCasa[casa.id]?.length || 0})
+                          </h4>
+                          {usuariosPorCasa[casa.id] && usuariosPorCasa[casa.id].length > 0 ? (
+                            <div className="space-y-2 max-h-40 overflow-y-auto">
+                              {usuariosPorCasa[casa.id].map((usuario) => (
+                                <div 
+                                  key={usuario.id} 
+                                  className="flex items-center gap-2 p-2 bg-amber-50 rounded-md border border-amber-100"
+                                >
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                                    {usuario.avatar_url ? (
+                                      <img 
+                                        src={usuario.avatar_url} 
+                                        alt={usuario.full_name || usuario.email || "User"} 
+                                        className="w-full h-full rounded-full object-cover"
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = "none";
+                                        }}
+                                      />
+                                    ) : (
+                                      (usuario.full_name || usuario.email || "?").charAt(0).toUpperCase()
+                                    )}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-amber-900 truncate">
+                                      {usuario.full_name || "Sin nombre"}
+                                    </p>
+                                    <p className="text-xs text-amber-600 truncate">
+                                      {usuario.email || "Sin email"}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-amber-600 italic">
+                              No hay usuarios en esta casa
+                            </p>
+                          )}
+                        </div>
+                        
+                        <div className="text-center py-2 text-stone-600 text-sm border-t border-amber-100">
                           {casa.id === casaId ? (
                             <span className="font-semibold text-blue-600">
                               Esta es tu casa activa

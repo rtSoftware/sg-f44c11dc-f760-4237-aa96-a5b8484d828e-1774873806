@@ -241,3 +241,29 @@ export async function updateCasaNombre(
     return { success: false, error: error as Error };
   }
 }
+
+/**
+ * Obtener usuarios de una casa específica
+ */
+export async function getUsuariosPorCasa(casaId: string): Promise<{
+  data: Array<{ id: string; email: string | null; full_name: string | null; avatar_url: string | null }> | null;
+  error: Error | null;
+}> {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, email, full_name, avatar_url")
+      .eq("casa_id", casaId)
+      .order("email", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching usuarios por casa:", error);
+      return { data: null, error: error as Error };
+    }
+
+    return { data, error: null };
+  } catch (error) {
+    console.error("Error in getUsuariosPorCasa:", error);
+    return { data: null, error: error as Error };
+  }
+}
