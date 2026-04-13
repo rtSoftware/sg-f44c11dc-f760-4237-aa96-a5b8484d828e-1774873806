@@ -182,7 +182,7 @@ export default function Biblioteca() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {viewMode === "grid" ? (
             // GRID VIEW - Selector de Capítulos
-            <div className="space-y-8">
+            <div>
               {libros.length === 0 ? (
                 <Card className="bg-white/90 backdrop-blur-sm border-amber-200">
                   <CardContent className="p-12 text-center">
