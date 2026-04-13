@@ -1,5 +1,6 @@
 import { Brain, MessageCircle, Users, Lightbulb, Target, Rocket, BookOpen, Headphones, FileText, CheckCircle2, Clock } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 const sections = [
   {
@@ -82,7 +83,7 @@ const sections = [
 
 export function BookDescription() {
   return (
-    <section id="descripcion" className="py-24 bg-white">
+    <section id="descripcion" className="py-24 bg-white border-t border-stone-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 mb-4">
@@ -96,8 +97,8 @@ export function BookDescription() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Imagen del libro */}
           <div className="relative">
-            <div className="aspect-[3/4] bg-gradient-to-br from-stone-200 to-stone-300 rounded-2xl shadow-2xl flex items-center justify-center">
-              <BookOpen className="w-24 h-24 text-white opacity-50" />
+            <div className="aspect-[3/4] bg-stone-100 border border-stone-200 rounded-2xl shadow-xl flex items-center justify-center">
+              <BookOpen className="w-24 h-24 text-stone-300" />
             </div>
           </div>
 
@@ -105,7 +106,7 @@ export function BookDescription() {
           <div className="space-y-6">
             <div className="space-y-4">
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center">
+                <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center border border-stone-200">
                   <BookOpen className="w-6 h-6 text-stone-900" />
                 </div>
                 <div>
@@ -119,7 +120,7 @@ export function BookDescription() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center">
+                <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center border border-stone-200">
                   <Lightbulb className="w-6 h-6 text-stone-900" />
                 </div>
                 <div>
@@ -133,7 +134,7 @@ export function BookDescription() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center">
+                <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center border border-stone-200">
                   <Users className="w-6 h-6 text-stone-900" />
                 </div>
                 <div>
@@ -147,7 +148,7 @@ export function BookDescription() {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center">
+                <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center border border-stone-200">
                   <Target className="w-6 h-6 text-stone-900" />
                 </div>
                 <div>
@@ -163,7 +164,7 @@ export function BookDescription() {
 
             <div className="pt-6">
               <Link href="/auth">
-                <Button size="lg" className="bg-stone-900 hover:bg-stone-800 text-white">
+                <Button size="lg" className="bg-stone-900 hover:bg-stone-800 text-white w-full sm:w-auto">
                   Comenzar tu Viaje
                 </Button>
               </Link>
@@ -174,41 +175,41 @@ export function BookDescription() {
         {/* Características adicionales */}
         <div className="mt-24 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="text-center">
-            <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Headphones className="w-8 h-8 text-stone-900" />
+            <div className="w-16 h-16 bg-stone-50 border border-stone-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Headphones className="w-8 h-8 text-stone-700" />
             </div>
             <h4 className="text-lg font-semibold text-stone-900 mb-2">Audio Disponible</h4>
-            <p className="text-stone-600">
+            <p className="text-stone-600 text-sm">
               Escucha el libro en formato audio mientras viajas o haces ejercicio
             </p>
           </div>
 
           <div className="text-center">
-            <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FileText className="w-8 h-8 text-stone-900" />
+            <div className="w-16 h-16 bg-stone-50 border border-stone-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-8 h-8 text-stone-700" />
             </div>
             <h4 className="text-lg font-semibold text-stone-900 mb-2">Notas Personales</h4>
-            <p className="text-stone-600">
+            <p className="text-stone-600 text-sm">
               Toma notas mientras lees y organiza tus reflexiones
             </p>
           </div>
 
           <div className="text-center">
-            <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="w-8 h-8 text-stone-900" />
+            <div className="w-16 h-16 bg-stone-50 border border-stone-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-8 h-8 text-stone-700" />
             </div>
             <h4 className="text-lg font-semibold text-stone-900 mb-2">Progreso Visual</h4>
-            <p className="text-stone-600">
+            <p className="text-stone-600 text-sm">
               Visualiza tu avance a través de cada capítulo del libro
             </p>
           </div>
 
           <div className="text-center">
-            <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Clock className="w-8 h-8 text-stone-900" />
+            <div className="w-16 h-16 bg-stone-50 border border-stone-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Clock className="w-8 h-8 text-stone-700" />
             </div>
             <h4 className="text-lg font-semibold text-stone-900 mb-2">A tu Ritmo</h4>
-            <p className="text-stone-600">
+            <p className="text-stone-600 text-sm">
               Avanza según tu tiempo y necesidades sin presiones
             </p>
           </div>

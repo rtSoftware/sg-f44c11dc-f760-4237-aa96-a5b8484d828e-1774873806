@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { BookOpen, ArrowRight } from "lucide-react";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 import Link from "next/link";
 
 export function Hero() {

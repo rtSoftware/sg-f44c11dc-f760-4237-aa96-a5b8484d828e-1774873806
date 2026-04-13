@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BookOpen, Mail, Lock, User, AlertCircle, Loader2, Home } from "lucide-react";
 import { getAllCasas } from "@/services/casaService";
 import type { Tables } from "@/integrations/supabase/types";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,7 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from "@/components/ui/radio-group";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -109,10 +111,8 @@ export default function AuthPage() {
     }
 
     if (data.user) {
-      // Guardar el ID del usuario recién creado
       setNewUserId(data.user.id);
       
-      // Cargar casas disponibles
       const { data: casasData, error: casasError } = await getAllCasas();
       
       if (casasError || !casasData || casasData.length === 0) {
@@ -123,8 +123,6 @@ export default function AuthPage() {
       
       setCasas(casasData);
       setLoading(false);
-      
-      // Mostrar selector de casa
       setShowCasaSelector(true);
     }
   };
@@ -138,7 +136,6 @@ export default function AuthPage() {
     setAssigningCasa(true);
     setError("");
 
-    // Actualizar el perfil con el casa_id seleccionado
     const { error: updateError } = await supabase
       .from("profiles")
       .update({ casa_id: selectedCasaId })
@@ -151,7 +148,6 @@ export default function AuthPage() {
       return;
     }
 
-    // Guardar casa_id en localStorage
     if (typeof window !== "undefined") {
       localStorage.setItem("casa_id", selectedCasaId);
     }
@@ -174,7 +170,7 @@ export default function AuthPage() {
         <AnimatedBackground />
         
         <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm border-stone-200 shadow-xl relative z-10">
-          <CardHeader className="space-y-1 text-center border-b border-stone-100">
+          <CardHeader className="space-y-1 text-center border-b border-stone-100 pb-6">
             <div className="flex justify-center mb-4">
               <div className="p-3 bg-stone-100 rounded-full">
                 <BookOpen className="w-8 h-8 text-stone-900" />
@@ -191,125 +187,85 @@ export default function AuthPage() {
           </CardHeader>
 
           <CardContent className="pt-6">
-            <Tabs value={authMethod} onValueChange={setAuthMethod} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6 bg-stone-100">
-                <TabsTrigger value="email" className="data-[state=active]:bg-white">
-                  Email
-                </TabsTrigger>
-                <TabsTrigger value="google" className="data-[state=active]:bg-white">
-                  Google
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="email" className="space-y-4">
-                <form onSubmit={handleEmailAuth} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-stone-900">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="tu@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      disabled={loading}
-                      className="border-stone-300 focus:border-stone-500"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-stone-900">Contraseña</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      disabled={loading}
-                      className="border-stone-300 focus:border-stone-500"
-                    />
-                  </div>
-
-                  {!isLogin && (
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword" className="text-stone-900">
-                        Confirmar Contraseña
-                      </Label>
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        placeholder="••••••••"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                        disabled={loading}
-                        className="border-stone-300 focus:border-stone-500"
-                      />
-                    </div>
-                  )}
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-stone-900 hover:bg-stone-800 text-white"
+            <form onSubmit={isLogin ? handleLogin : handleSignup} className="space-y-4">
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="text-stone-900">Nombre Completo</Label>
+                  <Input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    placeholder="Tu nombre"
+                    value={formData.fullName}
+                    onChange={handleInputChange}
+                    required={!isLogin}
                     disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        {isLogin ? "Iniciando sesión..." : "Creando cuenta..."}
-                      </>
-                    ) : (
-                      <>
-                        <Mail className="w-4 h-4 mr-2" />
-                        {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </TabsContent>
+                    className="border-stone-300 focus:border-stone-500"
+                  />
+                </div>
+              )}
 
-              <TabsContent value="google">
-                <Button
-                  onClick={handleGoogleAuth}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-stone-900">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="tu@email.com"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
                   disabled={loading}
-                  className="w-full bg-white hover:bg-stone-50 text-stone-900 border border-stone-300"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Conectando...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                        />
-                        <path
-                          fill="currentColor"
-                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                        />
-                        <path
-                          fill="currentColor"
-                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                        />
-                        <path
-                          fill="currentColor"
-                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                        />
-                      </svg>
-                      Continuar con Google
-                    </>
-                  )}
-                </Button>
-              </TabsContent>
-            </Tabs>
+                  className="border-stone-300 focus:border-stone-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-stone-900">Contraseña</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                  disabled={loading}
+                  className="border-stone-300 focus:border-stone-500"
+                />
+              </div>
+
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                  {error}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full bg-stone-900 hover:bg-stone-800 text-white mt-2"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {isLogin ? "Iniciando sesión..." : "Creando cuenta..."}
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4 mr-2" />
+                    {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
+                  </>
+                )}
+              </Button>
+            </form>
 
             <div className="mt-6 text-center">
               <button
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setError("");
+                }}
                 className="text-sm text-stone-600 hover:text-stone-900 hover:underline"
                 disabled={loading}
               >
@@ -322,15 +278,14 @@ export default function AuthPage() {
         </Card>
       </div>
 
-      {/* Dialog de selección de casa después del registro */}
       <Dialog open={showCasaSelector} onOpenChange={setShowCasaSelector}>
         <DialogContent className="bg-white max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl text-amber-900 flex items-center gap-2">
+            <DialogTitle className="text-2xl text-stone-900 flex items-center gap-2">
               <Home className="h-6 w-6" />
               Selecciona tu Casa
             </DialogTitle>
-            <DialogDescription className="text-amber-700">
+            <DialogDescription className="text-stone-600">
               Elige la comunidad a la que deseas pertenecer
             </DialogDescription>
           </DialogHeader>
@@ -354,10 +309,10 @@ export default function AuthPage() {
                 {casas.map((casa) => (
                   <div
                     key={casa.id}
-                    className={`flex items-center space-x-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                    className={`flex items-center space-x-3 p-4 rounded-lg border cursor-pointer transition-all ${
                       selectedCasaId === casa.id
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-stone-200 hover:border-amber-300 hover:bg-amber-50"
+                        ? "border-stone-900 bg-stone-50"
+                        : "border-stone-200 hover:border-stone-300 hover:bg-stone-50"
                     }`}
                     onClick={() => setSelectedCasaId(casa.id)}
                   >
@@ -381,7 +336,7 @@ export default function AuthPage() {
             <Button
               onClick={handleAssignCasa}
               disabled={!selectedCasaId || assigningCasa}
-              className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold"
+              className="w-full h-12 bg-stone-900 hover:bg-stone-800 text-white font-semibold"
             >
               {assigningCasa ? (
                 <>
