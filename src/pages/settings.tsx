@@ -91,6 +91,12 @@ export default function Settings() {
   const [casaDestinoId, setCasaDestinoId] = useState<string>("");
   const [moviendoLibro, setMoviendoLibro] = useState(false);
   
+  // Estados para gestión de huérfanos
+  const [showHuerfanosDialog, setShowHuerfanosDialog] = useState(false);
+  const [librosHuerfanos, setLibrosHuerfanos] = useState<Libro[]>([]);
+  const [loadingHuerfanos, setLoadingHuerfanos] = useState(false);
+  const [reasignandoHuerfano, setReasignandoHuerfano] = useState(false);
+
   // Estados para confirmación de cambio de casa
   const [showConfirmCasaChange, setShowConfirmCasaChange] = useState(false);
   const [pendingCasaChange, setPendingCasaChange] = useState<{
@@ -99,12 +105,6 @@ export default function Settings() {
     newCasaId: string;
     newCasaNombre: string;
   } | null>(null);
-  
-  // Estados para gestión de huérfanos
-  const [showHuerfanosDialog, setShowHuerfanosDialog] = useState(false);
-  const [librosHuerfanos, setLibrosHuerfanos] = useState<Libro[]>([]);
-  const [loadingHuerfanos, setLoadingHuerfanos] = useState(false);
-  const [reasignandoHuerfano, setReasignandoHuerfano] = useState(false);
 
   useEffect(() => {
     checkAuth();
