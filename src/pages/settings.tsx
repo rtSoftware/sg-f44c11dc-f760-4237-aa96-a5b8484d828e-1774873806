@@ -35,7 +35,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TableCell } from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
 
 type FormMode = "list" | "create" | "edit";
 type Section = "libros" | "casas" | "perfil";
@@ -43,6 +43,7 @@ type Section = "libros" | "casas" | "perfil";
 export default function Settings() {
   const router = useRouter();
   const { casaId } = useCasa();
+  const { toast } = useToast();
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -61,14 +62,36 @@ export default function Settings() {
   const [editCasaName, setEditCasaName] = useState("");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [editingLibro, setEditingLibro] = useState<Libro | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  // Estados para gestión de libros
+  const [formData, setFormData] = useState({
+    titulo: "",
+    autor: "",
+    descripcion: "",
+    contenido: "",
+    portada_url: "",
+    audio_https: "",
+    audioanalisis_https: "",
+    orden: 0,
+  });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [portadaFile, setPortadaFile] = useState<File | null>(null);
-  const [portadaPreview, setPortadaPreview] = useState<string>("");
-  const [isUploading, setIsUploading] = useState(false);
+  
+  // Estados para gestión de perfil
+  const [profileData, setProfileData] = useState({
+    full_name: "",
+    avatar_url: "",
+  });
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  
+  // Estados para mover libros
+  const [showMoverLibroDialog, setShowMoverLibroDialog] = useState(false);
+  const [libroAMover, setLibroAMover] = useState<Libro | null>(null);
+  const [casaDestinoId, setCasaDestinoId] = useState<string>("");
+  const [moviendoLibro, setMoviendoLibro] = useState(false);
+  
+  // Estados para confirmación de cambio de casa
   const [showConfirmCasaChange, setShowConfirmCasaChange] = useState(false);
   const [pendingCasaChange, setPendingCasaChange] = useState<{
     libroId: string;
@@ -76,13 +99,342 @@ export default function Settings() {
     newCasaId: string;
     newCasaNombre: string;
   } | null>(null);
+  
+  // Estados para gestión de huérfanos
+  const [showHuerfanosDialog, setShowHuerfanosDialog] = useState(false);
+  const [librosHuerfanos, setLibrosHuerfanos] = useState<Libro[]>([]);
+  const [loadingHuerfanos, setLoadingHuerfanos] = useState(false);
+  const [reasignandoHuerfano, setReasignandoHuerfano] = useState(false);
 
-  // Funciones de confirmación para cambio de casa
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchLibros();
+      fetchCasas();
+      fetchProfile();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (casas.length > 0) {
+      fetchAllUsuariosPorCasa();
+    }
+  }, [casas]);
+
+  const checkAuth = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push("/auth");
+        return;
+      }
+      setUser(session.user);
+    } catch (error) {
+      console.error("Error checking auth:", error);
+      router.push("/auth");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLibros = async () => {
+    try {
+      const data = await getAllLibros();
+      setLibros(data);
+    } catch (error) {
+      console.error("Error fetching libros:", error);
+    }
+  };
+
+  const fetchCasas = async () => {
+    try {
+      const data = await getAllCasas();
+      setCasas(data);
+    } catch (error) {
+      console.error("Error fetching casas:", error);
+    }
+  };
+
+  const fetchAllUsuariosPorCasa = async () => {
+    try {
+      const usuarios: Record<string, Array<{ id: string; email: string | null; full_name: string | null; avatar_url: string | null }>> = {};
+      for (const casa of casas) {
+        const data = await getUsuariosPorCasa(casa.id);
+        usuarios[casa.id] = data;
+      }
+      setUsuariosPorCasa(usuarios);
+    } catch (error) {
+      console.error("Error fetching usuarios por casa:", error);
+    }
+  };
+
+  const fetchProfile = async () => {
+    try {
+      setLoadingProfile(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name, avatar_url")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setProfileData({
+          full_name: data.full_name || "",
+          avatar_url: data.avatar_url || "",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const handleNewLibro = () => {
+    setFormData({
+      titulo: "",
+      autor: "",
+      descripcion: "",
+      contenido: "",
+      portada_url: "",
+      audio_https: "",
+      audioanalisis_https: "",
+      orden: 0,
+    });
+    setSelectedFile(null);
+    setPreviewUrl("");
+    setMode("create");
+  };
+
+  const handleEditLibro = (libro: Libro) => {
+    setFormData({
+      titulo: libro.titulo,
+      autor: libro.autor || "",
+      descripcion: libro.descripcion || "",
+      contenido: libro.contenido || "",
+      portada_url: libro.portada_url || "",
+      audio_https: libro.audio_https || "",
+      audioanalisis_https: libro.audioanalisis_https || "",
+      orden: libro.orden || 0,
+    });
+    setSelectedFile(null);
+    setPreviewUrl(libro.portada_url || "");
+    setSelectedLibroId(libro.id);
+    setMode("edit");
+  };
+
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedFile(null);
+    setPreviewUrl("");
+    setFormData(prev => ({ ...prev, portada_url: "" }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      let portadaUrl = formData.portada_url;
+
+      if (selectedFile) {
+        setUploadingImage(true);
+        const tempId = selectedLibroId || `temp-${Date.now()}`;
+        const uploadedUrl = await uploadPortada(selectedFile, tempId);
+        if (uploadedUrl) {
+          portadaUrl = uploadedUrl;
+        }
+        setUploadingImage(false);
+      }
+
+      const libroData = {
+        ...formData,
+        portada_url: portadaUrl,
+        casa_id: casaId,
+      };
+
+      if (mode === "create") {
+        await createLibro(libroData);
+        setMessage({ type: "success", text: "Libro creado exitosamente" });
+      } else if (mode === "edit" && selectedLibroId) {
+        await updateLibro(selectedLibroId, libroData);
+        setMessage({ type: "success", text: "Libro actualizado exitosamente" });
+      }
+
+      await fetchLibros();
+      setMode("list");
+      setSelectedFile(null);
+      setPreviewUrl("");
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      console.error("Error saving libro:", error);
+      setMessage({ type: "error", text: "Error al guardar el libro" });
+      setTimeout(() => setMessage(null), 3000);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelForm = () => {
+    setMode("list");
+    setSelectedFile(null);
+    setPreviewUrl("");
+  };
+
+  const handleDeleteLibro = async () => {
+    if (!selectedLibroId) return;
+
+    setDeleting(true);
+    try {
+      await deleteLibroContent(selectedLibroId);
+      await fetchLibros();
+      setShowDeleteDialog(false);
+      setSelectedLibroId(null);
+      setMessage({ type: "success", text: "Libro eliminado exitosamente" });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      console.error("Error deleting libro:", error);
+      setMessage({ type: "error", text: "Error al eliminar el libro" });
+      setTimeout(() => setMessage(null), 3000);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleCreateCasa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCasaName.trim()) return;
+
+    setSaving(true);
+    try {
+      await createCasa(newCasaName.trim());
+      await fetchCasas();
+      setShowNewCasaDialog(false);
+      setNewCasaName("");
+      setMessage({ type: "success", text: "Casa creada exitosamente" });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      console.error("Error creating casa:", error);
+      setMessage({ type: "error", text: "Error al crear la casa" });
+      setTimeout(() => setMessage(null), 3000);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleEditCasa = (casa: Tables<"casas">) => {
+    setEditingCasaId(casa.id);
+    setEditCasaName(casa.casa_nombre);
+    setShowEditCasaDialog(true);
+  };
+
+  const handleUpdateCasaNombre = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCasaId || !editCasaName.trim()) return;
+
+    setSaving(true);
+    try {
+      await updateCasaNombre(editingCasaId, editCasaName.trim());
+      await fetchCasas();
+      setShowEditCasaDialog(false);
+      setEditingCasaId(null);
+      setEditCasaName("");
+      setMessage({ type: "success", text: "Casa actualizada exitosamente" });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      console.error("Error updating casa:", error);
+      setMessage({ type: "error", text: "Error al actualizar la casa" });
+      setTimeout(() => setMessage(null), 3000);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    setLoadingProfile(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: profileData.full_name,
+          avatar_url: profileData.avatar_url,
+        })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      setMessage({ type: "success", text: "Perfil actualizado exitosamente" });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      setMessage({ type: "error", text: "Error al actualizar el perfil" });
+      setTimeout(() => setMessage(null), 3000);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const confirmarMoverLibro = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!libroAMover || !casaDestinoId) return;
+
+    try {
+      setMoviendoLibro(true);
+      await moverLibroACasa(libroAMover.id, casaDestinoId);
+      await fetchLibros();
+
+      toast({
+        title: "Libro movido",
+        description: `El libro ha sido movido exitosamente.`,
+      });
+
+      setShowMoverLibroDialog(false);
+      setLibroAMover(null);
+      setCasaDestinoId("");
+    } catch (error) {
+      console.error("Error al mover libro:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo mover el libro.",
+        variant: "destructive",
+      });
+    } finally {
+      setMoviendoLibro(false);
+    }
+  };
+
+  // Funciones para confirmación de cambio de casa
   const handleCasaChangeRequest = (libroId: string, newCasaId: string) => {
     const libro = libros.find(l => l.id === libroId);
     const newCasa = casas.find(c => c.id === newCasaId);
     
-    if (!libro || !newCasa) return;
+    if (!libro || !newCasa || libro.casa_id === newCasaId) return;
 
     setPendingCasaChange({
       libroId,
@@ -97,9 +449,8 @@ export default function Settings() {
     if (!pendingCasaChange) return;
 
     try {
-      await updateLibro(pendingCasaChange.libroId, {
-        casa_id: pendingCasaChange.newCasaId,
-      });
+      setMoviendoLibro(true);
+      await moverLibroACasa(pendingCasaChange.libroId, pendingCasaChange.newCasaId);
       await fetchLibros();
       toast({
         title: "Casa actualizada",
@@ -113,14 +464,52 @@ export default function Settings() {
         variant: "destructive",
       });
     } finally {
+      setMoviendoLibro(false);
       setShowConfirmCasaChange(false);
       setPendingCasaChange(null);
     }
   };
 
-  const handleCancelCasaChange = () => {
-    setShowConfirmCasaChange(false);
-    setPendingCasaChange(null);
+  const handleDetectarHuerfanos = async () => {
+    try {
+      setLoadingHuerfanos(true);
+      setShowHuerfanosDialog(true);
+      const huerfanos = await detectarLibrosHuerfanos();
+      setLibrosHuerfanos(huerfanos);
+    } catch (error) {
+      console.error("Error detectando huérfanos:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron detectar los libros huérfanos.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingHuerfanos(false);
+    }
+  };
+
+  const handleReasignarHuerfano = async (libro: Libro) => {
+    if (!libro.casa_id) return;
+
+    try {
+      setReasignandoHuerfano(true);
+      await reasignarLibroHuerfano(libro.id, libro.casa_id);
+      await handleDetectarHuerfanos();
+      await fetchLibros();
+      toast({
+        title: "Libro reasignado",
+        description: "El libro ha sido reasignado correctamente.",
+      });
+    } catch (error) {
+      console.error("Error al reasignar huérfano:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo reasignar el libro.",
+        variant: "destructive",
+      });
+    } finally {
+      setReasignandoHuerfano(false);
+    }
   };
 
   const filteredLibros = libros.filter(libro => 
@@ -336,32 +725,30 @@ export default function Settings() {
                             {libro.descripcion}
                           </p>
                         )}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <Button
                             onClick={() => handleEditLibro(libro)}
-                            className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white"
+                            className="flex-1 min-w-[100px] bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white"
                           >
                             <Edit className="mr-2 h-4 w-4" />
                             Editar
                           </Button>
                           {casas.length > 1 && (
-                            <TableCell>
-                              <Select
-                                value={libro.casa_id || ""}
-                                onValueChange={(value) => handleCasaChangeRequest(libro.id, value)}
-                              >
-                                <SelectTrigger className="w-[180px] border-stone-300">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {casas.map((casa) => (
-                                    <SelectItem key={casa.id} value={casa.id}>
-                                      {casa.casa_nombre}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
+                            <Select
+                              value={libro.casa_id || ""}
+                              onValueChange={(value) => handleCasaChangeRequest(libro.id, value)}
+                            >
+                              <SelectTrigger className="w-[140px] border-amber-300">
+                                <SelectValue placeholder="Casa" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {casas.map((casa) => (
+                                  <SelectItem key={casa.id} value={casa.id}>
+                                    {casa.casa_nombre}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           )}
                           <Button
                             variant="destructive"
@@ -546,7 +933,7 @@ export default function Settings() {
                     <Input
                       id="audio_https"
                       value={formData.audio_https}
-                      onChange={(e) => setFormData({ ...formData, audio_https: e.target.value })}
+                      onChange={(e) => handleChange("audio_https", e.target.value)}
                       placeholder="https://ejemplo.com/audio-capitulo.mp3"
                       type="url"
                       className="border-amber-200 focus:border-amber-400 focus:ring-amber-400"
@@ -617,8 +1004,8 @@ export default function Settings() {
         </main>
 
         {/* Sección de Casas */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {section === "casas" && (
+        {section === "casas" && (
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -760,12 +1147,12 @@ export default function Settings() {
                 </div>
               )}
             </div>
-          )}
-        </main>
+          </main>
+        )}
 
         {/* Sección de Perfil */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {section === "perfil" && (
+        {section === "perfil" && (
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -869,8 +1256,37 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </div>
-          )}
-        </main>
+          </main>
+        )}
+
+        {/* Dialog para eliminar libro */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent className="bg-white">
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar libro?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción no se puede deshacer. Se eliminará permanentemente el libro y todo su contenido.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteLibro}
+                disabled={deleting}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {deleting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Eliminando...
+                  </>
+                ) : (
+                  "Eliminar"
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Dialog para crear nueva casa */}
         <Dialog open={showNewCasaDialog} onOpenChange={setShowNewCasaDialog}>
@@ -1170,7 +1586,7 @@ export default function Settings() {
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleConfirmCasaChange}
-                disabled={moviendoLibro || !casaDestinoId}
+                disabled={moviendoLibro}
                 className="bg-stone-900 hover:bg-stone-800 text-white"
               >
                 {moviendoLibro ? (
@@ -1179,10 +1595,7 @@ export default function Settings() {
                     Moviendo...
                   </>
                 ) : (
-                  <>
-                    <Home className="mr-2 h-4 w-4" />
-                    Mover Libro
-                  </>
+                  "Mover Libro"
                 )}
               </AlertDialogAction>
             </AlertDialogFooter>
