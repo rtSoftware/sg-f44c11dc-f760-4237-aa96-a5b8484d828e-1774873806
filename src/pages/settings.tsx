@@ -282,7 +282,8 @@ export default function Settings() {
       };
 
       if (mode === "create") {
-        await createLibro(libroData);
+        if (!user) throw new Error("Usuario no autenticado");
+        await createLibro(libroData, user.id);
         setMessage({ type: "success", text: "Libro creado exitosamente" });
       } else if (mode === "edit" && selectedLibroId) {
         await updateLibro(selectedLibroId, libroData);
@@ -317,7 +318,7 @@ export default function Settings() {
       const libro = libros.find(l => l.id === selectedLibroId);
       if (!libro) return;
       
-      await deleteLibroContent(selectedLibroId, libro.casa_id);
+      await deleteLibroContent(selectedLibroId);
       await fetchLibros();
       setShowDeleteDialog(false);
       setSelectedLibroId(null);
@@ -484,8 +485,8 @@ export default function Settings() {
     try {
       setLoadingHuerfanos(true);
       setShowHuerfanosDialog(true);
-      const huerfanos = await detectarLibrosHuerfanos();
-      setLibrosHuerfanos(huerfanos);
+      const { data } = await detectarLibrosHuerfanos();
+      setLibrosHuerfanos(data || []);
     } catch (error) {
       console.error("Error detectando huérfanos:", error);
       toast({
