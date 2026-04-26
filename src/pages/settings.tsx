@@ -142,7 +142,8 @@ export default function Settings() {
 
   const fetchLibros = async () => {
     try {
-      const data = await getAllLibros();
+      const { data, error } = await getAllLibros();
+      if (error) throw error;
       setLibros(data);
     } catch (error) {
       console.error("Error fetching libros:", error);
@@ -151,7 +152,8 @@ export default function Settings() {
 
   const fetchCasas = async () => {
     try {
-      const data = await getAllCasas();
+      const { data, error } = await getAllCasas();
+      if (error) throw error;
       setCasas(data);
     } catch (error) {
       console.error("Error fetching casas:", error);
@@ -162,7 +164,8 @@ export default function Settings() {
     try {
       const usuarios: Record<string, Array<{ id: string; email: string | null; full_name: string | null; avatar_url: string | null }>> = {};
       for (const casa of casas) {
-        const data = await getUsuariosPorCasa(casa.id);
+        const { data, error } = await getUsuariosPorCasa(casa.id);
+        if (error) throw error;
         usuarios[casa.id] = data;
       }
       setUsuariosPorCasa(usuarios);
@@ -263,9 +266,11 @@ export default function Settings() {
       if (selectedFile) {
         setUploadingImage(true);
         const tempId = selectedLibroId || `temp-${Date.now()}`;
-        const uploadedUrl = await uploadPortada(selectedFile, tempId);
-        if (uploadedUrl) {
-          portadaUrl = uploadedUrl;
+        const { url, error } = await uploadPortada(selectedFile, tempId);
+        if (error) {
+          console.error("Error uploading portada:", error);
+        } else if (url) {
+          portadaUrl = url;
         }
         setUploadingImage(false);
       }
@@ -309,7 +314,10 @@ export default function Settings() {
 
     setDeleting(true);
     try {
-      await deleteLibroContent(selectedLibroId);
+      const libro = libros.find(l => l.id === selectedLibroId);
+      if (!libro) return;
+      
+      await deleteLibroContent(selectedLibroId, libro.casa_id);
       await fetchLibros();
       setShowDeleteDialog(false);
       setSelectedLibroId(null);
@@ -406,7 +414,9 @@ export default function Settings() {
 
     try {
       setMoviendoLibro(true);
-      await moverLibroACasa(libroAMover.id, casaDestinoId);
+      const { error } = await moverLibroACasa(libroAMover.id, casaDestinoId);
+      if (error) throw error;
+      
       await fetchLibros();
 
       toast({
@@ -1510,7 +1520,6 @@ export default function Settings() {
                 <div className="space-y-3">
                   {librosHuerfanos.map((libro) => {
                     const casaDelLibro = casas.find(c => c.id === libro.casa_id);
-                    const casaDelUser = casas.find(c => c.id === libro.user_casa_id);
                     return (
                       <Card key={libro.id} className="border-orange-200">
                         <CardContent className="pt-4">
@@ -1520,9 +1529,6 @@ export default function Settings() {
                               <div className="mt-2 space-y-1 text-sm">
                                 <p className="text-amber-700">
                                   📚 Casa del libro: <span className="font-medium">{casaDelLibro?.casa_nombre || "Desconocida"}</span>
-                                </p>
-                                <p className="text-orange-700">
-                                  👤 Casa del creador: <span className="font-medium">{casaDelUser?.casa_nombre || "Sin casa"}</span>
                                 </p>
                               </div>
                             </div>
