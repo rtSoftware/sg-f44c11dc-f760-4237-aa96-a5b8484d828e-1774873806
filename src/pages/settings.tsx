@@ -63,6 +63,9 @@ export default function Settings() {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingLibro, setEditingLibro] = useState<Libro | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [portadaFile, setPortadaFile] = useState<File | null>(null);
   const [portadaPreview, setPortadaPreview] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
@@ -74,473 +77,52 @@ export default function Settings() {
     newCasaNombre: string;
   } | null>(null);
 
-  const [profileData, setProfileData] = useState({
-    full_name: "",
-    avatar_url: ""
-  });
-  const [loadingProfile, setLoadingProfile] = useState(false);
-
-  // Estados para migración de libros
-  const [showMoverLibroDialog, setShowMoverLibroDialog] = useState(false);
-  const [libroAMover, setLibroAMover] = useState<Libro | null>(null);
-  const [casaDestinoId, setCasaDestinoId] = useState<string>("");
-  const [moviendoLibro, setMoviendoLibro] = useState(false);
-  const [showHuerfanosDialog, setShowHuerfanosDialog] = useState(false);
-  const [librosHuerfanos, setLibrosHuerfanos] = useState<Array<Libro & { user_casa_id: string | null }>>([]);
-  const [loadingHuerfanos, setLoadingHuerfanos] = useState(false);
-  const [reasignandoHuerfano, setReasignandoHuerfano] = useState(false);
-
-  const [formData, setFormData] = useState({
-    titulo: "",
-    descripcion: "",
-    contenido: "",
-    autor: "",
-    portada_url: "",
-    audio_https: "",
-    audioanalisis_https: "",
-    orden: 0
-  });
-
-  useEffect(() => {
-    checkUser();
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      loadLibros();
-      loadCasas();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    if (section === "perfil" && user) {
-      loadProfile();
-    }
-  }, [section, user]);
-
-  useEffect(() => {
-    if (section === "casas" && casas.length > 0) {
-      loadUsuariosParaCasas();
-    }
-  }, [section, casas]);
-
-  async function checkUser() {
-    const { data: { session } } = await supabase.auth.getSession();
+  // Funciones de confirmación para cambio de casa
+  const handleCasaChangeRequest = (libroId: string, newCasaId: string) => {
+    const libro = libros.find(l => l.id === libroId);
+    const newCasa = casas.find(c => c.id === newCasaId);
     
-    if (!session) {
-      router.push("/auth");
-      return;
-    }
+    if (!libro || !newCasa) return;
 
-    setUser(session.user);
-    setLoading(false);
-  }
-
-  async function loadLibros() {
-    const { data, error } = await getAllLibros();
-    
-    if (error) {
-      console.error("Error loading libros:", error);
-      setLibros([]);
-      return;
-    }
-
-    setLibros(data || []);
-  }
-
-  async function loadCasas() {
-    const { data, error } = await getAllCasas();
-    
-    if (error) {
-      console.error("Error loading casas:", error);
-      setCasas([]);
-      return;
-    }
-
-    setCasas(data || []);
-  }
-
-  async function loadUsuariosParaCasas() {
-    const usuariosMap: Record<string, Array<{ id: string; email: string | null; full_name: string | null; avatar_url: string | null }>> = {};
-    
-    for (const casa of casas) {
-      const { data, error } = await getUsuariosPorCasa(casa.id);
-      if (!error && data) {
-        usuariosMap[casa.id] = data;
-      } else {
-        usuariosMap[casa.id] = [];
-      }
-    }
-    
-    setUsuariosPorCasa(usuariosMap);
-  }
-
-  async function loadProfile() {
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("full_name, avatar_url")
-      .eq("id", user.id)
-      .single();
-
-    if (error) {
-      console.error("Error loading profile:", error);
-      return;
-    }
-
-    if (data) {
-      setProfileData({
-        full_name: data.full_name || "",
-        avatar_url: data.avatar_url || ""
-      });
-    }
-  }
-
-  function handleNewLibro() {
-    setMode("create");
-    setSelectedLibroId(null);
-    setFormData({
-      titulo: "",
-      descripcion: "",
-      contenido: "",
-      autor: "",
-      portada_url: "",
-      audio_https: "",
-      audioanalisis_https: "",
-      orden: 0
+    setPendingCasaChange({
+      libroId,
+      libroTitulo: libro.titulo,
+      newCasaId,
+      newCasaNombre: newCasa.casa_nombre,
     });
-    setSelectedFile(null);
-    setPreviewUrl("");
-    setMessage(null);
-  }
+    setShowConfirmCasaChange(true);
+  };
 
-  function handleEditLibro(libro: Libro) {
-    setMode("edit");
-    setSelectedLibroId(libro.id);
-    setFormData({
-      titulo: libro.titulo || "",
-      descripcion: libro.descripcion || "",
-      contenido: libro.contenido || "",
-      autor: libro.autor || "",
-      portada_url: libro.portada_url || "",
-      audio_https: libro.audio_https || "",
-      audioanalisis_https: libro.audioanalisis_https || "",
-      orden: libro.orden || 0
-    });
-    setSelectedFile(null);
-    setPreviewUrl(libro.portada_url || "");
-    setMessage(null);
-  }
-
-  function handleCancelForm() {
-    setMode("list");
-    setSelectedLibroId(null);
-    setFormData({
-      titulo: "",
-      descripcion: "",
-      contenido: "",
-      autor: "",
-      portada_url: "",
-      audio_https: "",
-      audioanalisis_https: "",
-      orden: 0
-    });
-    setSelectedFile(null);
-    setPreviewUrl("");
-    setMessage(null);
-  }
-
-  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validar tipo de archivo
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    if (!allowedTypes.includes(file.type)) {
-      setMessage({ type: "error", text: "Tipo de archivo no permitido. Usa JPG, PNG o WebP." });
-      return;
-    }
-
-    // NO validar tamaño aquí - la compresión se encargará de reducirlo
-    setSelectedFile(file);
-    
-    // Crear preview URL
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreviewUrl(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function handleRemoveImage() {
-    setSelectedFile(null);
-    setPreviewUrl("");
-    setFormData(prev => ({ ...prev, portada_url: "" }));
-  }
-
-  async function handleCreateCasa(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newCasaName.trim()) {
-      setMessage({ type: "error", text: "El nombre de la casa es obligatorio" });
-      return;
-    }
-
-    setSaving(true);
-    setMessage(null);
-
-    const { success, error } = await createCasa(newCasaName);
-
-    if (error) {
-      setMessage({ type: "error", text: "Error al crear la casa" });
-      console.error("Create casa error:", error);
-    } else {
-      setMessage({ type: "success", text: "Casa creada exitosamente" });
-      await loadCasas();
-      setNewCasaName("");
-      setShowNewCasaDialog(false);
-    }
-
-    setSaving(false);
-  }
-
-  async function handleEditCasa(casa: Tables<"casas">) {
-    setEditingCasaId(casa.id);
-    setEditCasaName(casa.casa_nombre);
-    setShowEditCasaDialog(true);
-    setMessage(null);
-  }
-
-  async function handleUpdateCasaNombre(e: React.FormEvent) {
-    e.preventDefault();
-    if (!editingCasaId || !editCasaName.trim()) {
-      setMessage({ type: "error", text: "El nombre de la casa es obligatorio" });
-      return;
-    }
-
-    setSaving(true);
-    setMessage(null);
-
-    const { success, error } = await updateCasaNombre(editingCasaId, editCasaName);
-
-    if (error) {
-      setMessage({ type: "error", text: "Error al actualizar el nombre de la casa" });
-      console.error("Update casa nombre error:", error);
-    } else {
-      setMessage({ type: "success", text: "Nombre actualizado exitosamente" });
-      await loadCasas();
-      setEditingCasaId(null);
-      setEditCasaName("");
-      setShowEditCasaDialog(false);
-    }
-
-    setSaving(false);
-  }
-
-  async function handleUpdateProfile(e: React.FormEvent) {
-    e.preventDefault();
-    if (!user) return;
-
-    setLoadingProfile(true);
-    setMessage(null);
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        full_name: profileData.full_name,
-        avatar_url: profileData.avatar_url
-      })
-      .eq("id", user.id);
-
-    if (error) {
-      setMessage({ type: "error", text: "Error al actualizar el perfil" });
-      console.error("Update profile error:", error);
-    } else {
-      setMessage({ type: "success", text: "Perfil actualizado exitosamente" });
-      // Recargar contexto para reflejar cambios
-      if (typeof window !== "undefined") {
-        window.location.reload();
-      }
-    }
-
-    setLoadingProfile(false);
-  }
-
-  async function handleMoverLibro(libro: Libro) {
-    setLibroAMover(libro);
-    setCasaDestinoId("");
-    setShowMoverLibroDialog(true);
-    setMessage(null);
-  }
-
-  async function confirmarMoverLibro(e: React.FormEvent) {
-    e.preventDefault();
-    if (!libroAMover || !casaDestinoId) return;
-
-    setMoviendoLibro(true);
-    setMessage(null);
-
-    const { success, error } = await moverLibroACasa(libroAMover.id, casaDestinoId);
-
-    if (error) {
-      setMessage({ type: "error", text: `Error al mover el libro: ${error.message}` });
-      console.error("Error moviendo libro:", error);
-    } else {
-      setMessage({ type: "success", text: "Libro movido exitosamente a la nueva casa" });
-      await loadLibros();
-      setShowMoverLibroDialog(false);
-      setLibroAMover(null);
-      setCasaDestinoId("");
-    }
-
-    setMoviendoLibro(false);
-  }
-
-  async function handleDetectarHuerfanos() {
-    setLoadingHuerfanos(true);
-    setShowHuerfanosDialog(true);
-    setMessage(null);
-
-    const { data, error } = await detectarLibrosHuerfanos();
-
-    if (error) {
-      setMessage({ type: "error", text: "Error al detectar libros huérfanos" });
-      console.error("Error detectando huérfanos:", error);
-      setLibrosHuerfanos([]);
-    } else {
-      setLibrosHuerfanos(data || []);
-    }
-
-    setLoadingHuerfanos(false);
-  }
-
-  async function handleReasignarHuerfano(libro: Libro & { user_casa_id: string | null }) {
-    setReasignandoHuerfano(true);
-    setMessage(null);
-
-    const { success, error } = await reasignarLibroHuerfano(libro.id, libro.casa_id);
-
-    if (error) {
-      setMessage({ type: "error", text: `Error al reasignar libro: ${error.message}` });
-      console.error("Error reasignando huérfano:", error);
-    } else {
-      setMessage({ type: "success", text: "Libro reasignado exitosamente" });
-      // Recargar lista de huérfanos
-      handleDetectarHuerfanos();
-      await loadLibros();
-    }
-
-    setReasignandoHuerfano(false);
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!user) return;
-
-    setSaving(true);
-    setMessage(null);
+  const handleConfirmCasaChange = async () => {
+    if (!pendingCasaChange) return;
 
     try {
-      let portadaUrl = formData.portada_url;
-
-      // Si hay un archivo seleccionado, subirlo primero
-      if (selectedFile) {
-        setUploadingImage(true);
-        const { url, error: uploadError } = await uploadPortada(selectedFile, user.id);
-        setUploadingImage(false);
-
-        if (uploadError) {
-          console.error("Upload error details:", uploadError);
-          setMessage({ 
-            type: "error", 
-            text: `Error al subir la imagen: ${uploadError.message || "Error desconocido"}` 
-          });
-          setSaving(false);
-          return;
-        }
-
-        if (url) {
-          portadaUrl = url;
-        }
-      }
-
-      const dataToSave = {
-        ...formData,
-        portada_url: portadaUrl
-      };
-
-      console.log("Saving libro data:", { mode, selectedLibroId, dataToSave });
-
-      if (mode === "create") {
-        const { data, error } = await createLibro(dataToSave, user.id);
-        
-        if (error) {
-          console.error("Create error details:", error);
-          setMessage({ 
-            type: "error", 
-            text: `Error al crear el capítulo: ${error.message || "Error desconocido"}` 
-          });
-        } else {
-          console.log("Create successful:", data);
-          setMessage({ type: "success", text: "Capítulo creado exitosamente" });
-          await loadLibros();
-          handleCancelForm();
-        }
-      } else if (mode === "edit" && selectedLibroId) {
-        const { data, error } = await updateLibro(selectedLibroId, dataToSave);
-        
-        if (error) {
-          console.error("Update error details:", error);
-          setMessage({ 
-            type: "error", 
-            text: `Error al actualizar el capítulo: ${error.message || "Error desconocido"}` 
-          });
-        } else {
-          console.log("Update successful:", data);
-          setMessage({ type: "success", text: "Capítulo actualizado exitosamente" });
-          await loadLibros();
-          handleCancelForm();
-        }
-      }
+      await updateLibro(pendingCasaChange.libroId, {
+        casa_id: pendingCasaChange.newCasaId,
+      });
+      await fetchLibros();
+      toast({
+        title: "Casa actualizada",
+        description: `El libro se movió a ${pendingCasaChange.newCasaNombre}.`,
+      });
     } catch (error) {
-      console.error("Submit error details:", error);
-      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
-      setMessage({ type: "error", text: `Error inesperado: ${errorMessage}` });
+      console.error("Error al cambiar casa:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo cambiar la casa del libro.",
+        variant: "destructive",
+      });
+    } finally {
+      setShowConfirmCasaChange(false);
+      setPendingCasaChange(null);
     }
+  };
 
-    setSaving(false);
-  }
+  const handleCancelCasaChange = () => {
+    setShowConfirmCasaChange(false);
+    setPendingCasaChange(null);
+  };
 
-  async function confirmDelete() {
-    if (!selectedLibroId) return;
-
-    setDeleting(true);
-    setMessage(null);
-
-    const { success, error } = await deleteLibroContent(selectedLibroId);
-
-    if (error) {
-      setMessage({ type: "error", text: "Error al eliminar el capítulo" });
-      console.error("Delete error:", error);
-    } else {
-      setMessage({ type: "success", text: "Capítulo eliminado exitosamente" });
-      await loadLibros();
-      setShowDeleteDialog(false);
-      setSelectedLibroId(null);
-    }
-
-    setDeleting(false);
-  }
-
-  function handleChange(field: string, value: string) {
-    if (field === "orden") {
-      setFormData(prev => ({ ...prev, [field]: parseInt(value) || 0 }));
-    } else {
-      setFormData(prev => ({ ...prev, [field]: value }));
-    }
-  }
-
-  // Filtrar libros por título
   const filteredLibros = libros.filter(libro => 
     libro.titulo.toLowerCase().includes(searchTerm.toLowerCase())
   );
