@@ -279,64 +279,47 @@ export default function AuthPage() {
       </div>
 
       <Dialog open={showCasaSelector} onOpenChange={setShowCasaSelector}>
-        <DialogContent className="bg-white max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl text-stone-900 flex items-center gap-2">
-              <Home className="h-6 w-6" />
-              Selecciona tu Casa
-            </DialogTitle>
+            <DialogTitle className="text-stone-900">Selecciona tu Casa</DialogTitle>
             <DialogDescription className="text-stone-600">
-              Elige la comunidad a la que deseas pertenecer
+              Elige la casa que mejor represente tu camino de crecimiento
             </DialogDescription>
           </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-800">{error}</p>
-              </div>
-            )}
-
-            {success && (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm text-green-800">{success}</p>
-              </div>
-            )}
-
-            <RadioGroup value={selectedCasaId} onValueChange={setSelectedCasaId}>
-              <div className="space-y-3">
-                {casas.map((casa) => (
-                  <div
-                    key={casa.id}
-                    className={`flex items-center space-x-3 p-4 rounded-lg border cursor-pointer transition-all ${
-                      selectedCasaId === casa.id
-                        ? "border-stone-900 bg-stone-50"
-                        : "border-stone-200 hover:border-stone-300 hover:bg-stone-50"
-                    }`}
-                    onClick={() => setSelectedCasaId(casa.id)}
-                  >
-                    <RadioGroupItem value={casa.id} id={casa.id} />
-                    <Label
-                      htmlFor={casa.id}
-                      className="flex-1 cursor-pointer"
-                    >
-                      <div className="font-semibold text-stone-900">
-                        {casa.casa_nombre}
-                      </div>
-                      <div className="text-sm text-stone-600">
-                        Creada: {new Date(casa.created_at).toLocaleDateString()}
-                      </div>
-                    </Label>
+          <div className="max-h-[400px] overflow-y-auto pr-2">
+            <div className="grid gap-3">
+              {casas.map((casa) => (
+                <Button
+                  key={casa.id}
+                  variant="outline"
+                  className={`w-full justify-start text-left h-auto py-4 px-4 border-stone-300 hover:bg-stone-50 ${
+                    selectedCasaId === casa.id ? "bg-stone-100 border-stone-900" : ""
+                  }`}
+                  onClick={() => setSelectedCasaId(casa.id)}
+                >
+                  <div className="flex items-start gap-3 w-full">
+                    <span className="text-2xl flex-shrink-0">{casa.icono}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-stone-900">{casa.casa_nombre}</div>
+                      <div className="text-sm text-stone-600 mt-1">Creada: {new Date(casa.created_at).toLocaleDateString()}</div>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </RadioGroup>
-
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="flex gap-3 pt-4 border-t border-stone-200">
+            <Button
+              variant="outline"
+              onClick={() => setShowCasaSelector(false)}
+              className="flex-1 border-stone-300 text-stone-700 hover:bg-stone-100"
+            >
+              Cancelar
+            </Button>
             <Button
               onClick={handleAssignCasa}
               disabled={!selectedCasaId || assigningCasa}
-              className="w-full h-12 bg-stone-900 hover:bg-stone-800 text-white font-semibold"
+              className="flex-1 bg-stone-900 hover:bg-stone-800 text-white"
             >
               {assigningCasa ? (
                 <>
