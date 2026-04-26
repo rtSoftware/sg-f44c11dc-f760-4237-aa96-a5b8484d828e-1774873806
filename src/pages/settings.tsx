@@ -34,6 +34,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TableCell } from "@/components/ui/table";
 
 type FormMode = "list" | "create" | "edit";
 type Section = "libros" | "casas" | "perfil";
@@ -59,6 +61,18 @@ export default function Settings() {
   const [editCasaName, setEditCasaName] = useState("");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [editingLibro, setEditingLibro] = useState<Libro | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [portadaFile, setPortadaFile] = useState<File | null>(null);
+  const [portadaPreview, setPortadaPreview] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
+  const [showConfirmCasaChange, setShowConfirmCasaChange] = useState(false);
+  const [pendingCasaChange, setPendingCasaChange] = useState<{
+    libroId: string;
+    libroTitulo: string;
+    newCasaId: string;
+    newCasaNombre: string;
+  } | null>(null);
 
   const [profileData, setProfileData] = useState({
     full_name: "",
@@ -86,10 +100,6 @@ export default function Settings() {
     audioanalisis_https: "",
     orden: 0
   });
-
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
-  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -753,13 +763,23 @@ export default function Settings() {
                             Editar
                           </Button>
                           {casas.length > 1 && (
-                            <Button
-                              onClick={() => handleMoverLibro(libro)}
-                              variant="outline"
-                              className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                            >
-                              <Home className="h-4 w-4" />
-                            </Button>
+                            <TableCell>
+                              <Select
+                                value={libro.casa_id || ""}
+                                onValueChange={(value) => handleCasaChangeRequest(libro.id, value)}
+                              >
+                                <SelectTrigger className="w-[180px] border-stone-300">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {casas.map((casa) => (
+                                    <SelectItem key={casa.id} value={casa.id}>
+                                      {casa.casa_nombre}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
                           )}
                           <Button
                             variant="destructive"
@@ -1389,7 +1409,7 @@ export default function Settings() {
 
         {/* Dialog para mover libro a otra casa */}
         <Dialog open={showMoverLibroDialog} onOpenChange={setShowMoverLibroDialog}>
-          <DialogContent className="bg-white">
+          <DialogContent className="bg-white max-w-3xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-amber-900">Mover Libro a Otra Casa</DialogTitle>
               <DialogDescription className="text-amber-700">
@@ -1544,33 +1564,42 @@ export default function Settings() {
           </DialogContent>
         </Dialog>
 
-        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <AlertDialogContent className="bg-white">
+        {/* Diálogo de confirmación de cambio de casa */}
+        <AlertDialog open={showConfirmCasaChange} onOpenChange={setShowConfirmCasaChange}>
+          <AlertDialogContent className="bg-white border-stone-200">
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-amber-900">¿Eliminar este libro?</AlertDialogTitle>
-              <AlertDialogDescription className="text-amber-700">
-                Esta acción no se puede deshacer. El libro, incluyendo título, descripción, 
-                contenido completo y URLs de audio serán eliminados permanentemente.
+              <AlertDialogTitle className="text-stone-900">
+                ¿Mover libro a otra casa?
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-stone-600">
+                {pendingCasaChange && (
+                  <>
+                    Estás a punto de mover <span className="font-semibold">"{pendingCasaChange.libroTitulo}"</span> a la casa{" "}
+                    <span className="font-semibold">{pendingCasaChange.newCasaNombre}</span>.
+                    <br /><br />
+                    Esta acción reorganizará el libro en tu biblioteca.
+                  </>
+                )}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="border-amber-300 text-amber-700 hover:bg-amber-50">
+              <AlertDialogCancel className="border-stone-300 text-stone-700 hover:bg-stone-100">
                 Cancelar
               </AlertDialogCancel>
               <AlertDialogAction
-                onClick={confirmDelete}
-                disabled={deleting}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={handleConfirmCasaChange}
+                disabled={moviendoLibro || !casaDestinoId}
+                className="bg-stone-900 hover:bg-stone-800 text-white"
               >
-                {deleting ? (
+                {moviendoLibro ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Eliminando...
+                    Moviendo...
                   </>
                 ) : (
                   <>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Eliminar
+                    <Home className="mr-2 h-4 w-4" />
+                    Mover Libro
                   </>
                 )}
               </AlertDialogAction>
