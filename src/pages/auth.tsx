@@ -159,6 +159,22 @@ export default function AuthPage() {
     }, 1500);
   };
 
+  const handleCasaSelection = async () => {
+    if (!selectedCasa || !user) return;
+
+    try {
+      await asignarCasaAUsuario(user.id, selectedCasa);
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Error asignando casa:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo asignar la casa. Por favor, intenta nuevamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <>
       <SEO
