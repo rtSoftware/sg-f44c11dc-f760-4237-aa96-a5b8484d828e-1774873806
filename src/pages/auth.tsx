@@ -286,29 +286,34 @@ export default function AuthPage() {
               Elige la casa que mejor represente tu camino de crecimiento
             </DialogDescription>
           </DialogHeader>
-          <div className="max-h-[400px] overflow-y-auto pr-2">
+          <div className="max-h-[50vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-stone-300 hover:scrollbar-thumb-stone-400">
             <div className="grid gap-3">
-              {casas.map((casa) => (
-                <Button
-                  key={casa.id}
-                  variant="outline"
-                  className={`w-full justify-start text-left h-auto py-4 px-4 border-stone-300 hover:bg-stone-50 ${
-                    selectedCasaId === casa.id ? "bg-stone-100 border-stone-900" : ""
-                  }`}
-                  onClick={() => setSelectedCasaId(casa.id)}
-                >
-                  <div className="flex items-start gap-3 w-full">
-                    <span className="text-2xl flex-shrink-0">{casa.icono}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-stone-900">{casa.casa_nombre}</div>
-                      <div className="text-sm text-stone-600 mt-1">Creada: {new Date(casa.created_at).toLocaleDateString()}</div>
+              {casas.map((casa) => {
+                const memo = casa.casa_memo as any;
+                return (
+                  <Button
+                    key={casa.id}
+                    variant="outline"
+                    className={`w-full justify-start text-left h-auto py-4 px-4 border-stone-300 hover:bg-stone-50 ${
+                      selectedCasaId === casa.id ? "bg-stone-100 border-stone-900" : ""
+                    }`}
+                    onClick={() => setSelectedCasaId(casa.id)}
+                  >
+                    <div className="flex items-start gap-3 w-full">
+                      <span className="text-2xl flex-shrink-0">{memo?.icono || "🏠"}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-stone-900">{casa.casa_nombre}</div>
+                        <div className="text-sm text-stone-600 mt-1 whitespace-normal">
+                          {memo?.descripcion || "Sin descripción"}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </Button>
-              ))}
+                  </Button>
+                );
+              })}
             </div>
           </div>
-          <div className="flex gap-3 pt-4 border-t border-stone-200">
+          <div className="flex gap-3 pt-4 mt-2 border-t border-stone-200">
             <Button
               variant="outline"
               onClick={() => setShowCasaSelector(false)}
