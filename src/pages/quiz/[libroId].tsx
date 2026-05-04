@@ -26,6 +26,7 @@ import {
   AlertCircle,
   Edit,
   CheckCircle,
+  Sparkles,
 } from "lucide-react";
 import { getLibroById } from "@/services/libroService";
 import {
@@ -274,6 +275,14 @@ export default function EditarQuiz() {
     try {
       setGeneratingIA(true);
       
+      // Eliminar todas las preguntas existentes primero
+      if (preguntas.length > 0) {
+        const { error: deleteError } = await deleteAllPreguntas(quiz.id);
+        if (deleteError) {
+          throw new Error("Error al eliminar preguntas existentes");
+        }
+      }
+
       const response = await fetch("/api/generar-preguntas", {
         method: "POST",
         headers: {
@@ -298,7 +307,7 @@ export default function EditarQuiz() {
 
       toast({
         title: "Preguntas generadas",
-        description: `Se generaron ${data.preguntas?.length || 0} preguntas exitosamente.`,
+        description: `Se generaron ${data.preguntas?.length || 0} preguntas nuevas exitosamente.`,
       });
 
       // Recargar preguntas
@@ -385,19 +394,18 @@ export default function EditarQuiz() {
             </Button>
             <Button
               onClick={handleGenerarConIA}
-              disabled={generatingIA || !libro.contenido}
-              variant="outline"
-              className="border-amber-300 text-amber-700 hover:bg-amber-50"
+              disabled={generatingIA}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
             >
               {generatingIA ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Generando...
+                  Generando preguntas...
                 </>
               ) : (
                 <>
-                  <Wand2 className="w-5 h-5 mr-2" />
-                  Generar con IA
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  {preguntas.length > 0 ? "Regenerar con IA" : "Generar con IA"}
                 </>
               )}
             </Button>
