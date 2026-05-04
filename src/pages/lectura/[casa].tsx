@@ -42,6 +42,20 @@ export default function LecturaCasa() {
         }
 
         setCasa(data);
+
+        // Guardar casa_id en localStorage para que esté disponible en modo lectura
+        if (typeof window !== "undefined") {
+          localStorage.setItem("casa_id", data.id);
+        }
+
+        const { data: librosData, error: librosError } = await getLibrosPorCasa(data.id);
+        if (librosError) {
+          console.error("Error loading libros:", librosError);
+        } else {
+          // setLibros(librosData || []);
+        }
+
+        setLoading(false);
       } catch (err) {
         console.error("Error fetching casa:", err);
         setError("Error al cargar la casa");
