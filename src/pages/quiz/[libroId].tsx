@@ -53,6 +53,7 @@ export default function QuizUsuario() {
         const { data: libroData, error: libroError } = await getLibroById(libroId);
         if (libroError || !libroData) {
           console.error("Error loading libro:", libroError);
+          router.push("/");
           return;
         }
         setLibro(libroData);
@@ -60,6 +61,7 @@ export default function QuizUsuario() {
         const { data: quizData, error: quizError } = await getQuizByLibroId(libroId);
         if (quizError || !quizData) {
           console.error("Error loading quiz:", quizError);
+          router.push("/");
           return;
         }
         setQuiz(quizData);
@@ -67,12 +69,14 @@ export default function QuizUsuario() {
         const { data: preguntasData, error: preguntasError } = await getPreguntasByQuizId(quizData.id);
         if (preguntasError || !preguntasData || preguntasData.length === 0) {
           console.error("Error loading preguntas:", preguntasError);
+          router.push("/");
           return;
         }
         
         setPreguntas(preguntasData.sort((a, b) => a.numero_pregunta - b.numero_pregunta));
       } catch (error) {
         console.error("Error loading quiz:", error);
+        router.push("/");
       } finally {
         setLoading(false);
       }
@@ -215,6 +219,8 @@ export default function QuizUsuario() {
                     );
                     const esCorrecta =
                       respuestaUsuario?.respuestaSeleccionada === pregunta.respuesta_correcta;
+                      
+                    const opciones = (pregunta.respuestas as string[]) || [];
 
                     return (
                       <div
@@ -233,12 +239,11 @@ export default function QuizUsuario() {
                           )}
                           <div className="flex-1">
                             <p className="font-semibold text-stone-900 mb-2">
-                              {index + 1}. {pregunta.pregunta}
+                              {index + 1}. {pregunta.texto_pregunta}
                             </p>
                             <div className="space-y-2">
-                              {[1, 2, 3, 4].map((num) => {
-                                const respuestaKey = `respuesta_${num}` as keyof QuizPregunta;
-                                const respuestaTexto = pregunta[respuestaKey];
+                              {opciones.map((respuestaTexto, idx) => {
+                                const num = idx + 1;
                                 const esRespuestaCorrecta = num === pregunta.respuesta_correcta;
                                 const esRespuestaUsuario = num === respuestaUsuario?.respuestaSeleccionada;
 
@@ -319,12 +324,13 @@ export default function QuizUsuario() {
 
   const preguntaActual = preguntas[currentIndex];
   const progreso = ((currentIndex + 1) / preguntas.length) * 100;
+  const opciones = (preguntaActual?.respuestas as string[]) || [];
 
   return (
     <>
       <SEO
-        title={`Quiz - ${libro.titulo} | Experiencia Miguel`}
-        description={`Pon a prueba tus conocimientos sobre ${libro.titulo}`}
+        title={`Quiz - ${libro?.titulo} | Experiencia Miguel`}
+        description={`Pon a prueba tus conocimientos sobre ${libro?.titulo}`}
       />
       <div className="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100 py-12 px-4">
         <div className="max-w-3xl mx-auto">
@@ -334,9 +340,9 @@ export default function QuizUsuario() {
                 <BookOpen className="w-6 h-6 text-purple-600" />
                 <div className="flex-1">
                   <CardTitle className="text-2xl font-bold text-stone-900">
-                    {libro.titulo}
+                    {libro?.titulo}
                   </CardTitle>
-                  {libro.autor && (
+                  {libro?.autor && (
                     <p className="text-sm text-stone-600 mt-1">por {libro.autor}</p>
                   )}
                 </div>
@@ -356,7 +362,7 @@ export default function QuizUsuario() {
             <CardContent className="p-8">
               <div className="mb-8">
                 <h3 className="text-xl font-semibold text-stone-900 mb-6">
-                  {preguntaActual.pregunta}
+                  {preguntaActual?.texto_pregunta}
                 </h3>
 
                 <RadioGroup
@@ -364,9 +370,8 @@ export default function QuizUsuario() {
                   onValueChange={(value) => setSelectedAnswer(parseInt(value))}
                   className="space-y-3"
                 >
-                  {[1, 2, 3, 4].map((num) => {
-                    const respuestaKey = `respuesta_${num}` as keyof QuizPregunta;
-                    const respuestaTexto = preguntaActual[respuestaKey];
+                  {opciones.map((respuestaTexto, idx) => {
+                    const num = idx + 1;
 
                     if (!respuestaTexto) return null;
 
