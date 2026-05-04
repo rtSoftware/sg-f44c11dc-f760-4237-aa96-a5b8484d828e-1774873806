@@ -346,10 +346,7 @@ export default function Biblioteca() {
               {/* Chapter Content */}
               {selectedLibro.contenido && (
                 <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-8 sm:p-12">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                    className="prose prose-stone prose-lg max-w-none
+                  <div className="prose prose-stone prose-lg max-w-none
                       prose-headings:font-serif prose-headings:text-stone-900
                       prose-h1:text-3xl prose-h1:font-bold prose-h1:mb-6 prose-h1:mt-8
                       prose-h2:text-2xl prose-h2:font-bold prose-h2:mb-4 prose-h2:mt-6
@@ -366,10 +363,14 @@ export default function Biblioteca() {
                       prose-code:text-stone-800 prose-code:bg-stone-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
                       prose-pre:bg-stone-900 prose-pre:text-stone-100 prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto
                       prose-img:rounded-xl prose-img:shadow-md prose-img:my-8 prose-img:mx-auto
-                      prose-hr:border-stone-200 prose-hr:my-8"
-                  >
-                    {selectedLibro.contenido}
-                  </ReactMarkdown>
+                      prose-hr:border-stone-200 prose-hr:my-8">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
+                    >
+                      {selectedLibro.contenido}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               )}
             </div>
