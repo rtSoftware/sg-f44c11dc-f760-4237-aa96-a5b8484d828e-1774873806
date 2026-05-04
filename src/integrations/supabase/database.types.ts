@@ -181,6 +181,126 @@ export type Database = {
           },
         ]
       }
+      quiz: {
+        Row: {
+          created_at: string | null
+          descripcion: string | null
+          id: string
+          libro_id: string
+          titulo: string
+          updated_at: string | null
+          veces_ingresado: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          descripcion?: string | null
+          id?: string
+          libro_id: string
+          titulo: string
+          updated_at?: string | null
+          veces_ingresado?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          descripcion?: string | null
+          id?: string
+          libro_id?: string
+          titulo?: string
+          updated_at?: string | null
+          veces_ingresado?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_libro_id_fkey"
+            columns: ["libro_id"]
+            isOneToOne: true
+            referencedRelation: "libro"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_intento: {
+        Row: {
+          completado: boolean | null
+          created_at: string | null
+          id: string
+          quiz_id: string
+          respuestas_correctas: number | null
+          tiempo_segundos: number | null
+          total_preguntas: number | null
+          user_id: string | null
+        }
+        Insert: {
+          completado?: boolean | null
+          created_at?: string | null
+          id?: string
+          quiz_id: string
+          respuestas_correctas?: number | null
+          tiempo_segundos?: number | null
+          total_preguntas?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          completado?: boolean | null
+          created_at?: string | null
+          id?: string
+          quiz_id?: string
+          respuestas_correctas?: number | null
+          tiempo_segundos?: number | null
+          total_preguntas?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_intento_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quiz"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_pregunta: {
+        Row: {
+          created_at: string | null
+          id: string
+          numero_pregunta: number
+          quiz_id: string
+          respuesta_correcta: number
+          respuestas: Json
+          texto_pregunta: string
+          veces_acertada: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          numero_pregunta: number
+          quiz_id: string
+          respuesta_correcta: number
+          respuestas?: Json
+          texto_pregunta: string
+          veces_acertada?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          numero_pregunta?: number
+          quiz_id?: string
+          respuesta_correcta?: number
+          respuestas?: Json
+          texto_pregunta?: string
+          veces_acertada?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_pregunta_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quiz"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

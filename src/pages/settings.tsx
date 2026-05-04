@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check, User, Upload, X, Search } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check, User, Upload, X, Search, BookOpen } from "lucide-react";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { getAllLibros, createLibro, updateLibro, deleteLibroContent, moverLibroACasa, detectarLibrosHuerfanos, reasignarLibroHuerfano } from "@/services/libroService";
@@ -992,21 +992,34 @@ export default function Settings() {
                     </Button>
                     <Button 
                       type="submit" 
-                      disabled={saving}
+                      disabled={uploadingImage}
                       className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white"
                     >
-                      {saving ? (
+                      {uploadingImage ? (
                         <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                           Guardando...
                         </>
                       ) : (
                         <>
-                          <Save className="mr-2 h-4 w-4" />
-                          {mode === "create" ? "Crear Capítulo" : "Guardar Cambios"}
+                          <Save className="w-5 h-5 mr-2" />
+                          Guardar Cambios
                         </>
                       )}
                     </Button>
+                    {mode === "edit" && editingLibro && (
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          setIsDialogOpen(false);
+                          router.push(`/quiz/${editingLibro.id}`);
+                        }}
+                        className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                      >
+                        <BookOpen className="w-5 h-5 mr-2" />
+                        Editar Quiz
+                      </Button>
+                    )}
                   </div>
                 </form>
               </CardContent>
