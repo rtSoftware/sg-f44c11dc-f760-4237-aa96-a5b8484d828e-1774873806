@@ -202,25 +202,23 @@ export default function LecturaCasa() {
                 </div>
               )}
               
-              <div className="bg-stone-50 rounded-lg p-6 mb-8">
-                <h2 className="text-xl font-semibold text-stone-900 mb-2">Sobre este libro</h2>
-                <div className="space-y-2 text-stone-700">
-                  <p><strong>Título:</strong> {libro.titulo}</p>
-                  {libro.autor && <p><strong>Autor:</strong> {libro.autor}</p>}
-                  <p><strong>Casa:</strong> {casa.casa_nombre}</p>
+              <div className="bg-stone-50 rounded-lg p-6 mb-6">
+                <div className="space-y-1 text-stone-700">
+                  <p className="text-xl font-semibold text-stone-900">{libro.titulo}</p>
+                  {libro.autor && <p className="text-base text-stone-600">{libro.autor}</p>}
                 </div>
               </div>
 
-              <div className="mb-8 flex flex-wrap gap-3">
+              <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {libro.audioanalisis_https && (
                   <a
                     href={libro.audioanalisis_https}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg shadow-sm transition-colors"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg shadow-sm transition-colors"
                   >
                     <Headphones className="w-4 h-4" />
-                    Escuchar Análisis
+                    Audio
                   </a>
                 )}
                 
@@ -229,19 +227,19 @@ export default function LecturaCasa() {
                     href={libro.audio_https}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-stone-800 hover:bg-stone-900 text-white font-medium rounded-lg shadow-sm transition-colors"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-stone-800 hover:bg-stone-900 text-white font-medium rounded-lg shadow-sm transition-colors"
                   >
                     <FileText className="w-4 h-4" />
-                    Ver PDF Original
+                    PDF
                   </a>
                 )}
 
-                <Link href={`/quiz/${libro.id}`}>
+                <Link href={`/quiz/${libro.id}`} className={!libro.audioanalisis_https && !libro.audio_https ? "sm:col-span-3" : ""}>
                   <Button
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors"
+                    className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors"
                   >
                     <Brain className="w-4 h-4" />
-                    Ir al Quiz
+                    Quiz
                   </Button>
                 </Link>
               </div>

@@ -38,6 +38,7 @@ import {
   deletePregunta,
   deleteAllPreguntas,
 } from "@/services/quizService";
+import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Libro = Tables<"libro">;
@@ -69,6 +70,17 @@ export default function EditarQuiz() {
   const [jsonInput, setJsonInput] = useState("");
   const [procesandoJson, setProcesandoJson] = useState(false);
   const [showPreguntaDialog, setShowPreguntaDialog] = useState(false);
+
+  // Verificar autenticación
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push("/auth");
+      }
+    };
+    checkAuth();
+  }, []);
 
   const ejemploJson = `{
   "preguntas": [
