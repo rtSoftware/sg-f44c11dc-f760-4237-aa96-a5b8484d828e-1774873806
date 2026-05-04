@@ -24,59 +24,58 @@ export default async function handler(
   try {
     const { libroTitulo, libroContenido, quizId }: RequestBody = req.body;
 
+    // Validaciones
     if (!libroTitulo || !libroContenido || !quizId) {
+      console.error("Missing required fields:", { libroTitulo: !!libroTitulo, libroContenido: !!libroContenido, quizId: !!quizId });
       return res.status(400).json({ error: "Faltan datos requeridos" });
     }
 
-    // Validar que el contenido no esté vacío
     if (libroContenido.trim().length === 0) {
       return res.status(400).json({ error: "El libro no tiene contenido" });
     }
 
-    // Validar que existe la API key de OpenAI
     if (!process.env.OPENAI_API_KEY) {
-      console.error("OPENAI_API_KEY no está configurada");
-      return res.status(500).json({ error: "API key de OpenAI no configurada. Configúrala en las variables de entorno." });
+      console.error("OPENAI_API_KEY is not configured");
+      return res.status(500).json({ error: "API key de OpenAI no configurada. Configúrala en las variables de entorno del proyecto." });
     }
+
+    console.log("Generating questions for book:", libroTitulo);
+    console.log("Content length:", libroContenido.length);
 
     // Preparar el prompt para la IA
     const prompt = `Eres un experto en crear cuestionarios educativos de alta calidad. 
 
-Analiza el siguiente contenido del libro "${libroTitulo}" y genera EXACTAMENTE 9 preguntas de comprensión basadas en el contenido real del libro.
+IMPORTANTE: Debes responder ÚNICAMENTE con un objeto JSON válido, sin texto adicional antes o después.
+
+Analiza el siguiente contenido del libro "${libroTitulo}" y genera exactamente 9 preguntas de comprensión profunda basadas en el contenido real:
 
 CONTENIDO DEL LIBRO:
-"""
-${libroContenido}
-"""
+${libroContenido.substring(0, 8000)}
 
-INSTRUCCIONES CRÍTICAS:
-1. Las preguntas DEBEN estar basadas en información específica del contenido del libro
-2. NO inventes información que no esté en el contenido
-3. Las preguntas deben evaluar comprensión profunda, no solo memoria
-4. Cada pregunta debe tener EXACTAMENTE 5 opciones de respuesta
-5. SOLO UNA respuesta debe ser correcta
-6. Las respuestas incorrectas deben ser plausibles pero claramente incorrectas
-7. Usa citas o referencias específicas del texto cuando sea apropiado
-8. Varía la dificultad: 3 fáciles, 3 medias, 3 difíciles
+INSTRUCCIONES:
+1. Lee y analiza el contenido del libro cuidadosamente
+2. Identifica los conceptos clave, eventos importantes, personajes principales y temas centrales
+3. Genera 9 preguntas que evalúen la comprensión profunda del contenido
+4. Para cada pregunta, crea 5 opciones de respuesta plausibles
+5. Solo UNA opción debe ser correcta
+6. Las preguntas deben ser específicas del contenido, no genéricas
 
-Devuelve ÚNICAMENTE un objeto JSON válido con esta estructura exacta:
+FORMATO DE RESPUESTA (JSON):
 {
   "preguntas": [
     {
       "numero_pregunta": 1,
-      "texto_pregunta": "Pregunta específica basada en el contenido",
+      "texto_pregunta": "Pregunta específica sobre el contenido",
       "respuestas": ["Opción 1", "Opción 2", "Opción 3", "Opción 4", "Opción 5"],
       "respuesta_correcta": 1
     }
   ]
 }
 
-IMPORTANTE: 
-- NO incluyas markdown, explicaciones ni texto adicional
-- SOLO el objeto JSON
-- Asegúrate de que respuesta_correcta sea un número entre 1 y 5`;
+Responde SOLO con el JSON, sin explicaciones adicionales.`;
 
     // Llamar a la API de OpenAI
+    console.log("Calling OpenAI API...");
     const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -88,7 +87,7 @@ IMPORTANTE:
         messages: [
           {
             role: "system",
-            content: "Eres un experto en educación que crea cuestionarios de alta calidad basados en contenido específico. Siempre respondes SOLO con JSON válido, sin markdown ni explicaciones."
+            content: "Eres un experto en educación que crea cuestionarios de alta calidad. Respondes únicamente en formato JSON válido."
           },
           {
             role: "user",
@@ -109,12 +108,16 @@ IMPORTANTE:
     }
 
     const openaiData = await openaiResponse.json();
+    console.log("OpenAI response received");
+    
     const content = openaiData.choices[0]?.message?.content;
 
     if (!content) {
       console.error("No content in OpenAI response:", openaiData);
       return res.status(500).json({ error: "No se recibió respuesta de la IA" });
     }
+
+    console.log("Raw AI response:", content.substring(0, 200));
 
     // Limpiar el contenido (remover markdown si existe)
     let cleanContent = content.trim();
@@ -128,6 +131,7 @@ IMPORTANTE:
     let parsedResponse;
     try {
       parsedResponse = JSON.parse(cleanContent);
+      console.log("Parsed response successfully, questions count:", parsedResponse.preguntas?.length);
     } catch (parseError) {
       console.error("Error parsing JSON:", parseError);
       console.error("Content received:", cleanContent);
@@ -138,56 +142,52 @@ IMPORTANTE:
 
     const preguntas: PreguntaGenerada[] = parsedResponse.preguntas;
 
-    // Validar que se generaron exactamente 9 preguntas
-    if (!preguntas || preguntas.length !== 9) {
-      return res.status(500).json({ 
-        error: `Se esperaban 9 preguntas, se recibieron ${preguntas?.length || 0}` 
-      });
+    if (!preguntas || preguntas.length === 0) {
+      console.error("No questions in parsed response");
+      return res.status(500).json({ error: "No se generaron preguntas" });
     }
 
-    // Validar estructura de cada pregunta
-    for (const pregunta of preguntas) {
-      if (!pregunta.texto_pregunta || 
-          !Array.isArray(pregunta.respuestas) || 
-          pregunta.respuestas.length !== 5 ||
-          typeof pregunta.respuesta_correcta !== "number" ||
-          pregunta.respuesta_correcta < 1 || 
-          pregunta.respuesta_correcta > 5) {
+    // Validar que tenemos exactamente 9 preguntas
+    if (preguntas.length !== 9) {
+      console.warn(`Expected 9 questions, got ${preguntas.length}`);
+    }
+
+    // Guardar las preguntas en la base de datos
+    console.log("Saving questions to database...");
+    const { createPregunta } = await import("@/services/quizService");
+    
+    const savedCount = 0;
+    for (let i = 0; i < preguntas.length; i++) {
+      const pregunta = preguntas[i];
+      
+      // Validar estructura de la pregunta
+      if (!pregunta.texto_pregunta || !pregunta.respuestas || pregunta.respuestas.length !== 5) {
+        console.error(`Invalid question structure at index ${i}:`, pregunta);
+        continue;
+      }
+
+      const { error } = await createPregunta(
+        quizId,
+        pregunta.numero_pregunta,
+        pregunta.texto_pregunta,
+        pregunta.respuestas,
+        pregunta.respuesta_correcta
+      );
+      
+      if (error) {
+        console.error(`Error saving question ${pregunta.numero_pregunta}:`, error);
         return res.status(500).json({ 
-          error: "Formato de pregunta inválido generado por la IA" 
+          error: `Error al guardar pregunta ${pregunta.numero_pregunta}: ${error.message}` 
         });
       }
     }
 
-    // Guardar las preguntas en la base de datos
-    const { createPregunta } = await import("@/services/quizService");
-    
-    try {
-      for (const pregunta of preguntas) {
-        const { error } = await createPregunta(
-          quizId,
-          pregunta.numero_pregunta,
-          pregunta.texto_pregunta,
-          pregunta.respuestas,
-          pregunta.respuesta_correcta
-        );
-        
-        if (error) {
-          console.error("Error creating pregunta:", error);
-          throw new Error(`Error al guardar pregunta ${pregunta.numero_pregunta}: ${error.message}`);
-        }
-      }
-    } catch (dbError) {
-      console.error("Database error:", dbError);
-      return res.status(500).json({ 
-        error: dbError instanceof Error ? dbError.message : "Error al guardar las preguntas en la base de datos" 
-      });
-    }
+    console.log(`Successfully saved ${preguntas.length} questions`);
 
     return res.status(200).json({ 
       success: true, 
       preguntas: preguntas,
-      mensaje: "Preguntas generadas y guardadas exitosamente"
+      mensaje: `${preguntas.length} preguntas generadas y guardadas exitosamente`
     });
 
   } catch (error) {
