@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { getLibroById } from "@/services/libroService";
 import { getQuizByLibroId, getPreguntasByQuizId } from "@/services/quizService";
+import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import Link from "next/link";
 
@@ -42,6 +43,23 @@ export default function QuizUsuario() {
   const [respuestasUsuario, setRespuestasUsuario] = useState<RespuestaUsuario[]>([]);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResults, setShowResults] = useState(false);
+
+  // Autenticación anónima automática para usuarios no autenticados
+  useEffect(() => {
+    const ensureSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // Usuario no autenticado - crear sesión anónima automáticamente
+        const { error } = await supabase.auth.signInAnonymously();
+        if (error) {
+          console.error("Error creating anonymous session:", error);
+        }
+      }
+    };
+    
+    ensureSession();
+  }, []);
 
   useEffect(() => {
     if (!libroId || typeof libroId !== "string") return;
