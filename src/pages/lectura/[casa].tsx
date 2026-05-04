@@ -217,9 +217,7 @@ export default function LecturaCasa() {
               </Alert>
 
               <div className="mt-8">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  className="prose prose-stone prose-lg max-w-none
+                <div className="prose prose-stone prose-lg max-w-none
                     prose-headings:text-stone-900 prose-headings:font-bold
                     prose-h1:text-3xl prose-h1:mb-6 prose-h1:mt-8
                     prose-h2:text-2xl prose-h2:mb-4 prose-h2:mt-6
@@ -236,10 +234,11 @@ export default function LecturaCasa() {
                     prose-code:text-amber-800 prose-code:bg-stone-100 prose-code:px-1 prose-code:rounded
                     prose-pre:bg-stone-900 prose-pre:text-stone-100 prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto
                     prose-img:rounded-lg prose-img:shadow-md prose-img:my-6
-                    prose-hr:border-stone-300 prose-hr:my-8"
-                >
-                  {libro.contenido || "Este libro aún no tiene contenido."}
-                </ReactMarkdown>
+                    prose-hr:border-stone-300 prose-hr:my-8">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {libro.contenido || "Este libro aún no tiene contenido."}
+                  </ReactMarkdown>
+                </div>
               </div>
             </div>
           </div>
