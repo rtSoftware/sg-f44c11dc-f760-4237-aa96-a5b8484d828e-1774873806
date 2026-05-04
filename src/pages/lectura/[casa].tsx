@@ -67,11 +67,44 @@ export default function LecturaCasa() {
       return;
     }
 
+    // Validación del código según las reglas
+    const primerCaracter = codigo[0].toLowerCase();
+    const segundoCaracter = codigo[1];
+    const ultimoCaracter = codigo[5];
+
+    // Regla 1: Primer carácter debe ser vocal
+    const vocales: { [key: string]: number } = {
+      'a': 1,
+      'e': 2,
+      'i': 3,
+      'o': 4,
+      'u': 5
+    };
+
+    if (!(primerCaracter in vocales)) {
+      setError("El primer carácter debe ser una vocal (a, e, i, o, u)");
+      return;
+    }
+
+    // Regla 2: Segundo carácter debe corresponder al orden de la vocal
+    const ordenVocal = vocales[primerCaracter];
+    if (segundoCaracter !== ordenVocal.toString()) {
+      setError(`El segundo carácter debe ser ${ordenVocal} (correspondiente a la vocal '${primerCaracter}')`);
+      return;
+    }
+
+    // Regla 3: Último carácter corresponde al orden del libro
+    const ordenLibro = parseInt(ultimoCaracter);
+    if (isNaN(ordenLibro)) {
+      setError("El último carácter debe ser un número");
+      return;
+    }
+
     try {
       setIsValidating(true);
       setError("");
 
-      // Obtener el primer libro de la casa
+      // Obtener todos los libros de la casa
       const { data: libros, error: librosError } = await getLibrosPorCasa(casa.id);
       
       if (librosError || !libros || libros.length === 0) {
@@ -79,8 +112,15 @@ export default function LecturaCasa() {
         return;
       }
 
-      // Por ahora, tomar el primer libro encontrado
-      setLibro(libros[0]);
+      // Buscar libro con el orden especificado
+      let libroEncontrado = libros.find(l => l.orden === ordenLibro);
+
+      // Si no existe, tomar el primer libro
+      if (!libroEncontrado) {
+        libroEncontrado = libros[0];
+      }
+
+      setLibro(libroEncontrado);
       setShowBook(true);
     } catch (err) {
       console.error("Error validando código:", err);
@@ -201,13 +241,13 @@ export default function LecturaCasa() {
             </div>
             <CardTitle className="text-2xl text-stone-900">Casa {casa.casa_nombre}</CardTitle>
             <CardDescription className="text-stone-600">
-              Ingresa el código de 6 caracteres para acceder a la lectura
+              Ingresa el código de 6 caracteres para acceder al libro
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="codigo" className="text-sm font-medium text-stone-900">
-                Código de Acceso
+              <label htmlFor="codigo" className="text-sm font-medium text-stone-700">
+                Código de acceso
               </label>
               <Input
                 id="codigo"
@@ -215,13 +255,13 @@ export default function LecturaCasa() {
                 value={codigo}
                 onChange={handleCodigoChange}
                 onKeyPress={handleKeyPress}
-                placeholder="ABCDEF"
-                className="text-center text-2xl tracking-widest font-mono uppercase border-stone-300"
+                placeholder="Ej: A1XXX2"
+                className="text-center text-lg tracking-widest uppercase font-mono border-stone-300"
                 maxLength={6}
                 autoFocus
               />
-              <p className="text-xs text-stone-500 text-center">
-                {codigo.length}/6 caracteres
+              <p className="text-xs text-stone-500">
+                Formato: Vocal + Número correspondiente + 4 caracteres + Orden del libro
               </p>
             </div>
 
