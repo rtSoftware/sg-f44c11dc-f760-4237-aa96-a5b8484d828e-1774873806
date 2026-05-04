@@ -259,13 +259,13 @@ export default function EditarQuiz() {
     }
   };
 
-  const handleGenerarIA = async () => {
+  const handleGenerarConIA = async () => {
     if (!libro || !quiz) return;
 
-    if (!libro.contenido || libro.contenido.trim().length < 100) {
+    if (!libro.contenido || libro.contenido.trim().length === 0) {
       toast({
-        title: "Contenido insuficiente",
-        description: "El libro debe tener contenido suficiente para generar preguntas.",
+        title: "Error",
+        description: "El libro no tiene contenido para generar preguntas.",
         variant: "destructive",
       });
       return;
@@ -273,44 +273,41 @@ export default function EditarQuiz() {
 
     try {
       setGeneratingIA(true);
+      
+      const response = await fetch("/api/generar-preguntas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          libroTitulo: libro.titulo,
+          libroContenido: libro.contenido,
+          quizId: quiz.id,
+        }),
+      });
 
-      // Eliminar preguntas existentes si hay
-      if (preguntas.length > 0) {
-        await deleteAllPreguntas(quiz.id);
-      }
-
-      // Generar preguntas con IA
-      const { data: preguntasGeneradas, error } = await generarPreguntasIA(libro.contenido, 9);
-
-      if (error || !preguntasGeneradas) {
+      if (!response.ok) {
         throw new Error("Error al generar preguntas");
       }
 
-      // Crear las preguntas en la base de datos
-      for (let i = 0; i < preguntasGeneradas.length; i++) {
-        const pregunta = preguntasGeneradas[i];
-        await createPregunta(
-          quiz.id,
-          i + 1,
-          pregunta.texto_pregunta,
-          pregunta.respuestas,
-          pregunta.respuesta_correcta
-        );
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
       }
 
       toast({
-        title: "¡Preguntas generadas!",
-        description: `Se generaron ${preguntasGeneradas.length} preguntas automáticamente.`,
+        title: "Preguntas generadas",
+        description: `Se generaron ${data.preguntas?.length || 0} preguntas exitosamente.`,
       });
 
       // Recargar preguntas
-      const { data: preguntasData } = await getPreguntasByQuizId(quiz.id);
-      setPreguntas(preguntasData || []);
+      await fetchPreguntas();
     } catch (error) {
-      console.error("Error generating questions with IA:", error);
+      console.error("Error generando preguntas:", error);
       toast({
         title: "Error",
-        description: "No se pudieron generar las preguntas automáticamente.",
+        description: "No se pudieron generar las preguntas con IA.",
         variant: "destructive",
       });
     } finally {
@@ -386,7 +383,7 @@ export default function EditarQuiz() {
               Nueva Pregunta
             </Button>
             <Button
-              onClick={handleGenerarIA}
+              onClick={handleGenerarConIA}
               disabled={generatingIA || !libro.contenido}
               variant="outline"
               className="border-amber-300 text-amber-700 hover:bg-amber-50"
