@@ -336,14 +336,13 @@ export default function Biblioteca() {
                           </a>
                         )}
                         
-                        <Link href={`/quiz/${selectedLibro.id}`} className={!selectedLibro.audioanalisis_https && !selectedLibro.audio_https ? "sm:col-span-3" : ""}>
-                          <Button
-                            className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors"
-                          >
-                            <Brain className="w-4 h-4" />
-                            Quiz
-                          </Button>
-                        </Link>
+                        <a
+                          href={`/quiz/${selectedLibro.id}`}
+                          className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors ${!selectedLibro.audioanalisis_https && !selectedLibro.audio_https ? "sm:col-span-3" : ""}`}
+                        >
+                          <Brain className="w-4 h-4" />
+                          Quiz
+                        </a>
                       </div>
 
                       <div className="prose prose-stone max-w-none">
