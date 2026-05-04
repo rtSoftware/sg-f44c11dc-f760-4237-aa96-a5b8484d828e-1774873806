@@ -17,16 +17,15 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Loader2,
-  ArrowLeft,
+  BookOpen,
   Plus,
   Trash2,
-  Save,
-  Wand2,
-  AlertCircle,
   Edit,
-  CheckCircle,
+  CheckCircle2,
   Sparkles,
+  Loader2,
+  ArrowLeft,
+  FileJson,
 } from "lucide-react";
 import { getLibroById } from "@/services/libroService";
 import {
@@ -64,8 +63,164 @@ export default function EditarQuiz() {
   const [libro, setLibro] = useState<Libro | null>(null);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [preguntas, setPreguntas] = useState<QuizPregunta[]>([]);
-  const [editingPregunta, setEditingPregunta] = useState<PreguntaForm | null>(null);
+  const [generandoIA, setGenerandoIA] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
+  const [mode, setMode] = useState<"create" | "edit">("create");
+  const [editingPregunta, setEditingPregunta] = useState<QuizPregunta | null>(null);
+  const [showSemiAutoDialog, setShowSemiAutoDialog] = useState(false);
+  const [jsonInput, setJsonInput] = useState("");
+  const [procesandoJson, setProcesandoJson] = useState(false);
   const [showPreguntaDialog, setShowPreguntaDialog] = useState(false);
+
+  const ejemploJson = `{
+  "preguntas": [
+    {
+      "numero_pregunta": 1,
+      "texto_pregunta": "¿Cuál es el tema principal del libro?",
+      "respuestas": [
+        "Respuesta correcta aquí",
+        "Respuesta incorrecta 1",
+        "Respuesta incorrecta 2",
+        "Respuesta incorrecta 3",
+        "Respuesta incorrecta 4"
+      ],
+      "respuesta_correcta": 1
+    },
+    {
+      "numero_pregunta": 2,
+      "texto_pregunta": "¿Qué concepto clave se desarrolla en el capítulo 1?",
+      "respuestas": [
+        "Respuesta incorrecta 1",
+        "Respuesta correcta aquí",
+        "Respuesta incorrecta 2",
+        "Respuesta incorrecta 3",
+        "Respuesta incorrecta 4"
+      ],
+      "respuesta_correcta": 2
+    }
+  ]
+}`;
+
+  const handleProcesarJsonSemiAuto = async () => {
+    if (!quiz) return;
+
+    try {
+      setProcesandoJson(true);
+
+      // Parsear el JSON
+      let parsedData;
+      try {
+        parsedData = JSON.parse(jsonInput);
+      } catch (parseError) {
+        toast({
+          title: "Error",
+          description: "El JSON ingresado no es válido. Verifica la sintaxis.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validar estructura
+      if (!parsedData.preguntas || !Array.isArray(parsedData.preguntas)) {
+        toast({
+          title: "Error",
+          description: "El JSON debe contener un array 'preguntas'.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (parsedData.preguntas.length === 0 || parsedData.preguntas.length > 9) {
+        toast({
+          title: "Error",
+          description: "Debes proporcionar entre 1 y 9 preguntas.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validar cada pregunta
+      for (let i = 0; i < parsedData.preguntas.length; i++) {
+        const p = parsedData.preguntas[i];
+        if (!p.numero_pregunta || !p.texto_pregunta || !p.respuestas || !p.respuesta_correcta) {
+          toast({
+            title: "Error",
+            description: `La pregunta ${i + 1} tiene campos faltantes.`,
+            variant: "destructive",
+          });
+          return;
+        }
+        if (!Array.isArray(p.respuestas) || p.respuestas.length !== 5) {
+          toast({
+            title: "Error",
+            description: `La pregunta ${i + 1} debe tener exactamente 5 respuestas.`,
+            variant: "destructive",
+          });
+          return;
+        }
+        if (p.respuesta_correcta < 1 || p.respuesta_correcta > 5) {
+          toast({
+            title: "Error",
+            description: `La pregunta ${i + 1} tiene una respuesta_correcta inválida (debe ser 1-5).`,
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      // Eliminar preguntas existentes
+      if (preguntas.length > 0) {
+        const { error: deleteError } = await deleteAllPreguntas(quiz.id);
+        if (deleteError) {
+          throw new Error("Error al eliminar preguntas existentes");
+        }
+      }
+
+      // Guardar las preguntas
+      for (const p of parsedData.preguntas) {
+        const { error } = await createPregunta(
+          quiz.id,
+          p.numero_pregunta,
+          p.texto_pregunta,
+          p.respuestas,
+          p.respuesta_correcta
+        );
+        
+        if (error) {
+          throw new Error(`Error al guardar pregunta ${p.numero_pregunta}`);
+        }
+      }
+
+      toast({
+        title: "Preguntas importadas",
+        description: `Se importaron ${parsedData.preguntas.length} preguntas exitosamente.`,
+      });
+
+      // Recargar preguntas
+      const { data: preguntasData } = await getPreguntasByQuizId(quiz.id);
+      setPreguntas(preguntasData || []);
+      
+      // Cerrar diálogo
+      setShowSemiAutoDialog(false);
+      setJsonInput("");
+
+    } catch (error) {
+      console.error("Error procesando JSON:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "No se pudieron importar las preguntas.",
+        variant: "destructive",
+      });
+    } finally {
+      setProcesandoJson(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showSemiAutoDialog && !jsonInput) {
+      setJsonInput(ejemploJson);
+    }
+  }, [showSemiAutoDialog]);
 
   useEffect(() => {
     if (!libroId || typeof libroId !== "string") return;
@@ -390,10 +545,10 @@ export default function EditarQuiz() {
             </Button>
             <Button
               onClick={handleGenerarConIA}
-              disabled={generatingIA}
+              disabled={generandoIA}
               className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
             >
-              {generatingIA ? (
+              {generandoIA ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   Generando preguntas...
@@ -404,6 +559,14 @@ export default function EditarQuiz() {
                   {preguntas.length > 0 ? "Regenerar con IA" : "Generar con IA"}
                 </>
               )}
+            </Button>
+            <Button
+              onClick={() => setShowSemiAutoDialog(true)}
+              disabled={generandoIA || procesandoJson}
+              className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
+            >
+              <FileJson className="w-5 h-5 mr-2" />
+              Semi-auto
             </Button>
           </div>
 
@@ -443,7 +606,7 @@ export default function EditarQuiz() {
                           </Badge>
                           {pregunta.veces_acertada > 0 && (
                             <Badge variant="outline" className="border-green-300 text-green-700">
-                              <CheckCircle className="w-3 h-3 mr-1" />
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
                               {pregunta.veces_acertada} aciertos
                             </Badge>
                           )}
@@ -489,7 +652,7 @@ export default function EditarQuiz() {
                               {respuesta}
                             </span>
                             {idx + 1 === pregunta.respuesta_correcta && (
-                              <CheckCircle className="w-4 h-4 text-green-600 ml-auto" />
+                              <CheckCircle2 className="w-4 h-4 text-green-600 ml-auto" />
                             )}
                           </div>
                         </div>
@@ -596,6 +759,77 @@ export default function EditarQuiz() {
                 <>
                   <Save className="w-4 h-4 mr-2" />
                   Guardar
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Importación JSON Semi-auto */}
+      <Dialog open={showSemiAutoDialog} onOpenChange={setShowSemiAutoDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileJson className="w-6 h-6 text-blue-600" />
+              Importar Preguntas desde JSON
+            </DialogTitle>
+            <DialogDescription>
+              Pega el JSON con las preguntas y respuestas. El formato de ejemplo muestra la estructura correcta.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-stone-700">
+                JSON de Preguntas
+              </label>
+              <textarea
+                value={jsonInput}
+                onChange={(e) => setJsonInput(e.target.value)}
+                className="w-full h-96 p-4 font-mono text-sm border border-stone-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Pega tu JSON aquí..."
+              />
+              <p className="text-xs text-stone-500">
+                Formato: JSON con array "preguntas", cada pregunta debe tener numero_pregunta, texto_pregunta, respuestas (array de 5), y respuesta_correcta (1-5)
+              </p>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-amber-900 mb-2">📋 Instrucciones:</h4>
+              <ul className="text-xs text-amber-800 space-y-1 list-disc list-inside">
+                <li>Cada pregunta debe tener exactamente 5 respuestas</li>
+                <li>La respuesta_correcta debe ser un número del 1 al 5</li>
+                <li>Puedes importar entre 1 y 9 preguntas</li>
+                <li>Las preguntas existentes serán reemplazadas</li>
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowSemiAutoDialog(false);
+                setJsonInput("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleProcesarJsonSemiAuto}
+              disabled={procesandoJson || !jsonInput.trim()}
+              className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
+            >
+              {procesandoJson ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <FileJson className="w-5 h-5 mr-2" />
+                  Importar Preguntas
                 </>
               )}
             </Button>
