@@ -61,6 +61,27 @@ export async function getAllLibros(): Promise<{ data: Libro[] | null; error: Err
 }
 
 /**
+ * Obtener todos los libros de una casa específica (para lectura pública)
+ */
+export async function getLibrosPorCasa(casaId: string): Promise<{ data: Libro[] | null; error: Error | null }> {
+  try {
+    const { data, error } = await supabase
+      .from("libro")
+      .select("*")
+      .eq("casa_id", casaId)
+      .order("orden", { ascending: true })
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    return { data: data || [], error: null };
+  } catch (error) {
+    console.error("Error fetching libros por casa:", error);
+    return { data: null, error: error as Error };
+  }
+}
+
+/**
  * Obtener un libro específico por ID
  */
 export async function getLibroById(id: string): Promise<{ data: Libro | null; error: Error | null }> {

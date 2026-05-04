@@ -10,7 +10,7 @@ import { getCasaByNombre } from "@/services/casaService";
 import { getLibrosPorCasa } from "@/services/libroService";
 import type { Tables } from "@/integrations/supabase/types";
 
-type Libro = Tables<"libros">;
+type Libro = Tables<"libro">;
 type Casa = Tables<"casas">;
 
 export default function LecturaCasa() {
@@ -164,7 +164,6 @@ export default function LecturaCasa() {
                 <div className="space-y-2 text-stone-700">
                   <p><strong>Título:</strong> {libro.titulo}</p>
                   {libro.autor && <p><strong>Autor:</strong> {libro.autor}</p>}
-                  {libro.isbn && <p><strong>ISBN:</strong> {libro.isbn}</p>}
                   <p><strong>Casa:</strong> {casa.casa_nombre}</p>
                 </div>
               </div>
@@ -176,9 +175,10 @@ export default function LecturaCasa() {
               </Alert>
 
               <div className="mt-8">
-                <p className="text-stone-700 text-center italic">
-                  [Aquí se mostrará el contenido completo del libro]
-                </p>
+                <div 
+                  className="text-stone-800 text-lg leading-relaxed whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{ __html: libro.contenido || "Este libro aún no tiene contenido." }}
+                />
               </div>
             </div>
           </div>
