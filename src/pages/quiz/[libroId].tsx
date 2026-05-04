@@ -87,7 +87,8 @@ export default function EditarQuiz() {
         setLibro(libroData);
 
         // Obtener o crear quiz
-        const { data: quizData, error: quizError } = await getQuizByLibroId(libroId);
+        const { data: existingQuiz, error: quizError } = await getQuizByLibroId(libroId);
+        let quizData = existingQuiz;
         
         if (quizError || !quizData) {
           // Crear quiz si no existe
