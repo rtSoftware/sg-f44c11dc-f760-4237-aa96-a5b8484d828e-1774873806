@@ -82,21 +82,14 @@ export async function getLibrosPorCasa(casaId: string): Promise<{ data: Libro[] 
 }
 
 /**
- * Obtener un libro específico por ID
+ * Obtener un libro específico por ID (PÚBLICO - sin verificar casa_id)
  */
 export async function getLibroById(id: string): Promise<{ data: Libro | null; error: Error | null }> {
   try {
-    const { casaId } = getAuthContext();
-    
-    if (!casaId) {
-      return { data: null, error: new Error("No casa_id found") };
-    }
-
     const { data, error } = await supabase
       .from("libro")
       .select("*")
       .eq("id", id)
-      .eq("casa_id", casaId)
       .maybeSingle();
 
     if (error) throw error;
