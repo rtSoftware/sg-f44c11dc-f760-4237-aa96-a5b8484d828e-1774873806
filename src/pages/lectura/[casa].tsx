@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, BookOpen, Lock } from "lucide-react";
+import { Loader2, BookOpen, Lock, Brain } from "lucide-react";
+import Link from "next/link";
 import { getCasaByNombre } from "@/services/casaService";
 import { getLibrosPorCasa } from "@/services/libroService";
 import type { Tables } from "@/integrations/supabase/types";
@@ -215,6 +216,17 @@ export default function LecturaCasa() {
                   Estás en modo de lectura restringido. Solo puedes ver el contenido de este libro.
                 </AlertDescription>
               </Alert>
+
+              <div className="mb-8">
+                <Link href={`/quiz/${libro.id}`}>
+                  <Button
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors w-full sm:w-auto"
+                  >
+                    <Brain className="w-4 h-4" />
+                    Ir al Quiz
+                  </Button>
+                </Link>
+              </div>
 
               <div className="mt-8">
                 <div className="prose prose-stone prose-lg max-w-none

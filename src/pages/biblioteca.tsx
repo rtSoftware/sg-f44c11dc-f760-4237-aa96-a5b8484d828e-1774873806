@@ -12,7 +12,7 @@ import { getAllLibros } from "@/services/libroService";
 import { useCasa } from "@/contexts/CasaContext";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { Libro } from "@/services/libroService";
-import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle, FileText, Search } from "lucide-react";
+import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle, FileText, Search, Brain } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -338,6 +338,42 @@ export default function Biblioteca() {
                           )}
                         </div>
                       )}
+
+                      {/* Botones de Audio, PDF y Quiz */}
+                      <div className="pt-4 flex flex-wrap gap-3">
+                        {selectedLibro.audioanalisis_https && (
+                          <a
+                            href={selectedLibro.audioanalisis_https}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg shadow-sm transition-colors"
+                          >
+                            <Headphones className="w-4 h-4" />
+                            Escuchar Análisis
+                          </a>
+                        )}
+                        
+                        {selectedLibro.audio_https && (
+                          <a
+                            href={selectedLibro.audio_https}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-stone-800 hover:bg-stone-900 text-white font-medium rounded-lg shadow-sm transition-colors"
+                          >
+                            <FileText className="w-4 h-4" />
+                            Ver PDF Original
+                          </a>
+                        )}
+                        
+                        <Link href={`/quiz/${selectedLibro.id}`}>
+                          <Button
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors"
+                          >
+                            <Brain className="w-4 h-4" />
+                            Quiz
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
