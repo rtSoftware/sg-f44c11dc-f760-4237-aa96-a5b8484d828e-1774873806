@@ -310,37 +310,8 @@ export default function Biblioteca() {
                         </p>
                       )}
 
-                      {/* Audio y PDF */}
-                      {(selectedLibro.audioanalisis_https || selectedLibro.audio_https) && (
-                        <div className="pt-4 flex flex-wrap gap-3">
-                          {selectedLibro.audioanalisis_https && (
-                            <a
-                              href={selectedLibro.audioanalisis_https}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg shadow-sm transition-colors"
-                            >
-                              <Headphones className="w-4 h-4" />
-                              Escuchar Análisis
-                            </a>
-                          )}
-                          
-                          {selectedLibro.audio_https && (
-                            <a
-                              href={selectedLibro.audio_https}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 px-5 py-2.5 bg-stone-800 hover:bg-stone-900 text-white font-medium rounded-lg shadow-sm transition-colors"
-                            >
-                              <FileText className="w-4 h-4" />
-                              Ver PDF Original
-                            </a>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Botones de Audio, PDF y Quiz */}
-                      <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {/* Botones de Audio, PDF y Quiz - única sección */}
+                      <div className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {selectedLibro.audioanalisis_https && (
                           <a
                             href={selectedLibro.audioanalisis_https}
