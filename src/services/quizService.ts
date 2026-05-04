@@ -8,20 +8,14 @@ type QuizIntento = Tables<"quiz_intento">;
 /**
  * Obtener quiz de un libro
  */
-export async function getQuizByLibroId(libroId: string): Promise<{ data: Quiz | null; error: Error | null }> {
-  try {
-    const { data, error } = await supabase
-      .from("quiz")
-      .select("*")
-      .eq("libro_id", libroId)
-      .maybeSingle();
+export async function getQuizByLibroId(libroId: string) {
+  const { data, error } = await supabase
+    .from("quiz")
+    .select("*")
+    .eq("libro_id", libroId)
+    .single();
 
-    if (error) throw error;
-    return { data, error: null };
-  } catch (error) {
-    console.error("Error fetching quiz:", error);
-    return { data: null, error: error as Error };
-  }
+  return { data, error };
 }
 
 /**
@@ -70,20 +64,14 @@ export async function updateQuiz(quizId: string, updates: Partial<Quiz>): Promis
 /**
  * Obtener todas las preguntas de un quiz
  */
-export async function getPreguntasByQuizId(quizId: string): Promise<{ data: QuizPregunta[] | null; error: Error | null }> {
-  try {
-    const { data, error } = await supabase
-      .from("quiz_pregunta")
-      .select("*")
-      .eq("quiz_id", quizId)
-      .order("numero_pregunta", { ascending: true });
+export async function getPreguntasByQuizId(quizId: string) {
+  const { data, error } = await supabase
+    .from("quiz_pregunta")
+    .select("*")
+    .eq("quiz_id", quizId)
+    .order("numero_pregunta", { ascending: true });
 
-    if (error) throw error;
-    return { data: data || [], error: null };
-  } catch (error) {
-    console.error("Error fetching preguntas:", error);
-    return { data: null, error: error as Error };
-  }
+  return { data, error };
 }
 
 /**
