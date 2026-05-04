@@ -340,16 +340,16 @@ export default function Biblioteca() {
                       )}
 
                       {/* Botones de Audio, PDF y Quiz */}
-                      <div className="pt-4 flex flex-wrap gap-3">
+                      <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
                         {selectedLibro.audioanalisis_https && (
                           <a
                             href={selectedLibro.audioanalisis_https}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg shadow-sm transition-colors"
+                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg shadow-sm transition-colors"
                           >
                             <Headphones className="w-4 h-4" />
-                            Escuchar Análisis
+                            Audio
                           </a>
                         )}
                         
@@ -358,57 +358,35 @@ export default function Biblioteca() {
                             href={selectedLibro.audio_https}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-stone-800 hover:bg-stone-900 text-white font-medium rounded-lg shadow-sm transition-colors"
+                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-stone-800 hover:bg-stone-900 text-white font-medium rounded-lg shadow-sm transition-colors"
                           >
                             <FileText className="w-4 h-4" />
-                            Ver PDF Original
+                            PDF
                           </a>
                         )}
                         
-                        <Link href={`/quiz/${selectedLibro.id}`}>
+                        <Link href={`/quiz/${selectedLibro.id}`} className={!selectedLibro.audioanalisis_https && !selectedLibro.audio_https ? "sm:col-span-3" : ""}>
                           <Button
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors"
+                            className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors"
                           >
                             <Brain className="w-4 h-4" />
                             Quiz
                           </Button>
                         </Link>
                       </div>
+
+                      <div className="prose prose-stone max-w-none">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[rehypeRaw]}
+                        >
+                          {selectedLibro.contenido}
+                        </ReactMarkdown>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Chapter Content */}
-              {selectedLibro.contenido && (
-                <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-8 sm:p-12">
-                  <div className="prose prose-stone prose-lg max-w-none
-                      prose-headings:font-serif prose-headings:text-stone-900
-                      prose-h1:text-3xl prose-h1:font-bold prose-h1:mb-6 prose-h1:mt-8
-                      prose-h2:text-2xl prose-h2:font-bold prose-h2:mb-4 prose-h2:mt-6
-                      prose-h3:text-xl prose-h3:font-semibold prose-h3:mb-3 prose-h3:mt-4
-                      prose-p:text-stone-800 prose-p:leading-relaxed prose-p:mb-4
-                      prose-a:text-amber-700 prose-a:underline hover:prose-a:text-amber-800
-                      prose-strong:text-stone-900 prose-strong:font-bold
-                      prose-em:text-stone-700 prose-em:italic
-                      prose-ul:list-disc prose-ul:ml-6 prose-ul:mb-4
-                      prose-ol:list-decimal prose-ol:ml-6 prose-ol:mb-4
-                      prose-li:text-stone-800 prose-li:mb-2
-                      prose-blockquote:border-l-4 prose-blockquote:border-amber-400 
-                      prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-stone-700 prose-blockquote:bg-amber-50/50 prose-blockquote:py-1
-                      prose-code:text-stone-800 prose-code:bg-stone-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
-                      prose-pre:bg-stone-900 prose-pre:text-stone-100 prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto
-                      prose-img:rounded-xl prose-img:shadow-md prose-img:my-8 prose-img:mx-auto
-                      prose-hr:border-stone-200 prose-hr:my-8">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      rehypePlugins={[rehypeRaw]}
-                    >
-                      {selectedLibro.contenido}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-              )}
             </div>
           ) : null}
         </main>
