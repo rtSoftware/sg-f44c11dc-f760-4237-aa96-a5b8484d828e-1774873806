@@ -302,7 +302,8 @@ export default function EditarQuiz() {
       });
 
       // Recargar preguntas
-      await fetchPreguntas();
+      const { data: preguntasData } = await getPreguntasByQuizId(quiz.id);
+      setPreguntas(preguntasData || []);
     } catch (error) {
       console.error("Error generando preguntas:", error);
       toast({
