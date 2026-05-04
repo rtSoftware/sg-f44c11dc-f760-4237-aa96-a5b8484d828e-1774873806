@@ -72,7 +72,7 @@ export default function LecturaCasa() {
     // Validación del código según las reglas
     const primerCaracter = codigo[0].toLowerCase();
     const segundoCaracter = codigo[1];
-    const ultimoCaracter = codigo[5];
+    const ultimosCaracteres = codigo.slice(4, 6); // Posiciones 5 y 6 (índices 4 y 5)
 
     // Regla 1: Primer carácter debe ser vocal
     const vocales: { [key: string]: number } = {
@@ -95,10 +95,10 @@ export default function LecturaCasa() {
       return;
     }
 
-    // Regla 3: Último carácter corresponde al orden del libro
-    const ordenLibro = parseInt(ultimoCaracter);
+    // Regla 3: Últimos dos caracteres corresponden al orden del libro
+    const ordenLibro = parseInt(ultimosCaracteres);
     if (isNaN(ordenLibro)) {
-      setError("El último carácter debe ser un número");
+      setError("Los dos últimos caracteres deben ser números");
       return;
     }
 
@@ -275,13 +275,13 @@ export default function LecturaCasa() {
                 value={codigo}
                 onChange={handleCodigoChange}
                 onKeyPress={handleKeyPress}
-                placeholder="Ej: A1XXX2"
+                placeholder="Ej: A1XX01"
                 className="text-center text-lg tracking-widest uppercase font-mono border-stone-300"
                 maxLength={6}
                 autoFocus
               />
               <p className="text-xs text-stone-500">
-                Formato: Vocal + Número correspondiente + 4 caracteres + Orden del libro
+                Formato: Vocal + Número + 2 caracteres + Orden (2 dígitos)
               </p>
             </div>
 
