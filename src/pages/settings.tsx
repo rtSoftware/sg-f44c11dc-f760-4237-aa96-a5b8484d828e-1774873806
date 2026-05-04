@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check, User, Upload, X, Search, BookOpen } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check, User, Upload, X, Search, BookOpen, Brain } from "lucide-react";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { getAllLibros, createLibro, updateLibro, deleteLibroContent, moverLibroACasa, detectarLibrosHuerfanos, reasignarLibroHuerfano } from "@/services/libroService";
@@ -771,6 +771,18 @@ export default function Settings() {
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
+                          <div className="flex gap-2">
+                            <Link href={`/quiz/editar/${libro.id}`}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                              >
+                                <Brain className="w-4 h-4 mr-2" />
+                                Quiz
+                              </Button>
+                            </Link>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
