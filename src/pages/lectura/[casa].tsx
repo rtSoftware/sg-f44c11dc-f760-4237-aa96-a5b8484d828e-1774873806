@@ -1,0 +1,263 @@
+import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import { SEO } from "@/components/SEO";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, BookOpen, Lock } from "lucide-react";
+import { getCasaByNombre } from "@/services/casaService";
+import { getLibrosPorCasa } from "@/services/libroService";
+import type { Tables } from "@/integrations/supabase/types";
+
+type Libro = Tables<"libros">;
+type Casa = Tables<"casas">;
+
+export default function LecturaCasa() {
+  const router = useRouter();
+  const { casa: casaNombre } = router.query;
+
+  const [codigo, setCodigo] = useState("");
+  const [isValidating, setIsValidating] = useState(false);
+  const [error, setError] = useState("");
+  const [casa, setCasa] = useState<Casa | null>(null);
+  const [libro, setLibro] = useState<Libro | null>(null);
+  const [showBook, setShowBook] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!casaNombre || typeof casaNombre !== "string") return;
+
+    const fetchCasa = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await getCasaByNombre(casaNombre);
+        
+        if (error || !data) {
+          setError("Casa no encontrada");
+          return;
+        }
+
+        setCasa(data);
+      } catch (err) {
+        console.error("Error fetching casa:", err);
+        setError("Error al cargar la casa");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCasa();
+  }, [casaNombre]);
+
+  const handleCodigoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase().slice(0, 6);
+    setCodigo(value);
+    setError("");
+  };
+
+  const handleValidarCodigo = async () => {
+    if (codigo.length !== 6) {
+      setError("El código debe tener exactamente 6 caracteres");
+      return;
+    }
+
+    if (!casa) {
+      setError("Casa no válida");
+      return;
+    }
+
+    try {
+      setIsValidating(true);
+      setError("");
+
+      // Obtener el primer libro de la casa
+      const { data: libros, error: librosError } = await getLibrosPorCasa(casa.id);
+      
+      if (librosError || !libros || libros.length === 0) {
+        setError("No hay libros disponibles en esta casa");
+        return;
+      }
+
+      // Por ahora, tomar el primer libro encontrado
+      setLibro(libros[0]);
+      setShowBook(true);
+    } catch (err) {
+      console.error("Error validando código:", err);
+      setError("Error al validar el código");
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && codigo.length === 6) {
+      handleValidarCodigo();
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+        <Loader2 className="w-8 h-8 animate-spin text-stone-900" />
+      </div>
+    );
+  }
+
+  if (!casa) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+        <Card className="w-full max-w-md border-stone-200">
+          <CardHeader>
+            <CardTitle className="text-stone-900">Casa no encontrada</CardTitle>
+            <CardDescription className="text-stone-600">
+              La casa "{casaNombre}" no existe en el sistema.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  if (showBook && libro) {
+    return (
+      <>
+        <SEO
+          title={`${libro.titulo} - Lectura`}
+          description={`Leyendo ${libro.titulo} en modo restringido`}
+        />
+        <div className="min-h-screen bg-white">
+          {/* Header fijo minimalista */}
+          <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-stone-200">
+            <div className="max-w-4xl mx-auto px-4 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <BookOpen className="w-5 h-5 text-stone-900" />
+                  <h1 className="text-lg font-semibold text-stone-900">{libro.titulo}</h1>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-stone-600">
+                  <Lock className="w-4 h-4" />
+                  <span>Modo Lectura</span>
+                </div>
+              </div>
+              {libro.autor && (
+                <p className="text-sm text-stone-600 mt-1 ml-8">por {libro.autor}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Contenido del libro */}
+          <div className="max-w-4xl mx-auto px-4 py-8">
+            <div className="prose prose-stone max-w-none">
+              {libro.portada_url && (
+                <div className="mb-8 flex justify-center">
+                  <img
+                    src={libro.portada_url}
+                    alt={libro.titulo}
+                    className="rounded-lg shadow-lg max-w-sm"
+                  />
+                </div>
+              )}
+              
+              <div className="bg-stone-50 rounded-lg p-6 mb-8">
+                <h2 className="text-xl font-semibold text-stone-900 mb-2">Sobre este libro</h2>
+                <div className="space-y-2 text-stone-700">
+                  <p><strong>Título:</strong> {libro.titulo}</p>
+                  {libro.autor && <p><strong>Autor:</strong> {libro.autor}</p>}
+                  {libro.isbn && <p><strong>ISBN:</strong> {libro.isbn}</p>}
+                  <p><strong>Casa:</strong> {casa.casa_nombre}</p>
+                </div>
+              </div>
+
+              <Alert className="bg-amber-50 border-amber-200">
+                <AlertDescription className="text-amber-900">
+                  Estás en modo de lectura restringido. Solo puedes ver el contenido de este libro.
+                </AlertDescription>
+              </Alert>
+
+              <div className="mt-8">
+                <p className="text-stone-700 text-center italic">
+                  [Aquí se mostrará el contenido completo del libro]
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <SEO
+        title={`Acceso a ${casa.casa_nombre} - Lectura`}
+        description="Ingresa el código de acceso para leer el libro"
+      />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 px-4">
+        <Card className="w-full max-w-md border-stone-200 shadow-xl">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-stone-900 rounded-full flex items-center justify-center mb-4">
+              <BookOpen className="w-8 h-8 text-white" />
+            </div>
+            <CardTitle className="text-2xl text-stone-900">Casa {casa.casa_nombre}</CardTitle>
+            <CardDescription className="text-stone-600">
+              Ingresa el código de 6 caracteres para acceder a la lectura
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="codigo" className="text-sm font-medium text-stone-900">
+                Código de Acceso
+              </label>
+              <Input
+                id="codigo"
+                type="text"
+                value={codigo}
+                onChange={handleCodigoChange}
+                onKeyPress={handleKeyPress}
+                placeholder="ABCDEF"
+                className="text-center text-2xl tracking-widest font-mono uppercase border-stone-300"
+                maxLength={6}
+                autoFocus
+              />
+              <p className="text-xs text-stone-500 text-center">
+                {codigo.length}/6 caracteres
+              </p>
+            </div>
+
+            {error && (
+              <Alert variant="destructive" className="bg-red-50 border-red-200">
+                <AlertDescription className="text-red-900">{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <Button
+              onClick={handleValidarCodigo}
+              disabled={codigo.length !== 6 || isValidating}
+              className="w-full bg-stone-900 hover:bg-stone-800 text-white"
+              size="lg"
+            >
+              {isValidating ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Validando...
+                </>
+              ) : (
+                <>
+                  <Lock className="mr-2 h-5 w-5" />
+                  Acceder al Libro
+                </>
+              )}
+            </Button>
+
+            <div className="pt-4 border-t border-stone-200">
+              <p className="text-xs text-stone-500 text-center">
+                Este es un acceso restringido. Solo podrás leer el libro asignado.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  );
+}
