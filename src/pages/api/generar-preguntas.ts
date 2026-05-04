@@ -33,6 +33,12 @@ export default async function handler(
       return res.status(400).json({ error: "El libro no tiene contenido" });
     }
 
+    // Validar que existe la API key de OpenAI
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("OPENAI_API_KEY no está configurada");
+      return res.status(500).json({ error: "API key de OpenAI no configurada. Configúrala en las variables de entorno." });
+    }
+
     // Preparar el prompt para la IA
     const prompt = `Eres un experto en crear cuestionarios educativos de alta calidad. 
 
@@ -97,13 +103,16 @@ IMPORTANTE:
     if (!openaiResponse.ok) {
       const errorData = await openaiResponse.json();
       console.error("OpenAI API error:", errorData);
-      return res.status(500).json({ error: "Error al comunicarse con OpenAI" });
+      return res.status(500).json({ 
+        error: `Error de OpenAI: ${errorData.error?.message || "Error desconocido"}` 
+      });
     }
 
     const openaiData = await openaiResponse.json();
     const content = openaiData.choices[0]?.message?.content;
 
     if (!content) {
+      console.error("No content in OpenAI response:", openaiData);
       return res.status(500).json({ error: "No se recibió respuesta de la IA" });
     }
 
@@ -116,7 +125,17 @@ IMPORTANTE:
     }
 
     // Parsear la respuesta JSON
-    const parsedResponse = JSON.parse(cleanContent);
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(cleanContent);
+    } catch (parseError) {
+      console.error("Error parsing JSON:", parseError);
+      console.error("Content received:", cleanContent);
+      return res.status(500).json({ 
+        error: "La IA no devolvió un JSON válido. Intenta de nuevo." 
+      });
+    }
+
     const preguntas: PreguntaGenerada[] = parsedResponse.preguntas;
 
     // Validar que se generaron exactamente 9 preguntas
@@ -143,14 +162,26 @@ IMPORTANTE:
     // Guardar las preguntas en la base de datos
     const { createPregunta } = await import("@/services/quizService");
     
-    for (const pregunta of preguntas) {
-      await createPregunta(
-        quizId,
-        pregunta.numero_pregunta,
-        pregunta.texto_pregunta,
-        pregunta.respuestas,
-        pregunta.respuesta_correcta
-      );
+    try {
+      for (const pregunta of preguntas) {
+        const { error } = await createPregunta(
+          quizId,
+          pregunta.numero_pregunta,
+          pregunta.texto_pregunta,
+          pregunta.respuestas,
+          pregunta.respuesta_correcta
+        );
+        
+        if (error) {
+          console.error("Error creating pregunta:", error);
+          throw new Error(`Error al guardar pregunta ${pregunta.numero_pregunta}: ${error.message}`);
+        }
+      }
+    } catch (dbError) {
+      console.error("Database error:", dbError);
+      return res.status(500).json({ 
+        error: dbError instanceof Error ? dbError.message : "Error al guardar las preguntas en la base de datos" 
+      });
     }
 
     return res.status(200).json({ 
@@ -161,6 +192,8 @@ IMPORTANTE:
 
   } catch (error) {
     console.error("Error generating questions:", error);
-    return res.status(500).json({ error: "Error al generar preguntas" });
+    return res.status(500).json({ 
+      error: error instanceof Error ? error.message : "Error al generar preguntas" 
+    });
   }
 }
