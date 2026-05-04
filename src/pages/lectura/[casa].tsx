@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, BookOpen, Lock, Brain } from "lucide-react";
+import { Loader2, BookOpen, Lock, Brain, Headphones, FileText } from "lucide-react";
 import Link from "next/link";
 import { getCasaByNombre } from "@/services/casaService";
 import { getLibrosPorCasa } from "@/services/libroService";
@@ -211,16 +211,34 @@ export default function LecturaCasa() {
                 </div>
               </div>
 
-              <Alert className="bg-amber-50 border-amber-200">
-                <AlertDescription className="text-amber-900">
-                  Estás en modo de lectura restringido. Solo puedes ver el contenido de este libro.
-                </AlertDescription>
-              </Alert>
+              <div className="mb-8 flex flex-wrap gap-3">
+                {libro.audioanalisis_https && (
+                  <a
+                    href={libro.audioanalisis_https}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg shadow-sm transition-colors"
+                  >
+                    <Headphones className="w-4 h-4" />
+                    Escuchar Análisis
+                  </a>
+                )}
+                
+                {libro.audio_https && (
+                  <a
+                    href={libro.audio_https}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-stone-800 hover:bg-stone-900 text-white font-medium rounded-lg shadow-sm transition-colors"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Ver PDF Original
+                  </a>
+                )}
 
-              <div className="mb-8">
                 <Link href={`/quiz/${libro.id}`}>
                   <Button
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors w-full sm:w-auto"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors"
                   >
                     <Brain className="w-4 h-4" />
                     Ir al Quiz

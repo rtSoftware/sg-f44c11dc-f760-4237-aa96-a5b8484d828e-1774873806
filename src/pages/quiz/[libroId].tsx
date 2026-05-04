@@ -52,28 +52,28 @@ export default function QuizUsuario() {
 
         const { data: libroData, error: libroError } = await getLibroById(libroId);
         if (libroError || !libroData) {
-          router.push("/biblioteca");
+          router.push("/");
           return;
         }
         setLibro(libroData);
 
         const { data: quizData, error: quizError } = await getQuizByLibroId(libroId);
         if (quizError || !quizData) {
-          router.push("/biblioteca");
+          router.push("/");
           return;
         }
         setQuiz(quizData);
 
         const { data: preguntasData, error: preguntasError } = await getPreguntasByQuizId(quizData.id);
         if (preguntasError || !preguntasData || preguntasData.length === 0) {
-          router.push("/biblioteca");
+          router.push("/");
           return;
         }
         
         setPreguntas(preguntasData.sort((a, b) => a.numero_pregunta - b.numero_pregunta));
       } catch (error) {
         console.error("Error loading quiz:", error);
-        router.push("/biblioteca");
+        router.push("/");
       } finally {
         setLoading(false);
       }
@@ -158,9 +158,9 @@ export default function QuizUsuario() {
           </CardHeader>
           <CardContent>
             <p className="text-stone-600 mb-4">Este libro aún no tiene preguntas disponibles.</p>
-            <Link href="/biblioteca">
+            <Link href="/">
               <Button className="w-full bg-stone-900 hover:bg-stone-800">
-                Volver a Biblioteca
+                Volver al Inicio
               </Button>
             </Link>
           </CardContent>
@@ -270,10 +270,10 @@ export default function QuizUsuario() {
             </div>
 
             <div className="flex gap-4">
-              <Link href="/biblioteca" className="flex-1">
+              <Link href="/" className="flex-1">
                 <Button variant="outline" className="w-full border-stone-300">
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  Volver a Biblioteca
+                  Volver al Inicio
                 </Button>
               </Link>
               <Button
@@ -394,7 +394,7 @@ export default function QuizUsuario() {
           </Card>
 
           <div className="mt-6 text-center">
-            <Link href="/biblioteca">
+            <Link href="/">
               <Button variant="ghost" className="text-stone-600 hover:text-stone-900">
                 Cancelar Quiz
               </Button>
