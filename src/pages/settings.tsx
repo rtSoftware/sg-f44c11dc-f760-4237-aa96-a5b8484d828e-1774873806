@@ -981,19 +981,11 @@ export default function Settings() {
                     </div>
                   )}
 
-                  <div className="flex justify-end gap-3 pt-4">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={handleCancelForm}
-                      className="border-amber-300 text-amber-700 hover:bg-amber-50"
-                    >
-                      Cancelar
-                    </Button>
+                  <div className="flex gap-3 pt-4">
                     <Button 
                       type="submit" 
                       disabled={uploadingImage}
-                      className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white"
+                      className="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white"
                     >
                       {uploadingImage ? (
                         <>
@@ -1007,17 +999,17 @@ export default function Settings() {
                         </>
                       )}
                     </Button>
-                    {mode === "edit" && editingLibro && (
+                    {mode === "edit" && selectedLibroId && (
                       <Button
                         type="button"
                         onClick={() => {
                           setIsDialogOpen(false);
-                          router.push(`/quiz/${editingLibro.id}`);
+                          router.push(`/quiz/${selectedLibroId}`);
                         }}
-                        className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
                       >
                         <BookOpen className="w-5 h-5 mr-2" />
-                        Editar Quiz
+                        Quiz
                       </Button>
                     )}
                   </div>
