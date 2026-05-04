@@ -12,6 +12,7 @@ import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { Libro } from "@/services/libroService";
 import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle, FileText } from "lucide-react";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 
 type ViewMode = "grid" | "reader";
 
@@ -183,77 +184,56 @@ export default function Biblioteca() {
           {viewMode === "grid" ? (
             // GRID VIEW - Selector de Capítulos
             <div>
-              {libros.length === 0 ? (
-                <Card className="bg-white/90 backdrop-blur-sm border-amber-200">
-                  <CardContent className="p-12 text-center">
-                    <BookOpen className="w-16 h-16 mx-auto text-amber-400 mb-4" />
-                    <h2 className="text-2xl font-bold text-amber-900 mb-2">
-                      No hay libros disponibles
-                    </h2>
-                    <p className="text-amber-700 mb-6">
-                      Los libros aún no han sido configurados en esta biblioteca.
-                    </p>
-                    <Link href="/settings">
-                      <Button className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white">
-                        Ir a Configuración
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {libros.map((libro) => (
-                    <Card
-                      key={libro.id}
-                      className="border-stone-200 bg-white backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 group"
-                      onClick={() => handleSelectLibro(libro)}
-                    >
-                      <CardHeader className="border-b border-stone-100">
-                        {libro.portada_url ? (
-                          <div className="mb-4 -mt-6 -mx-6">
-                            <img
-                              src={libro.portada_url}
-                              alt={libro.titulo}
-                              className="w-full h-48 object-cover rounded-t-lg"
-                            />
-                          </div>
-                        ) : (
-                          <div className="mb-4 -mt-6 -mx-6 h-48 bg-gradient-to-br from-stone-200 to-stone-300 rounded-t-lg flex items-center justify-center">
-                            <BookOpen className="w-16 h-16 text-white opacity-50" />
-                          </div>
-                        )}
-                        <CardTitle className="text-xl text-stone-900 line-clamp-2 group-hover:text-amber-700 transition-colors">
-                          {libro.titulo}
-                        </CardTitle>
-                        {libro.autor && (
-                          <CardDescription className="text-stone-600 mt-1">
-                            por {libro.autor}
-                          </CardDescription>
-                        )}
-                      </CardHeader>
-                      <CardContent className="pt-4">
-                        {libro.descripcion && (
-                          <p className="text-sm text-stone-700 line-clamp-4 mb-4">
-                            {libro.descripcion}
-                          </p>
-                        )}
-                        <div className="flex items-center justify-between text-sm text-stone-600">
-                          <div className="flex items-center gap-2">
-                            {libro.audio_https && (
-                              <span className="flex items-center gap-1">
-                                <Headphones className="w-4 h-4" />
-                                Audio
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-amber-600 font-semibold group-hover:underline">
-                            Leer ahora →
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+              {filteredLibros.length === 0 ? (
+                <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                  <BookOpen className="h-16 w-16 text-stone-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-stone-900 mb-2">
+                    No hay libros disponibles
+                  </h3>
+                  <p className="text-stone-600">
+                    {searchTerm
+                      ? "No se encontraron libros que coincidan con tu búsqueda."
+                      : "Aún no hay libros en tu biblioteca."}
+                  </p>
                 </div>
+              ) : (
+                filteredLibros.map((libro) => (
+                  <Card
+                    key={libro.id}
+                    className="group hover:shadow-lg transition-all duration-300 border-stone-200 hover:border-amber-300 cursor-pointer overflow-hidden"
+                    onClick={() => router.push(`/lectura/${casaNombre}`)}
+                  >
+                    <CardContent className="p-0">
+                      {libro.portada_url && (
+                        <div className="relative h-64 w-full overflow-hidden bg-stone-100">
+                          <img
+                            src={libro.portada_url}
+                            alt={libro.titulo}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </div>
+                      )}
+                      <div className="p-6">
+                        <h3 className="text-xl font-bold text-stone-900 mb-2 group-hover:text-amber-700 transition-colors">
+                          {libro.titulo}
+                        </h3>
+                        {libro.autor && (
+                          <p className="text-sm text-stone-600 mb-3">por {libro.autor}</p>
+                        )}
+                        <div className="flex items-center justify-between mt-4">
+                          <Badge variant="outline" className="border-amber-300 text-amber-700">
+                            <BookOpen className="w-3 h-3 mr-1" />
+                            Leer
+                          </Badge>
+                          {libro.orden !== null && libro.orden !== undefined && (
+                            <span className="text-xs text-stone-500">Orden: {libro.orden}</span>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
               )}
             </div>
           ) : selectedLibro ? (
