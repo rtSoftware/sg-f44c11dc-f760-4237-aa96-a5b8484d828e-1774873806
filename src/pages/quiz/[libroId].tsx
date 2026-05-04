@@ -52,28 +52,27 @@ export default function QuizUsuario() {
 
         const { data: libroData, error: libroError } = await getLibroById(libroId);
         if (libroError || !libroData) {
-          router.push("/");
+          console.error("Error loading libro:", libroError);
           return;
         }
         setLibro(libroData);
 
         const { data: quizData, error: quizError } = await getQuizByLibroId(libroId);
         if (quizError || !quizData) {
-          router.push("/");
+          console.error("Error loading quiz:", quizError);
           return;
         }
         setQuiz(quizData);
 
         const { data: preguntasData, error: preguntasError } = await getPreguntasByQuizId(quizData.id);
         if (preguntasError || !preguntasData || preguntasData.length === 0) {
-          router.push("/");
+          console.error("Error loading preguntas:", preguntasError);
           return;
         }
         
         setPreguntas(preguntasData.sort((a, b) => a.numero_pregunta - b.numero_pregunta));
       } catch (error) {
         console.error("Error loading quiz:", error);
-        router.push("/");
       } finally {
         setLoading(false);
       }
@@ -82,69 +81,73 @@ export default function QuizUsuario() {
     fetchData();
   }, [libroId]);
 
-  const handleSelectAnswer = (value: string) => {
-    setSelectedAnswer(parseInt(value));
-  };
+  useEffect(() => {
+    const preguntaActual = preguntas[currentIndex];
+    if (preguntaActual) {
+      const respuestaExistente = respuestasUsuario.find(
+        (r) => r.preguntaId === preguntaActual.id
+      );
+      setSelectedAnswer(respuestaExistente?.respuestaSeleccionada ?? null);
+    }
+  }, [currentIndex, preguntas, respuestasUsuario]);
 
   const handleNext = () => {
-    if (selectedAnswer === null) return;
-
-    const currentPregunta = preguntas[currentIndex];
-    const nuevasRespuestas = [...respuestasUsuario];
-    
-    const existingIndex = nuevasRespuestas.findIndex(r => r.preguntaId === currentPregunta.id);
-    if (existingIndex >= 0) {
-      nuevasRespuestas[existingIndex] = {
-        preguntaId: currentPregunta.id,
-        respuestaSeleccionada: selectedAnswer,
-      };
-    } else {
-      nuevasRespuestas.push({
-        preguntaId: currentPregunta.id,
-        respuestaSeleccionada: selectedAnswer,
-      });
-    }
-
-    setRespuestasUsuario(nuevasRespuestas);
-
-    if (currentIndex < preguntas.length - 1) {
+    if (selectedAnswer !== null && currentIndex < preguntas.length - 1) {
+      saveRespuesta();
       setCurrentIndex(currentIndex + 1);
-      const nextPregunta = preguntas[currentIndex + 1];
-      const nextRespuesta = nuevasRespuestas.find(r => r.preguntaId === nextPregunta.id);
-      setSelectedAnswer(nextRespuesta?.respuestaSeleccionada || null);
-    } else {
-      setShowResults(true);
+      setSelectedAnswer(null);
     }
   };
 
-  const handlePrevious = () => {
+  const handlePrev = () => {
     if (currentIndex > 0) {
+      if (selectedAnswer !== null) {
+        saveRespuesta();
+      }
       setCurrentIndex(currentIndex - 1);
-      const prevPregunta = preguntas[currentIndex - 1];
-      const prevRespuesta = respuestasUsuario.find(r => r.preguntaId === prevPregunta.id);
-      setSelectedAnswer(prevRespuesta?.respuestaSeleccionada || null);
     }
+  };
+
+  const handleFinish = () => {
+    if (selectedAnswer !== null) {
+      saveRespuesta();
+    }
+    setShowResults(true);
+  };
+
+  const saveRespuesta = () => {
+    if (selectedAnswer === null) return;
+
+    const preguntaActual = preguntas[currentIndex];
+    setRespuestasUsuario((prev) => {
+      const filtered = prev.filter((r) => r.preguntaId !== preguntaActual.id);
+      return [
+        ...filtered,
+        { preguntaId: preguntaActual.id, respuestaSeleccionada: selectedAnswer },
+      ];
+    });
   };
 
   const calcularResultados = () => {
     let correctas = 0;
-    preguntas.forEach(pregunta => {
-      const respuesta = respuestasUsuario.find(r => r.preguntaId === pregunta.id);
-      if (respuesta && respuesta.respuestaSeleccionada === pregunta.respuesta_correcta) {
+    preguntas.forEach((pregunta) => {
+      const respuestaUsuario = respuestasUsuario.find(
+        (r) => r.preguntaId === pregunta.id
+      );
+      if (respuestaUsuario && respuestaUsuario.respuestaSeleccionada === pregunta.respuesta_correcta) {
         correctas++;
       }
     });
-    return {
-      correctas,
-      total: preguntas.length,
-      porcentaje: Math.round((correctas / preguntas.length) * 100),
-    };
+    return correctas;
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <Loader2 className="w-8 h-8 animate-spin text-stone-900" />
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-stone-600 mx-auto mb-4" />
+          <p className="text-stone-600">Cargando quiz...</p>
+        </div>
       </div>
     );
   }
@@ -170,104 +173,124 @@ export default function QuizUsuario() {
   }
 
   if (showResults) {
-    const resultados = calcularResultados();
+    const correctas = calcularResultados();
+    const porcentaje = Math.round((correctas / preguntas.length) * 100);
 
     return (
       <>
         <SEO
-          title={`Resultados - Quiz ${libro.titulo}`}
-          description={`Resultados del cuestionario de ${libro.titulo}`}
+          title={`Resultados Quiz - ${libro.titulo} | Experiencia Miguel`}
+          description="Revisa tus resultados del quiz"
         />
-        <div className="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100">
-          <div className="max-w-4xl mx-auto px-4 py-12">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full mb-4">
-                <Trophy className="w-10 h-10 text-white" />
-              </div>
-              <h1 className="text-3xl font-bold text-stone-900 mb-2">¡Quiz Completado!</h1>
-              <p className="text-lg text-stone-600">{libro.titulo}</p>
-            </div>
-
-            <Card className="border-stone-200 mb-8">
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <div className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600 mb-2">
-                    {resultados.porcentaje}%
+        <div className="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100 py-12 px-4">
+          <div className="max-w-4xl mx-auto">
+            <Card className="border-stone-200 shadow-xl mb-8">
+              <CardHeader className="text-center pb-8 bg-gradient-to-r from-purple-50 to-indigo-50">
+                <Trophy className="w-16 h-16 mx-auto mb-4 text-amber-600" />
+                <CardTitle className="text-3xl font-bold text-stone-900 mb-2">
+                  ¡Quiz Completado!
+                </CardTitle>
+                <div className="flex items-center justify-center gap-4 mt-4">
+                  <div className="text-center">
+                    <p className="text-5xl font-bold text-purple-600">{porcentaje}%</p>
+                    <p className="text-sm text-stone-600 mt-1">Puntaje</p>
                   </div>
-                  <p className="text-xl text-stone-700 mb-4">
-                    {resultados.correctas} de {resultados.total} correctas
-                  </p>
-                  <Progress value={resultados.porcentaje} className="h-3" />
+                  <div className="h-16 w-px bg-stone-300" />
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-stone-900">
+                      {correctas}/{preguntas.length}
+                    </p>
+                    <p className="text-sm text-stone-600 mt-1">Correctas</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <h3 className="text-xl font-semibold mb-4 text-stone-900">
+                  Revisión de Respuestas
+                </h3>
+                <div className="space-y-6">
+                  {preguntas.map((pregunta, index) => {
+                    const respuestaUsuario = respuestasUsuario.find(
+                      (r) => r.preguntaId === pregunta.id
+                    );
+                    const esCorrecta =
+                      respuestaUsuario?.respuestaSeleccionada === pregunta.respuesta_correcta;
+
+                    return (
+                      <div
+                        key={pregunta.id}
+                        className={`p-4 rounded-lg border-2 ${
+                          esCorrecta
+                            ? "border-green-200 bg-green-50"
+                            : "border-red-200 bg-red-50"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3 mb-3">
+                          {esCorrecta ? (
+                            <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
+                          ) : (
+                            <XCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
+                          )}
+                          <div className="flex-1">
+                            <p className="font-semibold text-stone-900 mb-2">
+                              {index + 1}. {pregunta.pregunta}
+                            </p>
+                            <div className="space-y-2">
+                              {[1, 2, 3, 4].map((num) => {
+                                const respuestaKey = `respuesta_${num}` as keyof QuizPregunta;
+                                const respuestaTexto = pregunta[respuestaKey];
+                                const esRespuestaCorrecta = num === pregunta.respuesta_correcta;
+                                const esRespuestaUsuario = num === respuestaUsuario?.respuestaSeleccionada;
+
+                                if (!respuestaTexto) return null;
+
+                                const mostrarRespuesta = esRespuestaCorrecta || esRespuestaUsuario;
+
+                                if (!mostrarRespuesta) return null;
+
+                                return (
+                                  <div
+                                    key={num}
+                                    className={`p-3 rounded ${
+                                      esRespuestaCorrecta && esRespuestaUsuario
+                                        ? "bg-green-100 border border-green-300"
+                                        : esRespuestaCorrecta
+                                        ? "bg-green-100 border border-green-300"
+                                        : "bg-red-100 border border-red-300"
+                                    }`}
+                                  >
+                                    <div className="flex items-start gap-2">
+                                      <span className="text-sm font-medium text-stone-700">
+                                        {respuestaTexto}
+                                      </span>
+                                      <div className="ml-auto flex gap-1 flex-shrink-0">
+                                        {esRespuestaCorrecta && esRespuestaUsuario ? (
+                                          <Badge className="bg-green-600 text-white text-xs">
+                                            Tu respuesta - Correcta
+                                          </Badge>
+                                        ) : esRespuestaCorrecta ? (
+                                          <Badge className="bg-green-600 text-white text-xs">
+                                            Correcta
+                                          </Badge>
+                                        ) : esRespuestaUsuario ? (
+                                          <Badge variant="destructive" className="text-xs">
+                                            Tu respuesta
+                                          </Badge>
+                                        ) : null}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
-
-            <div className="space-y-4 mb-8">
-              {preguntas.map((pregunta, index) => {
-                const respuesta = respuestasUsuario.find(r => r.preguntaId === pregunta.id);
-                const esCorrecta = respuesta?.respuestaSeleccionada === pregunta.respuesta_correcta;
-
-                return (
-                  <Card key={pregunta.id} className={`border-2 ${esCorrecta ? "border-green-300 bg-green-50" : "border-red-300 bg-red-50"}`}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <Badge variant="outline" className={`mb-2 ${esCorrecta ? "border-green-600 text-green-700" : "border-red-600 text-red-700"}`}>
-                            Pregunta {pregunta.numero_pregunta}
-                          </Badge>
-                          <CardTitle className="text-lg text-stone-900">
-                            {pregunta.texto_pregunta}
-                          </CardTitle>
-                        </div>
-                        {esCorrecta ? (
-                          <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0" />
-                        ) : (
-                          <XCircle className="w-6 h-6 text-red-600 shrink-0" />
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {(pregunta.respuestas as string[]).map((resp, idx) => {
-                        const numeroRespuesta = idx + 1;
-                        const esRespuestaCorrecta = numeroRespuesta === pregunta.respuesta_correcta;
-                        const esRespuestaSeleccionada = numeroRespuesta === respuesta?.respuestaSeleccionada;
-
-                        return (
-                          <div
-                            key={idx}
-                            className={`p-3 rounded-lg border-2 ${
-                              esRespuestaCorrecta && esRespuestaSeleccionada
-                                ? "bg-green-100 border-green-400"
-                                : esRespuestaCorrecta
-                                ? "bg-green-100 border-green-400"
-                                : esRespuestaSeleccionada
-                                ? "bg-red-100 border-red-400"
-                                : "bg-white border-stone-200"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-stone-700">{numeroRespuesta}.</span>
-                              <span className={`flex-1 ${esRespuestaCorrecta ? "font-semibold text-green-900" : "text-stone-700"}`}>
-                                {resp}
-                              </span>
-                              {esRespuestaCorrecta && esRespuestaSeleccionada && (
-                                <Badge className="bg-green-600 text-white">Tu respuesta - Correcta</Badge>
-                              )}
-                              {esRespuestaCorrecta && !esRespuestaSeleccionada && (
-                                <Badge className="bg-green-600 text-white">Correcta</Badge>
-                              )}
-                              {!esRespuestaCorrecta && esRespuestaSeleccionada && (
-                                <Badge variant="destructive">Tu respuesta</Badge>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
 
             <div className="flex gap-4">
               <Link href="/" className="flex-1">
@@ -294,101 +317,112 @@ export default function QuizUsuario() {
     );
   }
 
-  const currentPregunta = preguntas[currentIndex];
-  const progress = ((currentIndex + 1) / preguntas.length) * 100;
+  const preguntaActual = preguntas[currentIndex];
+  const progreso = ((currentIndex + 1) / preguntas.length) * 100;
 
   return (
     <>
       <SEO
-        title={`Quiz - ${libro.titulo}`}
-        description={`Cuestionario sobre ${libro.titulo}`}
+        title={`Quiz - ${libro.titulo} | Experiencia Miguel`}
+        description={`Pon a prueba tus conocimientos sobre ${libro.titulo}`}
       />
-      <div className="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100">
-        <div className="max-w-3xl mx-auto px-4 py-12">
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
-                  <BookOpen className="w-5 h-5 text-white" />
+      <div className="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100 py-12 px-4">
+        <div className="max-w-3xl mx-auto">
+          <Card className="border-stone-200 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50">
+              <div className="flex items-center gap-3 mb-4">
+                <BookOpen className="w-6 h-6 text-purple-600" />
+                <div className="flex-1">
+                  <CardTitle className="text-2xl font-bold text-stone-900">
+                    {libro.titulo}
+                  </CardTitle>
+                  {libro.autor && (
+                    <p className="text-sm text-stone-600 mt-1">por {libro.autor}</p>
+                  )}
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold text-stone-900">{libro.titulo}</h1>
-                  <p className="text-sm text-stone-600">Quiz de Comprensión</p>
-                </div>
-              </div>
-              <Badge variant="outline" className="border-purple-300 text-purple-700">
-                {currentIndex + 1} / {preguntas.length}
-              </Badge>
-            </div>
-            <Progress value={progress} className="h-2" />
-          </div>
-
-          <Card className="border-stone-200 shadow-lg">
-            <CardHeader>
-              <div className="flex items-start gap-3">
-                <Badge className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
-                  Pregunta {currentPregunta.numero_pregunta}
+                <Badge variant="outline" className="border-purple-300 text-purple-700">
+                  {currentIndex + 1} / {preguntas.length}
                 </Badge>
               </div>
-              <CardTitle className="text-2xl text-stone-900 mt-4">
-                {currentPregunta.texto_pregunta}
-              </CardTitle>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm text-stone-600">
+                  <span>Progreso</span>
+                  <span>{Math.round(progreso)}%</span>
+                </div>
+                <Progress value={progreso} className="h-2" />
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <RadioGroup value={selectedAnswer?.toString() || ""} onValueChange={handleSelectAnswer}>
-                {(currentPregunta.respuestas as string[]).map((respuesta, idx) => {
-                  const numeroRespuesta = idx + 1;
-                  return (
-                    <div
-                      key={idx}
-                      className={`flex items-center space-x-3 p-4 rounded-lg border-2 transition-all cursor-pointer ${
-                        selectedAnswer === numeroRespuesta
-                          ? "border-purple-500 bg-purple-50"
-                          : "border-stone-200 hover:border-purple-300 hover:bg-stone-50"
-                      }`}
-                      onClick={() => setSelectedAnswer(numeroRespuesta)}
-                    >
-                      <RadioGroupItem value={numeroRespuesta.toString()} id={`respuesta-${idx}`} />
-                      <Label
-                        htmlFor={`respuesta-${idx}`}
-                        className="flex-1 cursor-pointer text-base text-stone-700"
-                      >
-                        <span className="font-semibold mr-2">{numeroRespuesta}.</span>
-                        {respuesta}
-                      </Label>
-                    </div>
-                  );
-                })}
-              </RadioGroup>
 
-              <div className="flex gap-4 pt-6">
-                {currentIndex > 0 && (
+            <CardContent className="p-8">
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold text-stone-900 mb-6">
+                  {preguntaActual.pregunta}
+                </h3>
+
+                <RadioGroup
+                  value={selectedAnswer?.toString() || ""}
+                  onValueChange={(value) => setSelectedAnswer(parseInt(value))}
+                  className="space-y-3"
+                >
+                  {[1, 2, 3, 4].map((num) => {
+                    const respuestaKey = `respuesta_${num}` as keyof QuizPregunta;
+                    const respuestaTexto = preguntaActual[respuestaKey];
+
+                    if (!respuestaTexto) return null;
+
+                    return (
+                      <div
+                        key={num}
+                        className={`flex items-start space-x-3 p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                          selectedAnswer === num
+                            ? "border-purple-500 bg-purple-50"
+                            : "border-stone-200 hover:border-stone-300 hover:bg-stone-50"
+                        }`}
+                        onClick={() => setSelectedAnswer(num)}
+                      >
+                        <RadioGroupItem value={num.toString()} id={`option-${num}`} className="mt-1" />
+                        <Label
+                          htmlFor={`option-${num}`}
+                          className="flex-1 cursor-pointer text-stone-700 leading-relaxed"
+                        >
+                          {respuestaTexto}
+                        </Label>
+                      </div>
+                    );
+                  })}
+                </RadioGroup>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={handlePrev}
+                  disabled={currentIndex === 0}
+                  variant="outline"
+                  className="flex-1 border-stone-300"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Anterior
+                </Button>
+
+                {currentIndex < preguntas.length - 1 ? (
                   <Button
-                    variant="outline"
-                    onClick={handlePrevious}
-                    className="border-stone-300"
+                    onClick={handleNext}
+                    disabled={selectedAnswer === null}
+                    className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
                   >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Anterior
+                    Siguiente
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleFinish}
+                    disabled={selectedAnswer === null}
+                    className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                  >
+                    Finalizar
+                    <CheckCircle2 className="w-4 h-4 ml-2" />
                   </Button>
                 )}
-                <Button
-                  onClick={handleNext}
-                  disabled={selectedAnswer === null}
-                  className="ml-auto bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
-                >
-                  {currentIndex < preguntas.length - 1 ? (
-                    <>
-                      Siguiente
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </>
-                  ) : (
-                    <>
-                      Ver Resultados
-                      <Trophy className="w-4 h-4 ml-2" />
-                    </>
-                  )}
-                </Button>
               </div>
             </CardContent>
           </Card>
