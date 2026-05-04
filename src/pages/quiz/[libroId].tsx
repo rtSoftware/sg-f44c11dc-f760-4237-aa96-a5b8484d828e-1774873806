@@ -68,7 +68,7 @@ export default function EditarQuiz() {
   const [generandoIA, setGenerandoIA] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [mode, setMode] = useState<"create" | "edit">("create");
-  const [editingPregunta, setEditingPregunta] = useState<QuizPregunta | null>(null);
+  const [editingPregunta, setEditingPregunta] = useState<PreguntaForm | null>(null);
   const [showSemiAutoDialog, setShowSemiAutoDialog] = useState(false);
   const [jsonInput, setJsonInput] = useState("");
   const [procesandoJson, setProcesandoJson] = useState(false);
