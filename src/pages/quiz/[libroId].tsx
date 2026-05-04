@@ -295,14 +295,10 @@ export default function EditarQuiz() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Error al generar preguntas");
-      }
-
       const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
+
+      if (!response.ok || data.error) {
+        throw new Error(data.error || "Error al generar preguntas");
       }
 
       toast({
@@ -317,7 +313,7 @@ export default function EditarQuiz() {
       console.error("Error generando preguntas:", error);
       toast({
         title: "Error",
-        description: "No se pudieron generar las preguntas con IA.",
+        description: error instanceof Error ? error.message : "No se pudieron generar las preguntas con IA.",
         variant: "destructive",
       });
     } finally {
