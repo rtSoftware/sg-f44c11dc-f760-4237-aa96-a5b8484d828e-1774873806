@@ -22,7 +22,6 @@ import {
   Trash2,
   Edit,
   CheckCircle2,
-  Sparkles,
   Loader2,
   ArrowLeft,
   FileJson,
@@ -37,7 +36,6 @@ import {
   createPregunta,
   updatePregunta,
   deletePregunta,
-  generarPreguntasIA,
   deleteAllPreguntas,
 } from "@/services/quizService";
 import type { Tables } from "@/integrations/supabase/types";
@@ -61,11 +59,9 @@ export default function EditarQuiz() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [generatingIA, setGeneratingIA] = useState(false);
   const [libro, setLibro] = useState<Libro | null>(null);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [preguntas, setPreguntas] = useState<QuizPregunta[]>([]);
-  const [generandoIA, setGenerandoIA] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [mode, setMode] = useState<"create" | "edit">("create");
   const [editingPregunta, setEditingPregunta] = useState<PreguntaForm | null>(null);
@@ -417,67 +413,6 @@ export default function EditarQuiz() {
     }
   };
 
-  const handleGenerarConIA = async () => {
-    if (!libro || !quiz) return;
-
-    if (!libro.contenido || libro.contenido.trim().length === 0) {
-      toast({
-        title: "Error",
-        description: "El libro no tiene contenido para generar preguntas.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      setGeneratingIA(true);
-      
-      // Eliminar todas las preguntas existentes primero
-      if (preguntas.length > 0) {
-        const { error: deleteError } = await deleteAllPreguntas(quiz.id);
-        if (deleteError) {
-          throw new Error("Error al eliminar preguntas existentes");
-        }
-      }
-
-      const response = await fetch("/api/generar-preguntas", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          libroTitulo: libro.titulo,
-          libroContenido: libro.contenido,
-          quizId: quiz.id,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        throw new Error(data.error || "Error al generar preguntas");
-      }
-
-      toast({
-        title: "Preguntas generadas",
-        description: `Se generaron ${data.preguntas?.length || 0} preguntas nuevas exitosamente.`,
-      });
-
-      // Recargar preguntas
-      const { data: preguntasData } = await getPreguntasByQuizId(quiz.id);
-      setPreguntas(preguntasData || []);
-    } catch (error) {
-      console.error("Error generando preguntas:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "No se pudieron generar las preguntas con IA.",
-        variant: "destructive",
-      });
-    } finally {
-      setGeneratingIA(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
@@ -546,41 +481,14 @@ export default function EditarQuiz() {
               Nueva Pregunta
             </Button>
             <Button
-              onClick={handleGenerarConIA}
-              disabled={generandoIA}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
-            >
-              {generandoIA ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Generando preguntas...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  {preguntas.length > 0 ? "Regenerar con IA" : "Generar con IA"}
-                </>
-              )}
-            </Button>
-            <Button
               onClick={() => setShowSemiAutoDialog(true)}
-              disabled={generandoIA || procesandoJson}
+              disabled={procesandoJson}
               className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white"
             >
               <FileJson className="w-5 h-5 mr-2" />
               Semi-auto
             </Button>
           </div>
-
-          {/* Info Alert */}
-          {!libro.contenido && (
-            <Alert className="mb-6 bg-amber-50 border-amber-200">
-              <AlertCircle className="h-4 w-4 text-amber-700" />
-              <AlertDescription className="text-amber-900">
-                El libro no tiene contenido. Agrega contenido al libro para poder generar preguntas automáticamente con IA.
-              </AlertDescription>
-            </Alert>
-          )}
 
           {/* Preguntas List */}
           <div className="space-y-4">
