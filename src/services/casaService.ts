@@ -73,3 +73,38 @@ export async function asignarCasaAUsuario(userId: string, casaId: string) {
     .update({ casa_id: casaId })
     .eq("id", userId);
 }
+
+export async function updateCasaNombre(id: string, nombre: string) {
+  return await supabase
+    .from("casas")
+    .update({ casa_nombre: nombre })
+    .eq("id", id)
+    .select()
+    .single();
+}
+
+export async function setCasaId(casaId: string) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("experiencia_miguel_casa_id", casaId);
+  }
+}
+
+export async function initializeCasa() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return { success: false };
+    
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("casa_id")
+      .eq("id", session.user.id)
+      .single();
+      
+    if (profile?.casa_id) {
+      return { success: true, casa_id: profile.casa_id };
+    }
+    return { success: false };
+  } catch (error) {
+    return { success: false, error };
+  }
+}
