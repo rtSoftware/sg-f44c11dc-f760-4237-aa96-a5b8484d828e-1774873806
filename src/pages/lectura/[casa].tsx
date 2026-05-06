@@ -51,8 +51,6 @@ export default function LecturaCasa() {
         const { data: librosData, error: librosError } = await getLibrosPorCasa(data.id);
         if (librosError) {
           console.error("Error loading libros:", librosError);
-        } else {
-          // setLibros(librosData || []);
         }
 
         setLoading(false);
@@ -74,8 +72,8 @@ export default function LecturaCasa() {
   };
 
   const handleValidarCodigo = async () => {
-    if (codigo.length !== 6) {
-      setError("El código debe tener exactamente 6 caracteres");
+    if (codigo.trim().length === 0) {
+      setError("Por favor ingresa un código");
       return;
     }
 
@@ -84,44 +82,12 @@ export default function LecturaCasa() {
       return;
     }
 
-    // Validación del código según las reglas
-    const primerCaracter = codigo[0].toLowerCase();
-    const segundoCaracter = codigo[1];
-    const ultimosCaracteres = codigo.slice(4, 6); // Posiciones 5 y 6 (índices 4 y 5)
-
-    // Regla 1: Primer carácter debe ser vocal
-    const vocales: { [key: string]: number } = {
-      'a': 1,
-      'e': 2,
-      'i': 3,
-      'o': 4,
-      'u': 5
-    };
-
-    if (!(primerCaracter in vocales)) {
-      setError("El primer carácter debe ser una vocal (a, e, i, o, u)");
-      return;
-    }
-
-    // Regla 2: Segundo carácter debe corresponder al orden de la vocal
-    const ordenVocal = vocales[primerCaracter];
-    if (segundoCaracter !== ordenVocal.toString()) {
-      setError(`El segundo carácter debe ser ${ordenVocal} (correspondiente a la vocal '${primerCaracter}')`);
-      return;
-    }
-
-    // Regla 3: Últimos dos caracteres corresponden al orden del libro
-    const ordenLibro = parseInt(ultimosCaracteres);
-    if (isNaN(ordenLibro)) {
-      setError("Los dos últimos caracteres deben ser números");
-      return;
-    }
-
     try {
       setIsValidating(true);
       setError("");
 
-      // Obtener todos los libros de la casa
+      // Aceptar cualquier código - sin validación
+      // Solo cargar el primer libro disponible de la casa
       const { data: libros, error: librosError } = await getLibrosPorCasa(casa.id);
       
       if (librosError || !libros || libros.length === 0) {
@@ -129,26 +95,19 @@ export default function LecturaCasa() {
         return;
       }
 
-      // Buscar libro con el orden especificado
-      let libroEncontrado = libros.find(l => l.orden === ordenLibro);
-
-      // Si no existe, tomar el primer libro
-      if (!libroEncontrado) {
-        libroEncontrado = libros[0];
-      }
-
-      setLibro(libroEncontrado);
+      // Tomar el primer libro
+      setLibro(libros[0]);
       setShowBook(true);
     } catch (err) {
-      console.error("Error validando código:", err);
-      setError("Error al validar el código");
+      console.error("Error cargando libro:", err);
+      setError("Error al cargar el libro");
     } finally {
       setIsValidating(false);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && codigo.length === 6) {
+    if (e.key === "Enter" && codigo.trim().length > 0) {
       handleValidarCodigo();
     }
   };
@@ -216,14 +175,12 @@ export default function LecturaCasa() {
                 </div>
               )}
               
-              <div className="bg-stone-50 rounded-lg p-6 mb-6">
-                <div className="space-y-1 text-stone-700">
-                  <p className="text-xl font-semibold text-stone-900">{libro.titulo}</p>
-                  {libro.autor && <p className="text-base text-stone-600">{libro.autor}</p>}
-                </div>
+              <div className="bg-stone-50 rounded-lg p-4 mb-4">
+                <p className="text-xl font-semibold text-stone-900">{libro.titulo}</p>
+                {libro.autor && <p className="text-base text-stone-600 mt-1">{libro.autor}</p>}
               </div>
 
-              <div className="mb-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {libro.audioanalisis_https && (
                   <a
                     href={libro.audioanalisis_https}
@@ -248,14 +205,13 @@ export default function LecturaCasa() {
                   </a>
                 )}
 
-                <Link href={`/quiz/${libro.id}`} className={!libro.audioanalisis_https && !libro.audio_https ? "sm:col-span-3" : ""}>
-                  <Button
-                    className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors"
-                  >
-                    <Brain className="w-4 h-4" />
-                    Quiz
-                  </Button>
-                </Link>
+                <a
+                  href={`/quiz/${libro.id}`}
+                  className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors ${!libro.audioanalisis_https && !libro.audio_https ? "sm:col-span-3" : ""}`}
+                >
+                  <Brain className="w-4 h-4" />
+                  Quiz
+                </a>
               </div>
 
               <div className="mt-8">
@@ -303,7 +259,7 @@ export default function LecturaCasa() {
             </div>
             <CardTitle className="text-2xl text-stone-900">Casa {casa.casa_nombre}</CardTitle>
             <CardDescription className="text-stone-600">
-              Ingresa el código de 6 caracteres para acceder al libro
+              Ingresa cualquier código para acceder al libro
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -317,13 +273,13 @@ export default function LecturaCasa() {
                 value={codigo}
                 onChange={handleCodigoChange}
                 onKeyPress={handleKeyPress}
-                placeholder="Ej: A1XX01"
+                placeholder="Ingresa cualquier código"
                 className="text-center text-lg tracking-widest uppercase font-mono border-stone-300"
                 maxLength={6}
                 autoFocus
               />
               <p className="text-xs text-stone-500">
-                Formato: Vocal + Número + 2 caracteres + Orden (2 dígitos)
+                Cualquier combinación de caracteres es válida
               </p>
             </div>
 
@@ -335,14 +291,14 @@ export default function LecturaCasa() {
 
             <Button
               onClick={handleValidarCodigo}
-              disabled={codigo.length !== 6 || isValidating}
+              disabled={codigo.trim().length === 0 || isValidating}
               className="w-full bg-stone-900 hover:bg-stone-800 text-white"
               size="lg"
             >
               {isValidating ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Validando...
+                  Cargando...
                 </>
               ) : (
                 <>
@@ -354,7 +310,7 @@ export default function LecturaCasa() {
 
             <div className="pt-4 border-t border-stone-200">
               <p className="text-xs text-stone-500 text-center">
-                Este es un acceso restringido. Solo podrás leer el libro asignado.
+                Este es un acceso de lectura. Solo necesitas ingresar un código.
               </p>
             </div>
           </CardContent>
