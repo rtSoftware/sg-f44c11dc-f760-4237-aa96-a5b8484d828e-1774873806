@@ -624,28 +624,12 @@ export default function Settings() {
                 Perfil
               </Button>
               <Button
-                variant={activeTab === "profile" ? "default" : "ghost"}
-                className="justify-start"
-                onClick={() => setActiveTab("profile")}
-              >
-                <User className="mr-2 h-4 w-4" />
-                Perfil
-              </Button>
-              <Button
-                variant={activeTab === "mensajes" ? "default" : "ghost"}
-                className="justify-start"
+                variant="outline"
                 onClick={() => router.push("/mensajes")}
+                className="border-stone-300 text-stone-700 hover:bg-stone-50"
               >
                 <Mail className="mr-2 h-4 w-4" />
                 Mensajes
-              </Button>
-              <Button
-                variant={activeTab === "casa" ? "default" : "ghost"}
-                className="justify-start"
-                onClick={() => setActiveTab("casa")}
-              >
-                <Home className="mr-2 h-4 w-4" />
-                Casas
               </Button>
             </div>
           </div>
