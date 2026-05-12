@@ -98,6 +98,51 @@ export type Database = {
           },
         ]
       }
+      mensajes: {
+        Row: {
+          created_at: string | null
+          dir_ip: string | null
+          email: string
+          fecha: string | null
+          id: string
+          leido: boolean | null
+          mensaje: string
+          nombre: string
+          notas_admin: string | null
+          respondido: boolean | null
+          telefono: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dir_ip?: string | null
+          email: string
+          fecha?: string | null
+          id?: string
+          leido?: boolean | null
+          mensaje: string
+          nombre: string
+          notas_admin?: string | null
+          respondido?: boolean | null
+          telefono?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dir_ip?: string | null
+          email?: string
+          fecha?: string | null
+          id?: string
+          leido?: boolean | null
+          mensaje?: string
+          nombre?: string
+          notas_admin?: string | null
+          respondido?: boolean | null
+          telefono?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       notas: {
         Row: {
           casa_id: string
