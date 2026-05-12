@@ -58,47 +58,42 @@ export function ContactSection() {
             </div>
 
             <div className="space-y-4">
-              <Card className="border-stone-200 bg-white">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center">
-                      <Mail className="w-6 h-6 text-stone-900" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-stone-900 mb-1">Email</h4>
-                      <p className="text-stone-600">contacto@experienciamiguel.com</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-amber-100 rounded-lg">
+                  <Mail className="w-6 h-6 text-amber-800" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-stone-900 mb-1">Email</h3>
+                  <a href="mailto:tapiara@iasos.com.mx" className="text-stone-600 hover:text-amber-800 transition-colors">
+                    tapiara@iasos.com.mx
+                  </a>
+                </div>
+              </div>
 
-              <Card className="border-stone-200 bg-white">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center">
-                      <Phone className="w-6 h-6 text-stone-900" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-stone-900 mb-1">Teléfono</h4>
-                      <p className="text-stone-600">+1 (555) 123-4567</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-amber-100 rounded-lg">
+                  <Phone className="w-6 h-6 text-amber-800" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-stone-900 mb-1">Teléfono</h3>
+                  <a href="tel:+525549193378" className="text-stone-600 hover:text-amber-800 transition-colors">
+                    55 49 19 33 78
+                  </a>
+                </div>
+              </div>
 
-              <Card className="border-stone-200 bg-white">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 bg-stone-100 rounded-lg flex items-center justify-center">
-                      <MapPin className="w-6 h-6 text-stone-900" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-stone-900 mb-1">Ubicación</h4>
-                      <p className="text-stone-600">Ciudad, País</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-amber-100 rounded-lg">
+                  <MapPin className="w-6 h-6 text-amber-800" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-stone-900 mb-1">Dirección</h3>
+                  <p className="text-stone-600">
+                    Reforma 296, Col Juárez<br />
+                    Ciudad de México
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="pt-6">

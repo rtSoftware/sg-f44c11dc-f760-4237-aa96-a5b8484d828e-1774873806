@@ -75,19 +75,23 @@ export function Footer() {
 
           {/* Contacto */}
           <div>
-            <h3 className="font-semibold text-stone-900 mb-4">Contacto</h3>
-            <ul className="space-y-2">
-              <li className="flex items-center gap-2 text-sm text-stone-600">
-                <Mail className="w-4 h-4" />
-                contacto@experienciamiguel.com
+            <h3 className="font-serif text-lg font-semibold text-stone-900 mb-4">Contacto</h3>
+            <ul className="space-y-3">
+              <li>
+                <a href="mailto:tapiara@iasos.com.mx" className="text-stone-600 hover:text-amber-800 transition-colors flex items-center gap-2">
+                  <Mail className="w-4 h-4" />
+                  tapiara@iasos.com.mx
+                </a>
               </li>
-              <li className="flex items-center gap-2 text-sm text-stone-600">
-                <Phone className="w-4 h-4" />
-                +1 (555) 123-4567
+              <li>
+                <a href="tel:+525549193378" className="text-stone-600 hover:text-amber-800 transition-colors flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
+                  55 49 19 33 78
+                </a>
               </li>
-              <li className="flex items-center gap-2 text-sm text-stone-600">
-                <MapPin className="w-4 h-4" />
-                Ciudad, País
+              <li className="text-stone-600 flex items-start gap-2">
+                <MapPin className="w-4 h-4 mt-1 flex-shrink-0" />
+                <span>Reforma 296, Col Juárez<br />Ciudad de México</span>
               </li>
             </ul>
           </div>
