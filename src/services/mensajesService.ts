@@ -6,17 +6,34 @@ type Mensaje = Tables<"mensajes">;
 interface CreateMensajeData {
   nombre: string;
   email: string;
-  telefono?: string;
+  telefono?: string | null;
   mensaje: string;
-  dir_ip?: string;
+  dir_ip?: string | null;
 }
 
 export async function createMensaje(data: CreateMensajeData) {
+  // Limpiar datos opcionales nulos
+  const cleanData = {
+    nombre: data.nombre,
+    email: data.email,
+    mensaje: data.mensaje,
+    ...(data.telefono && { telefono: data.telefono }),
+    ...(data.dir_ip && { dir_ip: data.dir_ip })
+  };
+
+  console.log("createMensaje - datos a insertar:", cleanData);
+
   const { data: mensaje, error } = await supabase
     .from("mensajes")
-    .insert([data])
+    .insert([cleanData])
     .select()
     .single();
+
+  if (error) {
+    console.error("createMensaje - error de Supabase:", error);
+  } else {
+    console.log("createMensaje - éxito:", mensaje);
+  }
 
   return { data: mensaje, error };
 }

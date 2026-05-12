@@ -38,27 +38,45 @@ export function ContactSection() {
     setIsSubmitting(true);
 
     try {
-      // Obtener la IP del cliente
-      const clientIP = await getClientIP();
+      // Obtener la IP del cliente (no bloqueante si falla)
+      let clientIP = null;
+      try {
+        clientIP = await getClientIP();
+        console.log("IP obtenida:", clientIP);
+      } catch (ipError) {
+        console.warn("No se pudo obtener IP, continuando sin ella:", ipError);
+      }
+
+      // Preparar datos del mensaje
+      const mensajeData = {
+        nombre: formData.nombre.trim(),
+        email: formData.email.trim(),
+        telefono: formData.telefono?.trim() || null,
+        mensaje: formData.mensaje.trim(),
+        dir_ip: clientIP || null
+      };
+
+      console.log("Enviando mensaje:", { ...mensajeData, dir_ip: clientIP ? "***" : null });
 
       // Guardar mensaje en la base de datos
-      const { error } = await createMensaje({
-        nombre: formData.nombre,
-        email: formData.email,
-        telefono: formData.telefono,
-        mensaje: formData.mensaje,
-        dir_ip: clientIP || undefined
-      });
+      const { data, error } = await createMensaje(mensajeData);
 
       if (error) {
-        console.error("Error al enviar mensaje:", error);
+        console.error("Error de Supabase al enviar mensaje:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         toast({
           title: "Error",
-          description: "No se pudo enviar el mensaje. Intenta nuevamente.",
+          description: `No se pudo enviar el mensaje: ${error.message}`,
           variant: "destructive"
         });
         return;
       }
+
+      console.log("Mensaje enviado exitosamente:", data);
 
       toast({
         title: "Mensaje enviado",
@@ -73,10 +91,10 @@ export function ContactSection() {
         mensaje: ""
       });
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error inesperado al enviar mensaje:", error);
       toast({
         title: "Error",
-        description: "Ocurrió un error inesperado",
+        description: error instanceof Error ? error.message : "Ocurrió un error inesperado",
         variant: "destructive"
       });
     } finally {
