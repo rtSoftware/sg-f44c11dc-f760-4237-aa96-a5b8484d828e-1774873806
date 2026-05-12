@@ -60,27 +60,6 @@ export function ContactSection() {
         return;
       }
 
-      // Llamar a Edge Function para enviar notificación por email
-      try {
-        await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/enviar-notificacion-mensaje`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`
-          },
-          body: JSON.stringify({
-            nombre: formData.nombre,
-            email: formData.email,
-            telefono: formData.telefono,
-            mensaje: formData.mensaje,
-            ip: clientIP
-          })
-        });
-      } catch (emailError) {
-        console.error("Error enviando notificación por email:", emailError);
-        // No mostrar error al usuario, el mensaje ya se guardó
-      }
-
       toast({
         title: "Mensaje enviado",
         description: "Gracias por contactarnos. Te responderemos pronto.",
