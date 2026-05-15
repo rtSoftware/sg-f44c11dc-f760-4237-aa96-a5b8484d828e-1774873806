@@ -197,6 +197,27 @@ Ejemplos:
                 <p><code>[texto](url)</code> - Enlace</p>
               </div>
             </div>
+            <div className="mt-4 p-4 bg-stone-50 rounded-lg border border-stone-200">
+              <h4 className="text-sm font-semibold mb-2 text-stone-700">Guía rápida de Markdown</h4>
+              <div className="text-xs text-stone-600 space-y-1">
+                <div><code># Título 1</code> - Encabezado principal</div>
+                <div><code>## Título 2</code> - Encabezado secundario</div>
+                <div><code>**negrita**</code> - Texto en negrita</div>
+                <div><code>*cursiva*</code> - Texto en cursiva</div>
+                <div><code>[texto](url)</code> - Enlace</div>
+                <div><code>- item</code> - Lista con viñetas</div>
+                <div><code>1. item</code> - Lista numerada</div>
+                <div><code>&gt; cita</code> - Bloque de cita</div>
+                <div className="pt-2 mt-2 border-t border-stone-300">
+                  <p className="font-semibold mb-1">HTML con estilos inline:</p>
+                  <div><code>&lt;span style="color: #2563eb; font-size: 20px; font-family: Georgia, serif; font-weight: bold"&gt;azul, grande, serif y negrita&lt;/span&gt;</code></div>
+                  <div className="mt-1"><code>&lt;p style="color: hsl(150, 60%, 35%); font-size: 18px; font-family: 'Lora', serif"&gt;Este párrafo completo va en verde, fuente Lora y 18px.&lt;/p&gt;</code></div>
+                  <div className="mt-1"><code>&lt;span style="font-size: 24px"&gt;más grande&lt;/span&gt;</code></div>
+                  <div className="mt-1"><code>&lt;span style="color: orange"&gt;texto naranja&lt;/span&gt;</code></div>
+                  <div className="mt-1"><code>&lt;mark style="background: yellow; color: black"&gt;texto resaltado&lt;/mark&gt;</code></div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
