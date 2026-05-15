@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookOpen, Mail, MapPin, Phone, Github, Twitter, Linkedin, Settings } from "lucide-react";
+import { BookOpen, Mail, MapPin, Phone, Settings } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -22,25 +22,26 @@ export function Footer() {
     const mmRev = mm[1] + mm[0];
     const esperado = ddRev + mmRev;
     const centro = input.slice(1, 5);
+    console.log("🔍 Validando PIN:", { input, centro, esperado, match: centro === esperado });
     return centro === esperado;
   };
 
   const handlePinChange = (value: string) => {
+    console.log("📝 PIN cambiado:", value, "longitud:", value.length);
     setPin(value);
     
-    // Auto-submit cuando se completen los 6 dígitos
     if (value.length === 6) {
       if (validarPin(value)) {
-        // Éxito - marcar acceso autorizado en sessionStorage
+        console.log("✅ PIN correcto - navegando a settings");
         sessionStorage.setItem("settings_access_granted", "true");
         setOpen(false);
         setPin("");
         setAttempts(0);
         router.push("/settings");
       } else {
-        // Fallo
         const newAttempts = attempts + 1;
         setAttempts(newAttempts);
+        console.log("❌ PIN incorrecto - intento", newAttempts);
         
         if (newAttempts === 1) {
           toast({
@@ -63,6 +64,7 @@ export function Footer() {
   };
 
   const handleOpenChange = (isOpen: boolean) => {
+    console.log("🔄 Modal open cambió a:", isOpen);
     setOpen(isOpen);
     if (!isOpen) {
       setPin("");
@@ -70,8 +72,13 @@ export function Footer() {
     }
   };
 
+  const handleButtonClick = () => {
+    console.log("🔘 Botón de settings clickeado - abriendo modal");
+    setOpen(true);
+  };
+
   return (
-    <footer className="bg-white/90 backdrop-blur-sm border-t border-stone-200">
+    <footer className="bg-white/90 backdrop-blur-sm border-t border-stone-200 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
@@ -173,8 +180,9 @@ export function Footer() {
 
       {/* Botón flotante discreto para acceso admin */}
       <button
-        onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-50 p-3 rounded-full bg-stone-800/30 hover:bg-stone-800/50 transition-all duration-300 opacity-30 hover:opacity-100 cursor-pointer"
+        onClick={handleButtonClick}
+        type="button"
+        className="fixed bottom-6 right-6 z-[9999] p-3 rounded-full bg-stone-800/30 hover:bg-stone-800/50 transition-all duration-300 opacity-30 hover:opacity-100 cursor-pointer shadow-lg"
         aria-label="Acceso administrador"
       >
         <Settings className="h-5 w-5 text-stone-400" />
