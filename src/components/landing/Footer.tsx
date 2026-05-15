@@ -173,12 +173,8 @@ export function Footer() {
 
       {/* Botón flotante discreto para acceso admin */}
       <button
-        onClick={() => {
-          console.log("🔘 Botón de settings clickeado");
-          setOpen(true);
-          console.log("📂 Modal open state cambiado a true");
-        }}
-        className="fixed bottom-6 right-6 z-50 p-3 rounded-full bg-stone-800/30 hover:bg-stone-800/50 transition-all duration-300 opacity-30 hover:opacity-100"
+        onClick={() => setOpen(true)}
+        className="fixed bottom-6 right-6 z-50 p-3 rounded-full bg-stone-800/30 hover:bg-stone-800/50 transition-all duration-300 opacity-30 hover:opacity-100 cursor-pointer"
         aria-label="Acceso administrador"
       >
         <Settings className="h-5 w-5 text-stone-400" />
@@ -192,7 +188,6 @@ export function Footer() {
               <h3 className="text-lg font-semibold">Acceso Restringido</h3>
               <p className="text-sm text-muted-foreground">Ingrese el PIN de 6 dígitos</p>
             </div>
-            <console.log("🔍 Dialog renderizado"); />
             
             <InputOTP
               maxLength={6}
