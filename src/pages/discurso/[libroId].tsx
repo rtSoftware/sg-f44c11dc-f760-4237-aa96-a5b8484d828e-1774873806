@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { ArrowLeft, Eye, Edit, Save } from "lucide-react";
+import { ArrowLeft, Eye, Edit, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { getDiscursoByLibroId, saveDiscurso } from "@/services/discursoService";
 
 export default function DiscursoEditor() {
   const router = useRouter();
@@ -15,28 +16,46 @@ export default function DiscursoEditor() {
   const { toast } = useToast();
   const [markdown, setMarkdown] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Cargar discurso existente si hay uno guardado
-    if (libroId) {
-      const saved = localStorage.getItem(`discurso_${libroId}`);
-      if (saved) {
-        setMarkdown(saved);
-      }
+    // Cargar discurso existente desde Supabase
+    if (libroId && typeof libroId === "string") {
+      loadDiscurso();
     }
   }, [libroId]);
 
-  const handleSave = () => {
-    setIsSaving(true);
+  const loadDiscurso = async () => {
     try {
-      if (libroId) {
-        localStorage.setItem(`discurso_${libroId}`, markdown);
-        toast({
-          title: "Discurso guardado",
-          description: "Los cambios se han guardado correctamente"
-        });
+      setIsLoading(true);
+      const discurso = await getDiscursoByLibroId(libroId as string);
+      if (discurso) {
+        setMarkdown(discurso.contenido);
       }
     } catch (error) {
+      console.error("Error al cargar discurso:", error);
+      toast({
+        title: "Error al cargar",
+        description: "No se pudo cargar el discurso",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!libroId || typeof libroId !== "string") return;
+    
+    setIsSaving(true);
+    try {
+      await saveDiscurso(libroId, markdown);
+      toast({
+        title: "Discurso guardado",
+        description: "Los cambios se han guardado correctamente en la base de datos"
+      });
+    } catch (error) {
+      console.error("Error al guardar:", error);
       toast({
         title: "Error al guardar",
         description: "No se pudo guardar el discurso",
@@ -46,6 +65,17 @@ export default function DiscursoEditor() {
       setIsSaving(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-600" />
+          <p className="text-gray-600">Cargando discurso...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
@@ -65,8 +95,17 @@ export default function DiscursoEditor() {
             disabled={isSaving}
             className="gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
           >
-            <Save className="h-4 w-4" />
-            {isSaving ? "Guardando..." : "Guardar"}
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Guardando...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                Guardar
+              </>
+            )}
           </Button>
         </div>
 

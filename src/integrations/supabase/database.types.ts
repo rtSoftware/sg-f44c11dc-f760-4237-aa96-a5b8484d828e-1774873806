@@ -36,6 +36,38 @@ export type Database = {
         }
         Relationships: []
       }
+      discursos: {
+        Row: {
+          contenido: string
+          created_at: string | null
+          id: string
+          libro_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          contenido?: string
+          created_at?: string | null
+          id?: string
+          libro_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          contenido?: string
+          created_at?: string | null
+          id?: string
+          libro_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discursos_libro_id_fkey"
+            columns: ["libro_id"]
+            isOneToOne: false
+            referencedRelation: "libro"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       libro: {
         Row: {
           audio_https: string | null
