@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check, User, Upload, X, Search, BookOpen, Brain, Mail } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Trash2, Plus, Book, Edit, Home, Check, User, Upload, X, Search, BookOpen, Brain, Mail, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { getAllLibros, createLibro, updateLibro, deleteLibroContent, moverLibroACasa, detectarLibrosHuerfanos, reasignarLibroHuerfano } from "@/services/libroService";
@@ -630,6 +630,32 @@ export default function Settings() {
               >
                 <Mail className="mr-2 h-4 w-4" />
                 Mensajes
+              </Button>
+              <Button
+                variant={section === "quiz" ? "default" : "outline"}
+                onClick={() => {
+                  setSection("quiz");
+                  setMode("list");
+                }}
+                className={section === "quiz" 
+                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white" 
+                  : "border-purple-300 text-purple-700 hover:bg-purple-50"}
+              >
+                <BookOpen className="mr-2 h-4 w-4" />
+                Quiz
+              </Button>
+              <Button
+                variant={section === "discurso" ? "default" : "outline"}
+                onClick={() => {
+                  setSection("discurso");
+                  setMode("list");
+                }}
+                className={section === "discurso" 
+                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white" 
+                  : "border-purple-300 text-purple-700 hover:bg-purple-50"}
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                Discurso
               </Button>
             </div>
           </div>
