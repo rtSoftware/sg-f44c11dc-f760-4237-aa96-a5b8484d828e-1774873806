@@ -166,7 +166,6 @@ Ejemplos:
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeRaw as any]}
-                        className="prose prose-stone max-w-none"
                       >
                         {markdown}
                       </ReactMarkdown>
