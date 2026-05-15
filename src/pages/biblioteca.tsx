@@ -253,16 +253,18 @@ export default function Biblioteca() {
                             <p className="text-sm text-stone-600 mb-4 line-clamp-1">por {libro.autor}</p>
                           )}
                           <div className="mt-auto pt-4 flex items-center justify-between">
-                            <div className="flex-1">
+                            <div className="flex-1 flex justify-end">
                               <Button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   router.push(`/discurso/${libro.id}`);
                                 }}
-                                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-purple-600 hover:text-purple-700 hover:bg-purple-50/50 transition-all"
+                                title="Discursos"
                               >
-                                <MessageSquare className="mr-2 h-4 w-4" />
-                                Discursos
+                                <MessageSquare className="h-5 w-5" />
                               </Button>
                             </div>
                             {libro.orden !== null && libro.orden !== undefined && (
