@@ -12,7 +12,7 @@ import { getAllLibros } from "@/services/libroService";
 import { useCasa } from "@/contexts/CasaContext";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { Libro } from "@/services/libroService";
-import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle, FileText, Search, Brain } from "lucide-react";
+import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle, FileText, Search, Brain, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -253,10 +253,26 @@ export default function Biblioteca() {
                             <p className="text-sm text-stone-600 mb-4 line-clamp-1">por {libro.autor}</p>
                           )}
                           <div className="mt-auto pt-4 flex items-center justify-between">
-                            <Badge variant="outline" className="border-amber-300 text-amber-700 bg-amber-50 group-hover:bg-amber-100 transition-colors">
-                              <BookOpen className="w-3 h-3 mr-1" />
-                              Leer
-                            </Badge>
+                            <div className="flex-1">
+                              <Button
+                                onClick={() => router.push(`/lectura/${libro.casa}`)}
+                                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                              >
+                                <FileText className="mr-2 h-4 w-4" />
+                                Leer
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  // Funcionalidad pendiente de definición
+                                  console.log("Discursos para libro:", libro.id);
+                                }}
+                                variant="outline"
+                                className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-50"
+                              >
+                                <MessageSquare className="mr-2 h-4 w-4" />
+                                Discursos
+                              </Button>
+                            </div>
                             {libro.orden !== null && libro.orden !== undefined && (
                               <span className="text-xs font-medium text-stone-500 bg-stone-100 px-2 py-1 rounded">
                                 Orden {libro.orden}
