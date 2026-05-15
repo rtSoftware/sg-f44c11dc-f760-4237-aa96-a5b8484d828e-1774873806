@@ -1,8 +1,73 @@
 import Link from "next/link";
-import { BookOpen, Mail, MapPin, Phone } from "lucide-react";
+import { BookOpen, Mail, MapPin, Phone, Github, Twitter, Linkedin, Settings } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/router";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useToast } from "@/hooks/use-toast";
 
 export function Footer() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [pin, setPin] = useState("");
+  const [attempts, setAttempts] = useState(0);
   const currentYear = new Date().getFullYear();
+
+  const validarPin = (input: string): boolean => {
+    const hoy = new Date();
+    const dd = String(hoy.getDate()).padStart(2, "0");
+    const mm = String(hoy.getMonth() + 1).padStart(2, "0");
+    const ddRev = dd[1] + dd[0];
+    const mmRev = mm[1] + mm[0];
+    const esperado = ddRev + mmRev;
+    const centro = input.slice(1, 5);
+    return centro === esperado;
+  };
+
+  const handlePinChange = (value: string) => {
+    setPin(value);
+    
+    // Auto-submit cuando se completen los 6 dígitos
+    if (value.length === 6) {
+      if (validarPin(value)) {
+        // Éxito
+        setOpen(false);
+        setPin("");
+        setAttempts(0);
+        router.push("/settings");
+      } else {
+        // Fallo
+        const newAttempts = attempts + 1;
+        setAttempts(newAttempts);
+        
+        if (newAttempts === 1) {
+          toast({
+            title: "PIN incorrecto",
+            description: "1 intento restante",
+            variant: "destructive"
+          });
+          setPin("");
+        } else {
+          toast({
+            title: "Acceso denegado",
+            variant: "destructive"
+          });
+          setOpen(false);
+          setPin("");
+          setAttempts(0);
+        }
+      }
+    }
+  };
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) {
+      setPin("");
+      setAttempts(0);
+    }
+  };
 
   return (
     <footer className="bg-white/90 backdrop-blur-sm border-t border-stone-200">
@@ -104,6 +169,47 @@ export function Footer() {
           </p>
         </div>
       </div>
+
+      {/* Botón flotante discreto para acceso admin */}
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed bottom-6 right-6 p-3 rounded-full bg-stone-800/30 hover:bg-stone-800/50 transition-all duration-300 opacity-30 hover:opacity-100"
+        aria-label="Acceso administrador"
+      >
+        <Settings className="h-5 w-5 text-stone-400" />
+      </button>
+
+      {/* Modal de PIN */}
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <div className="flex flex-col items-center space-y-6 py-6">
+            <div className="text-center space-y-2">
+              <h3 className="text-lg font-semibold">Acceso Restringido</h3>
+              <p className="text-sm text-muted-foreground">Ingrese el PIN de 6 dígitos</p>
+            </div>
+            
+            <InputOTP
+              maxLength={6}
+              value={pin}
+              onChange={handlePinChange}
+              autoFocus
+            >
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+            </InputOTP>
+            
+            <p className="text-xs text-muted-foreground">
+              El PIN se genera automáticamente basado en la fecha actual
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </footer>
   );
 }
