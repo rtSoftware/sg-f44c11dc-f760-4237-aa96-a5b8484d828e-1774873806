@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import { getDiscursoByLibroId, saveDiscurso } from "@/services/discursoService";
 
 export default function DiscursoEditor() {
@@ -162,7 +163,11 @@ Ejemplos:
                 <Card className="min-h-[600px] p-6 bg-white">
                   <div className="prose prose-purple max-w-none">
                     {markdown ? (
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeRaw]}
+                        className="prose prose-stone max-w-none"
+                      >
                         {markdown}
                       </ReactMarkdown>
                     ) : (
