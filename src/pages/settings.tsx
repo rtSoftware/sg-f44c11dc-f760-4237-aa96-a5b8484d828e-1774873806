@@ -38,7 +38,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 
 type FormMode = "list" | "create" | "edit";
-type Section = "libros" | "casas" | "perfil";
+type Section = "libros" | "casas" | "perfil" | "quiz" | "discurso";
 
 export default function Settings() {
   const router = useRouter();
