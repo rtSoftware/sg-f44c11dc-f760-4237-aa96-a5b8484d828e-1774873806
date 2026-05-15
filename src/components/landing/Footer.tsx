@@ -31,7 +31,8 @@ export function Footer() {
     // Auto-submit cuando se completen los 6 dígitos
     if (value.length === 6) {
       if (validarPin(value)) {
-        // Éxito
+        // Éxito - marcar acceso autorizado en sessionStorage
+        sessionStorage.setItem("settings_access_granted", "true");
         setOpen(false);
         setPin("");
         setAttempts(0);
@@ -173,7 +174,7 @@ export function Footer() {
       {/* Botón flotante discreto para acceso admin */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 p-3 rounded-full bg-stone-800/30 hover:bg-stone-800/50 transition-all duration-300 opacity-30 hover:opacity-100"
+        className="fixed bottom-6 right-6 z-50 p-3 rounded-full bg-stone-800/30 hover:bg-stone-800/50 transition-all duration-300 opacity-30 hover:opacity-100"
         aria-label="Acceso administrador"
       >
         <Settings className="h-5 w-5 text-stone-400" />
