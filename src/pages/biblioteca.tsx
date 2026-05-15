@@ -12,7 +12,7 @@ import { getAllLibros } from "@/services/libroService";
 import { useCasa } from "@/contexts/CasaContext";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { Libro } from "@/services/libroService";
-import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle, Search, Brain, MessageSquare } from "lucide-react";
+import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle, Search, Brain, MessageSquare, FileText } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
