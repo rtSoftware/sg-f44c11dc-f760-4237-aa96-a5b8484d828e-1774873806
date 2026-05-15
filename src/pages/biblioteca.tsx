@@ -253,16 +253,20 @@ export default function Biblioteca() {
                             <p className="text-sm text-stone-600 mb-4 line-clamp-1">por {libro.autor}</p>
                           )}
                           <div className="mt-auto pt-4 flex items-center justify-between">
-                            <div className="flex-1">
+                            <div className="flex-1 flex gap-2">
                               <Button
-                                onClick={() => router.push(`/lectura/${libro.casa}`)}
-                                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push(`/lectura/${libro.casa_id || ''}`);
+                                }}
+                                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                               >
                                 <FileText className="mr-2 h-4 w-4" />
                                 Leer
                               </Button>
                               <Button
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   // Funcionalidad pendiente de definición
                                   console.log("Discursos para libro:", libro.id);
                                 }}
@@ -274,7 +278,7 @@ export default function Biblioteca() {
                               </Button>
                             </div>
                             {libro.orden !== null && libro.orden !== undefined && (
-                              <span className="text-xs font-medium text-stone-500 bg-stone-100 px-2 py-1 rounded">
+                              <span className="text-xs font-medium text-stone-500 bg-stone-100 px-2 py-1 rounded ml-4">
                                 Orden {libro.orden}
                               </span>
                             )}
