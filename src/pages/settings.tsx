@@ -38,7 +38,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 
 type FormMode = "list" | "create" | "edit";
-type Section = "libros" | "casas" | "perfil" | "quiz" | "discurso";
+type Section = "libros" | "casas" | "perfil" | "quiz";
 
 export default function Settings() {
   const router = useRouter();
@@ -643,19 +643,6 @@ export default function Settings() {
               >
                 <BookOpen className="mr-2 h-4 w-4" />
                 Quiz
-              </Button>
-              <Button
-                variant={section === "discurso" ? "default" : "outline"}
-                onClick={() => {
-                  setSection("discurso");
-                  setMode("list");
-                }}
-                className={section === "discurso" 
-                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white" 
-                  : "border-purple-300 text-purple-700 hover:bg-purple-50"}
-              >
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Discurso
               </Button>
             </div>
           </div>
