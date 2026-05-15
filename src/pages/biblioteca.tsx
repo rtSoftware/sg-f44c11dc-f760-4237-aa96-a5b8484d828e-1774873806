@@ -12,7 +12,7 @@ import { getAllLibros } from "@/services/libroService";
 import { useCasa } from "@/contexts/CasaContext";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { Libro } from "@/services/libroService";
-import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle, FileText, Search, Brain, MessageSquare } from "lucide-react";
+import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle, Search, Brain, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -253,25 +253,14 @@ export default function Biblioteca() {
                             <p className="text-sm text-stone-600 mb-4 line-clamp-1">por {libro.autor}</p>
                           )}
                           <div className="mt-auto pt-4 flex items-center justify-between">
-                            <div className="flex-1 flex gap-2">
-                              <Button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  router.push(`/lectura/${libro.casa_id || ''}`);
-                                }}
-                                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-                              >
-                                <FileText className="mr-2 h-4 w-4" />
-                                Leer
-                              </Button>
+                            <div className="flex-1">
                               <Button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   // Funcionalidad pendiente de definición
                                   console.log("Discursos para libro:", libro.id);
                                 }}
-                                variant="outline"
-                                className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-50"
+                                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                               >
                                 <MessageSquare className="mr-2 h-4 w-4" />
                                 Discursos
