@@ -1,11 +1,23 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { SEO } from "@/components/SEO";
-import { Button } from "@/components/ui/button";
+import { Plus, ArrowLeft, Trash2, Maximize2, BookOpen, FileText, Search } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { SEO } from "@/components/SEO";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -13,16 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Plus, Loader2, BookOpen, Trash2, FileText, Search } from "lucide-react";
 import Link from "next/link";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { useCasa } from "@/contexts/CasaContext";
@@ -53,6 +56,9 @@ export default function NotasPage() {
     nota: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newNota, setNewNota] = useState({ titulo: "", contenido: "" });
+  const [expandedNota, setExpandedNota] = useState<NotaWithLibro | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -107,6 +113,7 @@ export default function NotasPage() {
     e.preventDefault();
     if (!user || !casaId) return;
     setSubmitting(true);
+    setIsCreating(true);
     try {
       await createNota({ ...formData, user_id: user.id, casa_id: casaId });
       await loadData();
@@ -117,6 +124,7 @@ export default function NotasPage() {
       alert("No se pudo crear la nota.");
     } finally {
       setSubmitting(false);
+      setIsCreating(false);
     }
   }
 
@@ -261,14 +269,25 @@ export default function NotasPage() {
                             {nota.origen}
                           </blockquote>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteNota(nota.id)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50 -mt-2 -mr-2"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-purple-600 hover:text-purple-700 hover:bg-purple-50/50"
+                            onClick={() => setExpandedNota(nota)}
+                            title="Ver nota completa"
+                          >
+                            <Maximize2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleDeleteNota(nota.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="pt-4">
@@ -389,6 +408,25 @@ export default function NotasPage() {
                 </Button>
               </DialogFooter>
             </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal para nota expandida */}
+        <Dialog open={expandedNota !== null} onOpenChange={(open) => !open && setExpandedNota(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-purple-700">
+                {expandedNota?.titulo}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="mt-4 prose prose-purple max-w-none">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeRaw as any]}
+              >
+                {expandedNota?.contenido || ""}
+              </ReactMarkdown>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
