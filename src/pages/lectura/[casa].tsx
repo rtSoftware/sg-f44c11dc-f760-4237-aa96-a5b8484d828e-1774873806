@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Lock, Headphones, FileText } from "lucide-react";
 import Link from "next/link";
+import { SEO } from "@/components/SEO";
 import { getCasaByNombre } from "@/services/casaService";
 import { getLibrosPorCasa } from "@/services/libroService";
 import { getNotasByLibroId } from "@/services/notasService";
