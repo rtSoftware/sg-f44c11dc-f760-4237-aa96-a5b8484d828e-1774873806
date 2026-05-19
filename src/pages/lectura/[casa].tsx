@@ -45,8 +45,6 @@ export default function LecturaCasa() {
   const [libro, setLibro] = useState<Libro | null>(null);
   const [showBook, setShowBook] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [casaData, setCasaData] = useState<Casa | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [notas, setNotas] = useState<NotaWithLibro[]>([]);
   const [selectedNota, setSelectedNota] = useState<NotaWithLibro | null>(null);
 
@@ -88,27 +86,19 @@ export default function LecturaCasa() {
   }, [casaNombre]);
 
   useEffect(() => {
-    async function fetchCasa() {
-      if (!casaNombre || typeof casaNombre !== "string") return;
-      
+    if (!libro) return;
+    
+    async function fetchNotas() {
       try {
-        const data = await getCasaByNombre(casaNombre);
-        setCasaData(data);
-        
-        // Cargar notas del libro activo si existe
-        if (data?.libro_id) {
-          const notasData = await getNotasByLibroId(data.libro_id);
-          setNotas(notasData);
-        }
+        const notasData = await getNotasByLibroId(libro.id);
+        setNotas(notasData);
       } catch (error) {
-        console.error("Error al cargar casa:", error);
-      } finally {
-        setLoading(false);
+        console.error("Error al cargar notas:", error);
       }
     }
-
-    fetchCasa();
-  }, [casaNombre]);
+    
+    fetchNotas();
+  }, [libro]);
 
   const handleCodigoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toUpperCase().slice(0, 6);
@@ -259,6 +249,37 @@ export default function LecturaCasa() {
                 </a>
               </div>
 
+              {/* Renglón exclusivo para el Select de notas vinculadas al libro */}
+              <div className="mb-8 p-4 bg-stone-50 border border-stone-200 rounded-lg">
+                <label className="block text-sm font-medium text-stone-700 mb-2">
+                  Notas vinculadas a este libro
+                </label>
+                <Select
+                  value={selectedNota?.id || ""}
+                  onValueChange={(notaId) => {
+                    const nota = notas.find(n => n.id === notaId);
+                    if (nota) setSelectedNota(nota);
+                  }}
+                >
+                  <SelectTrigger className="w-full bg-white border-stone-300">
+                    <SelectValue placeholder="Seleccionar una nota..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {notas.length === 0 ? (
+                      <SelectItem value="empty" disabled>
+                        No hay notas para este libro
+                      </SelectItem>
+                    ) : (
+                      notas.map((nota) => (
+                        <SelectItem key={nota.id} value={nota.id}>
+                          {nota.titulo || (nota.origen ? nota.origen.substring(0, 60) + "..." : "Nota sin título")}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="mt-8">
                 <div className="prose prose-stone prose-lg max-w-none
                     prose-headings:text-stone-900 prose-headings:font-bold
@@ -335,40 +356,19 @@ export default function LecturaCasa() {
             )}
 
             <Button
-              onClick={() => router.push(`/quiz/${casaData?.libro_id}`)}
-              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              onClick={handleValidarCodigo}
+              disabled={isValidating || codigo.trim().length === 0}
+              className="w-full bg-stone-900 hover:bg-stone-800 text-white mt-4"
             >
-              <Brain className="mr-2 h-4 w-4" />
-              Quiz
+              {isValidating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Validando...
+                </>
+              ) : (
+                "Acceder"
+              )}
             </Button>
-
-            {/* Select de notas */}
-            <div className="mt-4">
-              <Select
-                value={selectedNota?.id || ""}
-                onValueChange={(notaId) => {
-                  const nota = notas.find(n => n.id === notaId);
-                  if (nota) setSelectedNota(nota);
-                }}
-              >
-                <SelectTrigger className="w-full border-purple-200 focus:border-purple-400">
-                  <SelectValue placeholder="Seleccionar nota..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {notas.length === 0 ? (
-                    <SelectItem value="empty" disabled>
-                      No hay notas para este libro
-                    </SelectItem>
-                  ) : (
-                    notas.map((nota) => (
-                      <SelectItem key={nota.id} value={nota.id}>
-                        {nota.origen ? nota.origen.substring(0, 50) + "..." : "Nota sin origen"}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
           </CardContent>
         </Card>
       </div>
@@ -378,7 +378,7 @@ export default function LecturaCasa() {
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-purple-700">
-              Nota de lectura
+              Nota del libro
             </DialogTitle>
           </DialogHeader>
           <div className="mt-4">

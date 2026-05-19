@@ -18,6 +18,29 @@ export type CreateNotaData = {
 };
 
 /**
+ * Obtener notas por ID de libro
+ */
+export async function getNotasByLibroId(libroId: string): Promise<NotaWithLibro[]> {
+  const { data, error } = await supabase
+    .from("notas")
+    .select(`
+      *,
+      libro:libro_id (
+        titulo
+      )
+    `)
+    .eq("libro_id", libroId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching notas por libro:", error);
+    throw error;
+  }
+
+  return (data || []) as NotaWithLibro[];
+}
+
+/**
  * Obtener todas las notas del usuario en su casa
  */
 export async function getNotasByUserAndCasa(
