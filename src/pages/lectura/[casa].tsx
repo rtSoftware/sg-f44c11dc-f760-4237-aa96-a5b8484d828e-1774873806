@@ -1,20 +1,37 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { BookOpen, ArrowLeft, ChevronLeft, ChevronRight, Brain } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { SEO } from "@/components/SEO";
+import rehypeRaw from "rehype-raw";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, BookOpen, Lock, Brain, Headphones, FileText } from "lucide-react";
+import { Loader2, Lock, Headphones, FileText } from "lucide-react";
 import Link from "next/link";
 import { getCasaByNombre } from "@/services/casaService";
 import { getLibrosPorCasa } from "@/services/libroService";
+import { getNotasByLibroId } from "@/services/notasService";
 import type { Tables } from "@/integrations/supabase/types";
+import type { Casa } from "@/services/casaService";
+import type { NotaWithLibro } from "@/services/notasService";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 type Libro = Tables<"libro">;
-type Casa = Tables<"casas">;
 
 export default function LecturaCasa() {
   const router = useRouter();
@@ -27,6 +44,10 @@ export default function LecturaCasa() {
   const [libro, setLibro] = useState<Libro | null>(null);
   const [showBook, setShowBook] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [casaData, setCasaData] = useState<Casa | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [notas, setNotas] = useState<NotaWithLibro[]>([]);
+  const [selectedNota, setSelectedNota] = useState<NotaWithLibro | null>(null);
 
   useEffect(() => {
     if (!casaNombre || typeof casaNombre !== "string") return;
@@ -61,6 +82,29 @@ export default function LecturaCasa() {
         setLoading(false);
       }
     };
+
+    fetchCasa();
+  }, [casaNombre]);
+
+  useEffect(() => {
+    async function fetchCasa() {
+      if (!casaNombre || typeof casaNombre !== "string") return;
+      
+      try {
+        const data = await getCasaByNombre(casaNombre);
+        setCasaData(data);
+        
+        // Cargar notas del libro activo si existe
+        if (data?.libro_id) {
+          const notasData = await getNotasByLibroId(data.libro_id);
+          setNotas(notasData);
+        }
+      } catch (error) {
+        console.error("Error al cargar casa:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
 
     fetchCasa();
   }, [casaNombre]);
@@ -290,32 +334,69 @@ export default function LecturaCasa() {
             )}
 
             <Button
-              onClick={handleValidarCodigo}
-              disabled={codigo.trim().length === 0 || isValidating}
-              className="w-full bg-stone-900 hover:bg-stone-800 text-white"
-              size="lg"
+              onClick={() => router.push(`/quiz/${casaData?.libro_id}`)}
+              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
-              {isValidating ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Cargando...
-                </>
-              ) : (
-                <>
-                  <Lock className="mr-2 h-5 w-5" />
-                  Acceder al Libro
-                </>
-              )}
+              <Brain className="mr-2 h-4 w-4" />
+              Quiz
             </Button>
 
-            <div className="pt-4 border-t border-stone-200">
-              <p className="text-xs text-stone-500 text-center">
-                Este es un acceso de lectura. Solo necesitas ingresar un código.
-              </p>
+            {/* Select de notas */}
+            <div className="mt-4">
+              <Select
+                value={selectedNota?.id || ""}
+                onValueChange={(notaId) => {
+                  const nota = notas.find(n => n.id === notaId);
+                  if (nota) setSelectedNota(nota);
+                }}
+              >
+                <SelectTrigger className="w-full border-purple-200 focus:border-purple-400">
+                  <SelectValue placeholder="Seleccionar nota..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {notas.length === 0 ? (
+                    <SelectItem value="empty" disabled>
+                      No hay notas para este libro
+                    </SelectItem>
+                  ) : (
+                    notas.map((nota) => (
+                      <SelectItem key={nota.id} value={nota.id}>
+                        {nota.origen ? nota.origen.substring(0, 50) + "..." : "Nota sin origen"}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Modal para nota seleccionada */}
+      <Dialog open={selectedNota !== null} onOpenChange={(open) => !open && setSelectedNota(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-purple-700">
+              Nota de lectura
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            {selectedNota?.origen && (
+              <blockquote className="border-l-4 border-purple-300 pl-4 italic text-stone-600 bg-purple-50 py-3 mb-6 rounded-r">
+                {selectedNota.origen}
+              </blockquote>
+            )}
+            <div className="prose prose-purple max-w-none">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeRaw as any]}
+              >
+                {selectedNota?.nota || ""}
+              </ReactMarkdown>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
