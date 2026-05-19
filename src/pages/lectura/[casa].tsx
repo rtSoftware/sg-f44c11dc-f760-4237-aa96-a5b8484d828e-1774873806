@@ -272,7 +272,7 @@ export default function LecturaCasa() {
                     ) : (
                       notas.map((nota) => (
                         <SelectItem key={nota.id} value={nota.id}>
-                          {nota.titulo || (nota.origen ? nota.origen.substring(0, 60) + "..." : "Nota sin título")}
+                          {nota.origen ? (nota.origen.length > 60 ? nota.origen.substring(0, 60) + "..." : nota.origen) : "Nota sin texto de origen"}
                         </SelectItem>
                       ))
                     )}
