@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { Plus, ArrowLeft, Trash2, Maximize2, BookOpen, FileText, Search } from "lucide-react";
+import { Plus, ArrowLeft, Trash2, Maximize2, BookOpen, FileText, Search, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -413,18 +413,23 @@ export default function NotasPage() {
 
         {/* Modal para nota expandida */}
         <Dialog open={expandedNota !== null} onOpenChange={(open) => !open && setExpandedNota(null)}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-white">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-purple-700">
-                {expandedNota?.titulo}
+                {expandedNota ? libros.find(l => l.id === expandedNota.libro_id)?.titulo || "Nota completa" : ""}
               </DialogTitle>
             </DialogHeader>
             <div className="mt-4 prose prose-purple max-w-none">
+              {expandedNota?.origen && (
+                <blockquote className="border-l-4 border-stone-300 pl-4 italic text-stone-600 bg-stone-50 py-3 mb-6 rounded-r">
+                  {expandedNota.origen}
+                </blockquote>
+              )}
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw as any]}
               >
-                {expandedNota?.contenido || ""}
+                {expandedNota?.nota || ""}
               </ReactMarkdown>
             </div>
           </DialogContent>
