@@ -90,10 +90,12 @@ export default function LecturaCasa() {
     
     async function fetchNotas() {
       try {
+        console.log("🔍 Cargando notas para libro:", libro.id);
         const notasData = await getNotasByLibroId(libro.id);
+        console.log("✅ Notas cargadas:", notasData.length, notasData);
         setNotas(notasData);
       } catch (error) {
-        console.error("Error al cargar notas:", error);
+        console.error("❌ Error al cargar notas:", error);
       }
     }
     
@@ -250,18 +252,25 @@ export default function LecturaCasa() {
               </div>
 
               {/* Renglón exclusivo para el Select de notas vinculadas al libro */}
-              <div className="mb-8 p-4 bg-stone-50 border border-stone-200 rounded-lg">
-                <label className="block text-sm font-medium text-stone-700 mb-2">
-                  Notas vinculadas a este libro
-                </label>
+              <div className="mb-8 p-6 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <FileText className="w-5 h-5 text-purple-600" />
+                  <label className="block text-base font-bold text-purple-900">
+                    Notas vinculadas a este libro ({notas.length})
+                  </label>
+                </div>
                 <Select
                   value={selectedNota?.id || ""}
                   onValueChange={(notaId) => {
+                    console.log("📝 Nota seleccionada:", notaId);
                     const nota = notas.find(n => n.id === notaId);
-                    if (nota) setSelectedNota(nota);
+                    if (nota) {
+                      console.log("✅ Mostrando nota:", nota);
+                      setSelectedNota(nota);
+                    }
                   }}
                 >
-                  <SelectTrigger className="w-full bg-white border-stone-300">
+                  <SelectTrigger className="w-full bg-white border-purple-300 h-12 text-base">
                     <SelectValue placeholder="Seleccionar una nota..." />
                   </SelectTrigger>
                   <SelectContent>
