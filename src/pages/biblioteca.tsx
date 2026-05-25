@@ -12,7 +12,7 @@ import { getAllLibros } from "@/services/libroService";
 import { useCasa } from "@/contexts/CasaContext";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { Libro } from "@/services/libroService";
-import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle, Search, Brain, MessageSquare, FileText } from "lucide-react";
+import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle, Search, Brain, MessageSquare, FileText, Plus, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -384,6 +384,15 @@ export default function Biblioteca() {
             </Button>
           </div>
         )}
+
+        {/* Botón flotante para crear nuevo libro */}
+        <button
+          onClick={() => router.push("/settings?tab=libros")}
+          className="fixed bottom-8 right-8 w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 z-50"
+          title="Crear nuevo libro"
+        >
+          <Plus className="h-6 w-6" />
+        </button>
       </div>
     </>
   );

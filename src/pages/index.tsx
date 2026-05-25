@@ -4,8 +4,15 @@ import { BookDescription } from "@/components/landing/BookDescription";
 import { PricingSection } from "@/components/landing/PricingSection";
 import { ContactSection } from "@/components/landing/ContactSection";
 import { Footer } from "@/components/landing/Footer";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/biblioteca");
+  }, [router]);
+
   return (
     <>
       <SEO 
