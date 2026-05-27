@@ -72,16 +72,14 @@ export default function LecturaCasa() {
         const { data: librosData, error: librosError } = await getLibrosPorCasa(data.id);
         if (librosError) {
           console.error("Error loading libros:", librosError);
-        } else if (librosData) {
+        } else if (librosData && librosData.length > 0) {
           console.log("📚 Libros disponibles en la casa:", librosData);
           setLibrosDisponibles(librosData);
           
-          // Establecer el libro activo (el primero o el que coincida con libro_id de la casa)
-          const libroActivo = librosData.find(l => l.id === data.libro_id) || librosData[0];
-          if (libroActivo) {
-            console.log("📖 Libro activo inicial:", libroActivo.titulo);
-            setLibro(libroActivo);
-          }
+          // Establecer el primer libro como activo
+          const libroActivo = librosData[0];
+          console.log("📖 Libro activo inicial:", libroActivo.titulo);
+          setLibro(libroActivo);
         }
 
         setLoading(false);
@@ -261,8 +259,8 @@ export default function LecturaCasa() {
                   </div>
                 )}
 
-                {libro.subtitulo && (
-                  <p className="text-lg text-stone-600 mb-4">{libro.subtitulo}</p>
+                {libro.descripcion && (
+                  <p className="text-lg text-stone-600 mb-4">{libro.descripcion}</p>
                 )}
               </div>
 
