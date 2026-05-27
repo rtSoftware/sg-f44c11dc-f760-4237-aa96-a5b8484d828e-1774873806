@@ -47,6 +47,7 @@ export default function LecturaCasa() {
   const [loading, setLoading] = useState(true);
   const [notas, setNotas] = useState<NotaWithLibro[]>([]);
   const [selectedNota, setSelectedNota] = useState<NotaWithLibro | null>(null);
+  const [librosDisponibles, setLibrosDisponibles] = useState<Libro[]>([]);
 
   useEffect(() => {
     if (!casaNombre || typeof casaNombre !== "string") return;
@@ -71,6 +72,16 @@ export default function LecturaCasa() {
         const { data: librosData, error: librosError } = await getLibrosPorCasa(data.id);
         if (librosError) {
           console.error("Error loading libros:", librosError);
+        } else if (librosData) {
+          console.log("📚 Libros disponibles en la casa:", librosData);
+          setLibrosDisponibles(librosData);
+          
+          // Establecer el libro activo (el primero o el que coincida con libro_id de la casa)
+          const libroActivo = librosData.find(l => l.id === data.libro_id) || librosData[0];
+          if (libroActivo) {
+            console.log("📖 Libro activo inicial:", libroActivo.titulo);
+            setLibro(libroActivo);
+          }
         }
 
         setLoading(false);
@@ -212,6 +223,49 @@ export default function LecturaCasa() {
                 </div>
               )}
               
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h1 className="text-3xl font-bold text-stone-900">{libro.titulo}</h1>
+                </div>
+
+                {/* Selector de libros de la casa */}
+                {librosDisponibles.length > 1 && (
+                  <div className="mb-6 p-4 bg-stone-50 border border-stone-200 rounded-lg">
+                    <label className="block text-sm font-medium text-stone-700 mb-2">
+                      Cambiar a otro libro de esta casa
+                    </label>
+                    <Select
+                      value={libro.id}
+                      onValueChange={(libroId) => {
+                        console.log("📖 Cambiando a libro:", libroId);
+                        const nuevoLibro = librosDisponibles.find(l => l.id === libroId);
+                        if (nuevoLibro) {
+                          console.log("✅ Libro seleccionado:", nuevoLibro.titulo);
+                          setLibro(nuevoLibro);
+                          // Scroll to top al cambiar de libro
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full bg-white border-stone-300">
+                        <SelectValue placeholder="Seleccionar libro..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {librosDisponibles.map((libroItem) => (
+                          <SelectItem key={libroItem.id} value={libroItem.id}>
+                            {libroItem.titulo}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {libro.subtitulo && (
+                  <p className="text-lg text-stone-600 mb-4">{libro.subtitulo}</p>
+                )}
+              </div>
+
               <div className="bg-stone-50 rounded-lg p-4 mb-4">
                 <p className="text-xl font-semibold text-stone-900">{libro.titulo}</p>
                 {libro.autor && <p className="text-base text-stone-600 mt-1">{libro.autor}</p>}
