@@ -4,20 +4,24 @@ import { BookOpen, Settings, LogOut, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/SEO";
-import { logout } from "@/services/authService";
+import { signOut } from "@/services/authService";
 import { getAllLibros } from "@/services/libroService";
-import type { Libro } from "@/services/libroService";
+import type { LibroWithCasa } from "@/services/libroService";
 
 export default function Biblioteca() {
   const router = useRouter();
-  const [libros, setLibros] = useState<Libro[]>([]);
+  const [libros, setLibros] = useState<LibroWithCasa[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchLibros() {
       try {
-        const data = await getAllLibros();
-        setLibros(data);
+        const { data, error } = await getAllLibros();
+        if (error) {
+          console.error("Error fetching libros:", error);
+        } else {
+          setLibros(data);
+        }
       } catch (error) {
         console.error("Error fetching libros:", error);
       } finally {
@@ -30,7 +34,7 @@ export default function Biblioteca() {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
       router.push("/auth");
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
