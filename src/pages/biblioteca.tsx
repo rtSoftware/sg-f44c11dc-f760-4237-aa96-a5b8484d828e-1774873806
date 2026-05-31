@@ -48,53 +48,72 @@ export default function Biblioteca() {
         description="Tu biblioteca personal de libros"
       />
       
-      <div 
-        className="min-h-screen relative bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: "url('/biblioteca-bg.jpg')",
-        }}
-      >
-        {/* Overlay oscuro para mejorar legibilidad */}
-        <div className="absolute inset-0 bg-black/40" />
-
-        {/* Contenido principal */}
-        <div className="relative z-10 container mx-auto px-4 py-8">
-          {/* Header con título */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold text-white drop-shadow-lg mb-2">
-              Mi Biblioteca
-            </h1>
-            <p className="text-xl text-white/90 drop-shadow-md">
-              Tus libros disponibles
-            </p>
+      <div className="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100">
+        {/* Header */}
+        <div className="bg-white border-b border-stone-200 sticky top-0 z-10">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold text-stone-900">Mi Biblioteca</h1>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => router.push("/mensajes")}
+                  title="Mensajes"
+                >
+                  <MessageSquare className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => router.push("/settings")}
+                  title="Configuración"
+                >
+                  <Settings className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleLogout}
+                  title="Cerrar sesión"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
           </div>
+        </div>
 
-          {/* Grid de libros */}
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-8">
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white" />
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-stone-900" />
             </div>
           ) : libros.length === 0 ? (
             <div className="text-center py-20">
-              <BookOpen className="mx-auto h-16 w-16 text-white/70 mb-4" />
-              <p className="text-xl text-white/80">No hay libros disponibles</p>
+              <BookOpen className="mx-auto h-16 w-16 text-stone-400 mb-4" />
+              <p className="text-xl text-stone-600">No hay libros disponibles</p>
+              <p className="text-sm text-stone-500 mt-2">
+                Agrega tu primer libro desde Configuración
+              </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-32">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {libros.map((libro) => (
                 <Card
                   key={libro.id}
-                  className="cursor-pointer hover:shadow-2xl transition-all duration-300 hover:scale-105 bg-white/95 backdrop-blur-sm border-2 border-stone-200"
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => router.push(`/lectura/${libro.casa_nombre}`)}
                 >
                   <CardHeader>
-                    <CardTitle className="text-xl font-bold text-stone-900 line-clamp-2">
+                    <CardTitle className="text-xl font-bold text-stone-900">
                       {libro.titulo}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     {libro.descripcion && (
-                      <p className="text-stone-600 line-clamp-3 mb-4">
+                      <p className="text-stone-600 mb-4 line-clamp-3">
                         {libro.descripcion}
                       </p>
                     )}
@@ -107,48 +126,6 @@ export default function Biblioteca() {
               ))}
             </div>
           )}
-        </div>
-
-        {/* Tarjetas de navegación al pie - Solo iconos cuadrados */}
-        <div className="fixed bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/80 to-transparent py-6">
-          <div className="container mx-auto px-4">
-            <div className="flex justify-center gap-4">
-              {/* Mensajes */}
-              <button
-                onClick={() => router.push("/mensajes")}
-                className="w-16 h-16 bg-white/95 hover:bg-white rounded-lg shadow-lg flex items-center justify-center transition-all hover:scale-110 group"
-                title="Mensajes"
-              >
-                <MessageSquare className="h-7 w-7 text-purple-600 group-hover:text-purple-700" />
-              </button>
-
-              {/* Biblioteca (activo) */}
-              <button
-                className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-lg flex items-center justify-center scale-110"
-                title="Biblioteca (página actual)"
-              >
-                <BookOpen className="h-7 w-7 text-white" />
-              </button>
-
-              {/* Settings */}
-              <button
-                onClick={() => router.push("/settings")}
-                className="w-16 h-16 bg-white/95 hover:bg-white rounded-lg shadow-lg flex items-center justify-center transition-all hover:scale-110 group"
-                title="Configuración"
-              >
-                <Settings className="h-7 w-7 text-stone-600 group-hover:text-stone-900" />
-              </button>
-
-              {/* Logout */}
-              <button
-                onClick={handleLogout}
-                className="w-16 h-16 bg-white/95 hover:bg-red-50 rounded-lg shadow-lg flex items-center justify-center transition-all hover:scale-110 group"
-                title="Cerrar sesión"
-              >
-                <LogOut className="h-7 w-7 text-red-600 group-hover:text-red-700" />
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </>
