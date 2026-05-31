@@ -3,60 +3,39 @@ import type { Tables } from "@/integrations/supabase/types";
 
 export type Libro = Tables<"libro">;
 
-export type LibroWithCasa = Libro & {
-  casa_nombre: string;
-};
-
 /**
- * Obtener casa_id y user_id del contexto/localStorage
+ * Obtener casa_id del contexto/localStorage
  */
-function getAuthContext(): { casaId: string | null; userId: string | null } {
-  if (typeof window === "undefined") {
-    return { casaId: null, userId: null };
-  }
-  
-  const casaId = localStorage.getItem("casa_id");
-  const userId = localStorage.getItem("user_id");
-  
-  console.log("getAuthContext:", { casaId, userId });
-  
-  return { casaId, userId };
+function getCasaId(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("casa_id");
 }
 
 /**
- * Obtener todos los libros de la casa actual con nombre de casa
+ * Obtener user_id del contexto/localStorage
  */
-export async function getAllLibros(): Promise<{ data: LibroWithCasa[]; error: Error | null }> {
+function getUserId(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("user_id");
+}
+
+/**
+ * Obtener todos los libros de la casa actual
+ */
+export async function getAllLibros() {
   try {
-    // Obtener el usuario actual y su casa_id del perfil
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const casaId = getCasaId();
     
-    if (userError || !user) {
-      console.error("getAllLibros - No user found!");
+    console.log("getAllLibros - casa_id:", casaId);
+    
+    if (!casaId) {
+      console.error("getAllLibros - No casa_id found!");
       return { data: [], error: null };
     }
-
-    // Obtener el perfil del usuario para conseguir su casa_id
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("casa_id")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError || !profile?.casa_id) {
-      console.error("getAllLibros - No casa_id in profile!");
-      return { data: [], error: null };
-    }
-
-    const casaId = profile.casa_id;
-    console.log("getAllLibros - casa_id from profile:", casaId);
 
     const { data, error } = await supabase
       .from("libro")
-      .select(`
-        *,
-        casas!libro_casa_id_fkey(nombre)
-      `)
+      .select("*")
       .eq("casa_id", casaId)
       .order("orden", { ascending: true })
       .order("created_at", { ascending: false });
@@ -67,14 +46,7 @@ export async function getAllLibros(): Promise<{ data: LibroWithCasa[]; error: Er
     });
     
     if (error) throw error;
-
-    // Transform data to include casa_nombre
-    const librosWithCasa: LibroWithCasa[] = (data || []).map(libro => ({
-      ...libro,
-      casa_nombre: (libro.casas as any)?.nombre || ""
-    }));
-
-    return { data: librosWithCasa, error: null };
+    return { data: data || [], error: null };
   } catch (error) {
     console.error("Error fetching libros:", error);
     return { data: [], error: error as Error };
@@ -82,9 +54,9 @@ export async function getAllLibros(): Promise<{ data: LibroWithCasa[]; error: Er
 }
 
 /**
- * Obtener todos los libros de una casa específica (para lectura pública)
+ * Obtener libros por casa_id específico
  */
-export async function getLibrosPorCasa(casaId: string): Promise<{ data: Libro[] | null; error: Error | null }> {
+export async function getLibrosPorCasa(casaId: string) {
   try {
     const { data, error } = await supabase
       .from("libro")
@@ -94,407 +66,231 @@ export async function getLibrosPorCasa(casaId: string): Promise<{ data: Libro[] 
       .order("created_at", { ascending: false });
 
     if (error) throw error;
-
     return { data: data || [], error: null };
   } catch (error) {
     console.error("Error fetching libros por casa:", error);
-    return { data: null, error: error as Error };
+    return { data: [], error: error as Error };
   }
 }
 
 /**
- * Obtener un libro específico por ID (PÚBLICO - sin verificar casa_id)
+ * Obtener un libro por ID
  */
-export async function getLibroById(id: string): Promise<{ data: Libro | null; error: Error | null }> {
+export async function getLibroById(libroId: string) {
   try {
     const { data, error } = await supabase
       .from("libro")
       .select("*")
-      .eq("id", id)
-      .maybeSingle();
+      .eq("id", libroId)
+      .single();
 
     if (error) throw error;
-
     return { data, error: null };
   } catch (error) {
-    console.error("Error fetching libro by id:", error);
+    console.error("Error fetching libro:", error);
     return { data: null, error: error as Error };
   }
 }
 
 /**
- * Obtener todo el contenido del libro (primer registro para retrocompatibilidad)
+ * Crear un nuevo libro
  */
-export async function getLibroContent(): Promise<{ data: Libro | null; error: Error | null }> {
+export async function createLibro(libro: Partial<Libro>) {
   try {
-    const { casaId } = getAuthContext();
+    const casaId = getCasaId();
+    const userId = getUserId();
+
+    if (!casaId || !userId) {
+      throw new Error("No casa_id or user_id found");
+    }
+
+    const { data, error } = await supabase
+      .from("libro")
+      .insert([
+        {
+          ...libro,
+          casa_id: casaId,
+          created_by: userId,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error("Error creating libro:", error);
+    return { data: null, error: error as Error };
+  }
+}
+
+/**
+ * Actualizar un libro existente
+ */
+export async function updateLibro(libroId: string, updates: Partial<Libro>) {
+  try {
+    const { data, error } = await supabase
+      .from("libro")
+      .update(updates)
+      .eq("id", libroId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error("Error updating libro:", error);
+    return { data: null, error: error as Error };
+  }
+}
+
+/**
+ * Eliminar un libro
+ */
+export async function deleteLibro(libroId: string) {
+  try {
+    const { error } = await supabase
+      .from("libro")
+      .delete()
+      .eq("id", libroId);
+
+    if (error) throw error;
+    return { error: null };
+  } catch (error) {
+    console.error("Error deleting libro:", error);
+    return { error: error as Error };
+  }
+}
+
+/**
+ * Buscar libros por título
+ */
+export async function searchLibrosByTitulo(searchTerm: string) {
+  try {
+    const casaId = getCasaId();
     
     if (!casaId) {
-      return { data: null, error: new Error("No casa_id found") };
+      return { data: [], error: null };
     }
 
     const { data, error } = await supabase
       .from("libro")
       .select("*")
       .eq("casa_id", casaId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .ilike("titulo", `%${searchTerm}%`)
+      .order("titulo", { ascending: true });
 
     if (error) throw error;
-
-    return { data, error: null };
+    return { data: data || [], error: null };
   } catch (error) {
-    console.error("Error fetching libro content:", error);
-    return { data: null, error: error as Error };
+    console.error("Error searching libros:", error);
+    return { data: [], error: error as Error };
   }
 }
 
 /**
- * CREAR un nuevo libro (INSERT)
+ * Obtener el conteo de libros en la casa
  */
-export async function createLibro(
-  content: {
-    titulo: string;
-    descripcion?: string;
-    contenido?: string;
-    autor?: string;
-    portada_url?: string;
-    audio_https?: string;
-    audioanalisis_https?: string;
-    orden?: number;
-  },
-  userId: string
-): Promise<{ data: Libro | null; error: Error | null }> {
+export async function getLibrosCount() {
   try {
-    const { casaId } = getAuthContext();
+    const casaId = getCasaId();
     
     if (!casaId) {
-      console.error("createLibro - No casa_id found!");
-      return { data: null, error: new Error("No casa_id found") };
+      return { count: 0, error: null };
     }
 
-    console.log("createLibro - Using casa_id:", casaId, "user_id:", userId);
-    console.log("createLibro - Content:", content);
-
-    const { data, error } = await supabase
+    const { count, error } = await supabase
       .from("libro")
-      .insert({
-        user_id: userId,
-        casa_id: casaId,
-        titulo: content.titulo,
-        contenido: content.contenido || "",
-        descripcion: content.descripcion,
-        autor: content.autor,
-        portada_url: content.portada_url,
-        audio_https: content.audio_https,
-        audioanalisis_https: content.audioanalisis_https,
-        orden: content.orden || 0
-      })
-      .select()
-      .maybeSingle();
-
-    if (error) {
-      console.error("createLibro - Supabase error:", error);
-      throw error;
-    }
-    
-    console.log("createLibro - Success, libro created with casa_id:", data?.casa_id);
-    
-    return { data, error: null };
-  } catch (error) {
-    console.error("createLibro - Exception:", error);
-    return { data: null, error: error as Error };
-  }
-}
-
-/**
- * ACTUALIZAR un libro existente (UPDATE)
- */
-export async function updateLibro(
-  id: string,
-  content: {
-    titulo?: string;
-    descripcion?: string;
-    contenido?: string;
-    autor?: string;
-    portada_url?: string;
-    audio_https?: string;
-    audioanalisis_https?: string;
-    orden?: number;
-  }
-): Promise<{ data: Libro | null; error: Error | null }> {
-  try {
-    console.log("========================================");
-    console.log("🔄 ACTUALIZANDO LIBRO");
-    console.log("ID:", id);
-    console.log("Content:", content);
-    console.log("========================================");
-
-    // RLS policy verifica que auth.uid() = user_id automáticamente
-    // NO necesitamos filtrar por casa_id aquí
-    const { data, error } = await supabase
-      .from("libro")
-      .update(content)
-      .eq("id", id)
-      .select()
-      .maybeSingle();
-
-    if (error) {
-      console.error("❌ Supabase error:", error);
-      throw error;
-    }
-    
-    if (!data) {
-      console.error("❌ No data returned");
-      console.error("Posibles causas:");
-      console.error("1. El libro no existe (ID incorrecto)");
-      console.error("2. No tienes permisos para editar este libro (no eres el creador)");
-      console.error("3. RLS bloqueó la operación");
-      
-      // Intentar obtener el libro para ver si existe
-      const { data: existingLibro, error: fetchError } = await supabase
-        .from("libro")
-        .select("id, user_id, titulo")
-        .eq("id", id)
-        .maybeSingle();
-      
-      if (fetchError) {
-        console.error("Error al verificar existencia:", fetchError);
-      } else if (!existingLibro) {
-        console.error("El libro no existe en la base de datos");
-        return { data: null, error: new Error("El libro no existe o fue eliminado.") };
-      } else {
-        console.error("El libro existe:", existingLibro);
-        console.error("Pero no puedes editarlo. Solo el creador puede editar un libro.");
-        return { data: null, error: new Error("No tienes permisos para editar este libro. Solo el creador puede editarlo.") };
-      }
-      
-      return { data: null, error: new Error("No se pudo actualizar el libro. Verifica que existe y tienes permisos.") };
-    }
-    
-    console.log("✅ UPDATE EXITOSO:", data);
-    console.log("========================================");
-    return { data, error: null };
-  } catch (error) {
-    console.error("❌ Exception:", error);
-    return { data: null, error: error as Error };
-  }
-}
-
-/**
- * Crear o actualizar contenido del libro (DEPRECATED - usar createLibro o updateLibro)
- */
-export async function upsertLibroContent(
-  content: {
-    titulo?: string;
-    descripcion?: string;
-    contenido?: string;
-    autor?: string;
-    portada_url?: string;
-    audio_https?: string;
-    audioanalisis_https?: string;
-  },
-  userId: string
-): Promise<{ data: Libro | null; error: Error | null }> {
-  try {
-    const { casaId } = getAuthContext();
-    
-    if (!casaId) {
-      return { data: null, error: new Error("No casa_id found") };
-    }
-
-    // Primero verificamos si ya existe contenido
-    const { data: existingData } = await getLibroContent();
-
-    if (existingData) {
-      // Actualizar contenido existente
-      const { data, error } = await supabase
-        .from("libro")
-        .update(content)
-        .eq("id", existingData.id)
-        .eq("casa_id", casaId)
-        .select()
-        .maybeSingle();
-
-      if (error) throw error;
-      return { data, error: null };
-    } else {
-      // Crear nuevo contenido - asegurar campos obligatorios
-      const { data, error } = await supabase
-        .from("libro")
-        .insert({
-          user_id: userId,
-          casa_id: casaId,
-          titulo: content.titulo || "",
-          contenido: content.contenido || "",
-          descripcion: content.descripcion,
-          autor: content.autor,
-          portada_url: content.portada_url,
-          audio_https: content.audio_https,
-          audioanalisis_https: content.audioanalisis_https
-        })
-        .select()
-        .maybeSingle();
-
-      if (error) throw error;
-      return { data, error: null };
-    }
-  } catch (error) {
-    console.error("Error upserting libro content:", error);
-    return { data: null, error: error as Error };
-  }
-}
-
-/**
- * Eliminar contenido del libro
- */
-export async function deleteLibroContent(id: string): Promise<{ success: boolean; error: Error | null }> {
-  try {
-    const { casaId } = getAuthContext();
-    
-    if (!casaId) {
-      return { success: false, error: new Error("No casa_id found") };
-    }
-
-    const { error } = await supabase
-      .from("libro")
-      .delete()
-      .eq("id", id)
+      .select("*", { count: "exact", head: true })
       .eq("casa_id", casaId);
 
     if (error) throw error;
-    return { success: true, error: null };
+    return { count: count || 0, error: null };
   } catch (error) {
-    console.error("Error deleting libro content:", error);
-    return { success: false, error: error as Error };
+    console.error("Error counting libros:", error);
+    return { count: 0, error: error as Error };
   }
 }
 
 /**
- * Mover libro a otra casa (incluye reasignación automática de user_id y notas)
+ * Reordenar libros
  */
-export async function moverLibroACasa(
-  libroId: string,
-  nuevaCasaId: string
-): Promise<{ success: boolean; error: Error | null }> {
+export async function reorderLibros(libroIds: string[]) {
   try {
-    // 1. Buscar un usuario válido en la nueva casa
-    const { data: perfilEnNuevaCasa, error: perfilError } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("casa_id", nuevaCasaId)
-      .limit(1)
-      .maybeSingle();
+    const updates = libroIds.map((id, index) => ({
+      id,
+      orden: index + 1,
+    }));
 
-    if (perfilError) throw perfilError;
+    const promises = updates.map((update) =>
+      supabase.from("libro").update({ orden: update.orden }).eq("id", update.id)
+    );
+
+    await Promise.all(promises);
+    return { error: null };
+  } catch (error) {
+    console.error("Error reordering libros:", error);
+    return { error: error as Error };
+  }
+}
+
+/**
+ * Obtener libro actual de la casa
+ */
+export async function getCurrentLibro(casaId: string) {
+  try {
+    // First get the casa to find its current libro_id
+    const { data: casa, error: casaError } = await supabase
+      .from("casas")
+      .select("libro_id")
+      .eq("id", casaId)
+      .single();
+
+    if (casaError) throw casaError;
     
-    if (!perfilEnNuevaCasa) {
-      return { 
-        success: false, 
-        error: new Error("No hay usuarios en la casa de destino") 
-      };
+    if (!casa?.libro_id) {
+      // If no libro_id set, return the first libro
+      const { data, error } = await supabase
+        .from("libro")
+        .select("*")
+        .eq("casa_id", casaId)
+        .order("orden", { ascending: true })
+        .limit(1)
+        .single();
+
+      if (error) throw error;
+      return { data, error: null };
     }
 
-    // 2. Actualizar libro (casa_id + user_id simultáneamente)
-    const { error: updateError } = await supabase
-      .from("libro")
-      .update({
-        casa_id: nuevaCasaId,
-        user_id: perfilEnNuevaCasa.id
-      })
-      .eq("id", libroId);
-
-    if (updateError) throw updateError;
-
-    // 3. Mover todas las notas asociadas
-    const { error: notasError } = await supabase
-      .from("notas")
-      .update({ casa_id: nuevaCasaId })
-      .eq("libro_id", libroId);
-
-    // No bloqueamos si no hay notas o hay error menor
-    if (notasError) {
-      console.warn("Error moviendo notas:", notasError);
-    }
-
-    return { success: true, error: null };
-  } catch (error) {
-    console.error("Error moviendo libro a nueva casa:", error);
-    return { success: false, error: error as Error };
-  }
-}
-
-/**
- * Detectar libros huérfanos (user_id no está en la misma casa que libro.casa_id)
- */
-export async function detectarLibrosHuerfanos(): Promise<{
-  data: Array<Libro & { user_casa_id: string | null }> | null;
-  error: Error | null;
-}> {
-  try {
+    // Get the specific libro
     const { data, error } = await supabase
       .from("libro")
-      .select(`
-        *,
-        profiles!libro_user_id_fkey(casa_id)
-      `);
+      .select("*")
+      .eq("id", casa.libro_id)
+      .single();
 
     if (error) throw error;
-
-    // Filtrar libros donde casa_id del libro != casa_id del perfil del usuario
-    const huerfanos = data?.filter(libro => {
-      const perfiles = libro.profiles as any;
-      const userCasaId = perfiles?.casa_id || null;
-      return libro.casa_id !== userCasaId;
-    }).map(libro => ({
-      ...libro,
-      user_casa_id: (libro.profiles as any)?.casa_id || null
-    })) || [];
-
-    return { data: huerfanos, error: null };
+    return { data, error: null };
   } catch (error) {
-    console.error("Error detectando libros huérfanos:", error);
+    console.error("Error getting current libro:", error);
     return { data: null, error: error as Error };
   }
 }
 
 /**
- * Reasignar user_id de un libro huérfano a un usuario válido en su casa actual
+ * Cambiar el libro actual de la casa
  */
-export async function reasignarLibroHuerfano(
-  libroId: string,
-  casaIdActual: string
-): Promise<{ success: boolean; error: Error | null }> {
+export async function setCurrentLibro(casaId: string, libroId: string) {
   try {
-    // 1. Buscar usuario válido en la casa actual del libro
-    const { data: perfilValido, error: perfilError } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("casa_id", casaIdActual)
-      .limit(1)
-      .maybeSingle();
+    const { error } = await supabase
+      .from("casas")
+      .update({ libro_id: libroId })
+      .eq("id", casaId);
 
-    if (perfilError) throw perfilError;
-    
-    if (!perfilValido) {
-      return { 
-        success: false, 
-        error: new Error("No hay usuarios válidos en esta casa") 
-      };
-    }
-
-    // 2. Reasignar user_id
-    const { error: updateError } = await supabase
-      .from("libro")
-      .update({ user_id: perfilValido.id })
-      .eq("id", libroId);
-
-    if (updateError) throw updateError;
-
-    return { success: true, error: null };
+    if (error) throw error;
+    return { error: null };
   } catch (error) {
-    console.error("Error reasignando libro huérfano:", error);
-    return { success: false, error: error as Error };
+    console.error("Error setting current libro:", error);
+    return { error: error as Error };
   }
 }
