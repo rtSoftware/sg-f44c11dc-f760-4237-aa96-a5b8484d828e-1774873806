@@ -45,81 +45,72 @@ export default function Biblioteca() {
     <>
       <SEO 
         title="Biblioteca - Experiencia Miguel"
-        description="Tu biblioteca personal de libros"
+        description="Explora tu biblioteca personal de libros"
       />
-      
-      <div className="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100">
-        {/* Header */}
-        <div className="bg-white border-b border-stone-200 sticky top-0 z-10">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-stone-900">Mi Biblioteca</h1>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => router.push("/mensajes")}
-                  title="Mensajes"
-                >
-                  <MessageSquare className="h-5 w-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => router.push("/settings")}
-                  title="Configuración"
-                >
-                  <Settings className="h-5 w-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleLogout}
-                  title="Cerrar sesión"
-                >
-                  <LogOut className="h-5 w-5" />
-                </Button>
-              </div>
+      <div className="min-h-screen bg-gradient-to-b from-stone-50 to-stone-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-4xl font-bold text-stone-900 flex items-center gap-3">
+              <BookOpen className="h-10 w-10 text-purple-600" />
+              Mi Biblioteca
+            </h1>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => router.push("/mensajes")}
+                className="flex items-center gap-2"
+              >
+                <MessageSquare className="h-4 w-4" />
+                Mensajes
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push("/settings")}
+                className="flex items-center gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                Settings
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-red-600 hover:text-red-700"
+              >
+                <LogOut className="h-4 w-4" />
+                Salir
+              </Button>
             </div>
           </div>
-        </div>
 
-        {/* Main Content */}
-        <div className="container mx-auto px-4 py-8">
+          {/* Libros Grid */}
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-stone-900" />
-            </div>
-          ) : libros.length === 0 ? (
-            <div className="text-center py-20">
-              <BookOpen className="mx-auto h-16 w-16 text-stone-400 mb-4" />
-              <p className="text-xl text-stone-600">No hay libros disponibles</p>
-              <p className="text-sm text-stone-500 mt-2">
-                Agrega tu primer libro desde Configuración
-              </p>
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600" />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {libros.map((libro) => (
                 <Card
                   key={libro.id}
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  className="hover:shadow-lg transition-shadow cursor-pointer border-stone-200"
                   onClick={() => router.push(`/lectura/${libro.casa_nombre}`)}
                 >
-                  <CardHeader>
-                    <CardTitle className="text-xl font-bold text-stone-900">
+                  <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
+                    <CardTitle className="text-xl text-stone-900 flex items-center gap-2">
+                      <BookOpen className="h-5 w-5 text-purple-600" />
                       {libro.titulo}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-4">
                     {libro.descripcion && (
-                      <p className="text-stone-600 mb-4 line-clamp-3">
+                      <p className="text-stone-600 text-sm mb-3 line-clamp-3">
                         {libro.descripcion}
                       </p>
                     )}
-                    <div className="flex items-center text-sm text-stone-500">
-                      <BookOpen className="h-4 w-4 mr-2" />
-                      <span>{libro.casa_nombre}</span>
+                    <div className="flex justify-between items-center text-xs text-stone-500">
+                      <span>Casa: {libro.casa_nombre}</span>
+                      {libro.orden && <span>Orden: {libro.orden}</span>}
                     </div>
                   </CardContent>
                 </Card>
