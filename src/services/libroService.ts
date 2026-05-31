@@ -28,14 +28,28 @@ function getAuthContext(): { casaId: string | null; userId: string | null } {
  */
 export async function getAllLibros(): Promise<{ data: LibroWithCasa[]; error: Error | null }> {
   try {
-    const { casaId } = getAuthContext();
+    // Obtener el usuario actual y su casa_id del perfil
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     
-    console.log("getAllLibros - casa_id:", casaId);
-    
-    if (!casaId) {
-      console.error("getAllLibros - No casa_id found!");
+    if (userError || !user) {
+      console.error("getAllLibros - No user found!");
       return { data: [], error: null };
     }
+
+    // Obtener el perfil del usuario para conseguir su casa_id
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("casa_id")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile?.casa_id) {
+      console.error("getAllLibros - No casa_id in profile!");
+      return { data: [], error: null };
+    }
+
+    const casaId = profile.casa_id;
+    console.log("getAllLibros - casa_id from profile:", casaId);
 
     const { data, error } = await supabase
       .from("libro")
