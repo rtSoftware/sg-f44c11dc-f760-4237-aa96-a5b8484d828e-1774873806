@@ -11,18 +11,20 @@ export type LibroWithCasa = Libro & {
  * Obtener casa_id y user_id del contexto/localStorage
  */
 function getAuthContext(): { casaId: string | null; userId: string | null } {
-  let casaId: string | null = null;
-  const userId: string | null = null;
-
-  if (typeof window !== "undefined") {
-    casaId = localStorage.getItem("casa_id");
+  if (typeof window === "undefined") {
+    return { casaId: null, userId: null };
   }
-
+  
+  const casaId = localStorage.getItem("casa_id");
+  const userId = localStorage.getItem("user_id");
+  
+  console.log("getAuthContext:", { casaId, userId });
+  
   return { casaId, userId };
 }
 
 /**
- * Obtener todos los libros de la casa actual
+ * Obtener todos los libros de la casa actual con nombre de casa
  */
 export async function getAllLibros(): Promise<{ data: LibroWithCasa[]; error: Error | null }> {
   try {
