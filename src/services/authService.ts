@@ -218,3 +218,10 @@ export const authService = {
     return supabase.auth.onAuthStateChange(callback);
   }
 };
+
+// Export individual functions for easier import
+export const signOut = authService.signOut.bind(authService);
+export const getCurrentUser = authService.getCurrentUser.bind(authService);
+export const getCurrentSession = authService.getCurrentSession.bind(authService);
+export const signUp = authService.signUp.bind(authService);
+export const signIn = authService.signIn.bind(authService);

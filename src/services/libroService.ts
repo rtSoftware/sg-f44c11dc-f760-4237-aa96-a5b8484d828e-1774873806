@@ -3,6 +3,10 @@ import type { Tables } from "@/integrations/supabase/types";
 
 export type Libro = Tables<"libro">;
 
+export type LibroWithCasa = Libro & {
+  casa_nombre: string;
+};
+
 /**
  * Obtener casa_id y user_id del contexto/localStorage
  */
@@ -20,7 +24,7 @@ function getAuthContext(): { casaId: string | null; userId: string | null } {
 /**
  * Obtener todos los libros de la casa actual
  */
-export async function getAllLibros(): Promise<{ data: Libro[] | null; error: Error | null }> {
+export async function getAllLibros(): Promise<{ data: LibroWithCasa[]; error: Error | null }> {
   try {
     const { casaId } = getAuthContext();
     
@@ -33,7 +37,10 @@ export async function getAllLibros(): Promise<{ data: Libro[] | null; error: Err
 
     const { data, error } = await supabase
       .from("libro")
-      .select("*")
+      .select(`
+        *,
+        casas!libro_casa_id_fkey(nombre)
+      `)
       .eq("casa_id", casaId)
       .order("orden", { ascending: true })
       .order("created_at", { ascending: false });
@@ -43,20 +50,18 @@ export async function getAllLibros(): Promise<{ data: Libro[] | null; error: Err
       error: error?.message 
     });
     
-    if (data && data.length > 0) {
-      console.log("getAllLibros - Sample libro casa_ids:", data.slice(0, 3).map(l => ({ 
-        titulo: l.titulo, 
-        casa_id: l.casa_id,
-        orden: l.orden
-      })));
-    }
-
     if (error) throw error;
 
-    return { data: data || [], error: null };
+    // Transform data to include casa_nombre
+    const librosWithCasa: LibroWithCasa[] = (data || []).map(libro => ({
+      ...libro,
+      casa_nombre: (libro.casas as any)?.nombre || ""
+    }));
+
+    return { data: librosWithCasa, error: null };
   } catch (error) {
     console.error("Error fetching libros:", error);
-    return { data: null, error: error as Error };
+    return { data: [], error: error as Error };
   }
 }
 
