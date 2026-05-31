@@ -1,389 +1,151 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
-import { SEO } from "@/components/SEO";
-import { Button } from "@/components/ui/button";
+import { BookOpen, Settings, LogOut, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { authService } from "@/services/authService";
+import { Button } from "@/components/ui/button";
+import { SEO } from "@/components/SEO";
+import { logout } from "@/services/authService";
 import { getAllLibros } from "@/services/libroService";
-import { useCasa } from "@/contexts/CasaContext";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { Libro } from "@/services/libroService";
-import { ArrowLeft, BookOpen, Headphones, User as UserIcon, Library, MessageCircle, Search, Brain, MessageSquare, FileText, Settings, LogOut } from "lucide-react";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-
-type ViewMode = "grid" | "reader";
 
 export default function Biblioteca() {
   const router = useRouter();
-  const { casaId, casaNombre } = useCasa();
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
   const [libros, setLibros] = useState<Libro[]>([]);
-  const [selectedLibro, setSelectedLibro] = useState<Libro | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [hasTextSelection, setHasTextSelection] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    if (user && casaId) {
-      loadLibros();
-    }
-  }, [user, casaId]);
-
-  useEffect(() => {
-    function handleSelectionChange() {
-      const selection = window.getSelection();
-      const selectedText = selection?.toString().trim() || "";
-      setHasTextSelection(selectedText.length > 0);
+    async function fetchLibros() {
+      try {
+        const data = await getAllLibros();
+        setLibros(data);
+      } catch (error) {
+        console.error("Error fetching libros:", error);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    document.addEventListener("selectionchange", handleSelectionChange);
-
-    return () => {
-      document.removeEventListener("selectionchange", handleSelectionChange);
-    };
+    fetchLibros();
   }, []);
 
-  async function checkAuth() {
-    const currentUser = await authService.getCurrentUser();
-    if (!currentUser) {
+  const handleLogout = async () => {
+    try {
+      await logout();
       router.push("/auth");
-      return;
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
     }
-    setUser(currentUser as any);
-    setLoading(false);
-  }
-
-  async function loadLibros() {
-    const { data, error } = await getAllLibros();
-    
-    if (error) {
-      console.error("Error loading libros:", error);
-      setLibros([]);
-      return;
-    }
-    
-    if (data) {
-      // Eliminar duplicados si los hay (basado en el ID) y asegurar un orden consistente
-      // A veces al hacer joins en Supabase, si hay relaciones 1:N mal configuradas, se duplican filas
-      const uniqueLibros = Array.from(new Map(data.map(item => [item.id, item])).values());
-      
-      // Ordenar: primero por 'orden' (si existe), luego por fecha de creación o título
-      const sortedLibros = uniqueLibros.sort((a, b) => {
-        if (a.orden !== null && b.orden !== null && a.orden !== undefined && b.orden !== undefined) {
-          return a.orden - b.orden;
-        }
-        if (a.orden !== null && a.orden !== undefined) return -1;
-        if (b.orden !== null && b.orden !== undefined) return 1;
-        
-        return a.titulo.localeCompare(b.titulo);
-      });
-      
-      setLibros(sortedLibros);
-    } else {
-      setLibros([]);
-    }
-  }
-
-  async function handleLogout() {
-    await authService.signOut();
-    router.push("/");
-  }
-
-  function handleSelectLibro(libro: Libro) {
-    setSelectedLibro(libro);
-    setViewMode("reader");
-  }
-
-  function handleBackToGrid() {
-    setSelectedLibro(null);
-    setViewMode("grid");
-  }
-
-  function handleCreateNote() {
-    const selection = window.getSelection();
-    const selectedText = selection?.toString().trim() || "";
-    
-    if (selectedText && selectedLibro) {
-      router.push({
-        pathname: "/notas",
-        query: {
-          libro_id: selectedLibro.id,
-          origen: selectedText,
-        },
-      });
-    }
-  }
-
-  const filteredLibros = libros.filter(libro => 
-    libro.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (libro.autor && libro.autor.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-stone-900"></div>
-          <p className="mt-4 text-stone-600">Cargando biblioteca...</p>
-        </div>
-      </div>
-    );
-  }
+  };
 
   return (
     <>
-      <SEO
-        title="Biblioteca | Experiencia Miguel"
-        description="Explora la colección completa de libros"
+      <SEO 
+        title="Biblioteca - Experiencia Miguel"
+        description="Tu biblioteca personal de libros"
       />
+      
+      <div 
+        className="min-h-screen relative bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: "url('/biblioteca-bg.jpg')",
+        }}
+      >
+        {/* Overlay oscuro para mejorar legibilidad */}
+        <div className="absolute inset-0 bg-black/40" />
 
-      <div className="min-h-screen bg-stone-50">
-        {/* Header */}
-        <header className="bg-white/80 backdrop-blur-sm border-b border-stone-200 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex justify-between items-center">
-              {viewMode === "grid" ? (
-                <Link href="/dashboard">
-                  <Button variant="ghost" size="sm" className="text-stone-600 hover:text-stone-900 hover:bg-stone-100">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Volver al Dashboard
-                  </Button>
-                </Link>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleBackToGrid}
-                  className="text-stone-600 hover:text-stone-900 hover:bg-stone-100"
-                >
-                  <Library className="w-4 h-4 mr-2" />
-                  Volver a la Biblioteca
-                </Button>
-              )}
-              
-              <div className="flex items-center gap-4">
-                <div className="hidden sm:flex items-center gap-2 text-sm text-stone-600">
-                  <UserIcon className="w-4 h-4" />
-                  <span>{user?.email}</span>
-                </div>
-                <Button
-                  onClick={handleLogout}
-                  variant="outline"
-                  size="sm"
-                  className="border-stone-300 text-stone-700 hover:bg-stone-100"
-                >
-                  Cerrar Sesión
-                </Button>
-              </div>
-            </div>
+        {/* Contenido principal */}
+        <div className="relative z-10 container mx-auto px-4 py-8">
+          {/* Header con título */}
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-bold text-white drop-shadow-lg mb-2">
+              Mi Biblioteca
+            </h1>
+            <p className="text-xl text-white/90 drop-shadow-md">
+              Tus libros disponibles
+            </p>
           </div>
-        </header>
 
-        {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {viewMode === "grid" ? (
-            <div className="space-y-8">
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <h2 className="text-3xl font-serif font-bold text-stone-900">
-                  Tu Biblioteca {casaNombre ? `- Casa ${casaNombre}` : ''}
-                </h2>
-                
-                <div className="relative w-full sm:w-72">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
-                  <Input
-                    placeholder="Buscar libros..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 border-stone-300 focus-visible:ring-amber-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredLibros.length === 0 ? (
-                  <div className="col-span-full flex flex-col items-center justify-center py-12 text-center bg-white rounded-xl border border-stone-200">
-                    <BookOpen className="h-16 w-16 text-stone-300 mb-4" />
-                    <h3 className="text-lg font-semibold text-stone-900 mb-2">
-                      No hay libros disponibles
-                    </h3>
-                    <p className="text-stone-600">
-                      {searchTerm
-                        ? "No se encontraron libros que coincidan con tu búsqueda."
-                        : "Aún no hay libros en tu biblioteca."}
-                    </p>
-                  </div>
-                ) : (
-                  filteredLibros.map((libro) => (
-                    <Card
-                      key={`libro-${libro.id}`}
-                      className="group hover:shadow-lg transition-all duration-300 border-stone-200 hover:border-amber-300 cursor-pointer overflow-hidden flex flex-col h-full"
-                      onClick={() => handleSelectLibro(libro)}
-                    >
-                      <CardContent className="p-0 flex-1 flex flex-col">
-                        {libro.portada_url ? (
-                          <div className="relative h-64 w-full overflow-hidden bg-stone-100 shrink-0">
-                            <img
-                              src={libro.portada_url}
-                              alt={libro.titulo}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                          </div>
-                        ) : (
-                          <div className="relative h-64 w-full overflow-hidden bg-stone-200 shrink-0 flex items-center justify-center">
-                            <BookOpen className="w-16 h-16 text-stone-400" />
-                          </div>
-                        )}
-                        <div className="p-6 flex-1 flex flex-col">
-                          <h3 className="text-xl font-bold text-stone-900 mb-2 group-hover:text-amber-700 transition-colors line-clamp-2">
-                            {libro.titulo}
-                          </h3>
-                          {libro.autor && (
-                            <p className="text-sm text-stone-600 mb-4 line-clamp-1">por {libro.autor}</p>
-                          )}
-                          <div className="mt-auto pt-4 flex items-center justify-between">
-                            <div className="flex-1 flex justify-end">
-                              <Button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  router.push(`/discurso/${libro.id}`);
-                                }}
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-purple-600 hover:text-purple-700 hover:bg-purple-50/50 transition-all"
-                                title="Discursos"
-                              >
-                                <MessageSquare className="h-5 w-5" />
-                              </Button>
-                            </div>
-                            {libro.orden !== null && libro.orden !== undefined && (
-                              <span className="text-xs font-medium text-stone-500 bg-stone-100 px-2 py-1 rounded ml-4">
-                                Orden {libro.orden}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
-              </div>
+          {/* Grid de libros */}
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white" />
             </div>
-          ) : selectedLibro ? (
-            // READER VIEW
-            <div className="space-y-8 max-w-4xl mx-auto">
-              {/* Chapter Header */}
-              <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-                <div className="p-8 sm:p-12">
-                  <div className="flex flex-col md:flex-row gap-8 items-start">
-                    {/* Cover Image */}
-                    {selectedLibro.portada_url && (
-                      <div className="w-full md:w-1/3 shrink-0">
-                        <img
-                          src={selectedLibro.portada_url}
-                          alt={selectedLibro.titulo}
-                          className="w-full rounded-lg shadow-md object-cover aspect-[3/4]"
-                        />
-                      </div>
+          ) : libros.length === 0 ? (
+            <div className="text-center py-20">
+              <BookOpen className="mx-auto h-16 w-16 text-white/70 mb-4" />
+              <p className="text-xl text-white/80">No hay libros disponibles</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-32">
+              {libros.map((libro) => (
+                <Card
+                  key={libro.id}
+                  className="cursor-pointer hover:shadow-2xl transition-all duration-300 hover:scale-105 bg-white/95 backdrop-blur-sm border-2 border-stone-200"
+                  onClick={() => router.push(`/lectura/${libro.casa_nombre}`)}
+                >
+                  <CardHeader>
+                    <CardTitle className="text-xl font-bold text-stone-900 line-clamp-2">
+                      {libro.titulo}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {libro.descripcion && (
+                      <p className="text-stone-600 line-clamp-3 mb-4">
+                        {libro.descripcion}
+                      </p>
                     )}
-
-                    <div className="flex-1 space-y-6">
-                      <div>
-                        <h1 className="text-3xl sm:text-4xl font-serif font-bold text-stone-900 mb-2">
-                          {selectedLibro.titulo}
-                        </h1>
-                        {selectedLibro.autor && (
-                          <p className="text-lg text-stone-600">por {selectedLibro.autor}</p>
-                        )}
-                        {selectedLibro.orden !== null && selectedLibro.orden !== undefined && (
-                          <Badge variant="secondary" className="mt-3">
-                            Libro {selectedLibro.orden}
-                          </Badge>
-                        )}
-                      </div>
-
-                      {/* Description */}
-                      {selectedLibro.descripcion && (
-                        <p className="text-stone-700 leading-relaxed">
-                          {selectedLibro.descripcion}
-                        </p>
-                      )}
-
-                      {/* Botones de Audio, PDF y Quiz - única sección */}
-                      <div className="pt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {selectedLibro.audioanalisis_https && (
-                          <a
-                            href={selectedLibro.audioanalisis_https}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg shadow-sm transition-colors"
-                          >
-                            <Headphones className="w-4 h-4" />
-                            Audio
-                          </a>
-                        )}
-                        
-                        {selectedLibro.audio_https && (
-                          <a
-                            href={selectedLibro.audio_https}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-stone-800 hover:bg-stone-900 text-white font-medium rounded-lg shadow-sm transition-colors"
-                          >
-                            <FileText className="w-4 h-4" />
-                            PDF
-                          </a>
-                        )}
-                        
-                        <a
-                          href={`/quiz/${selectedLibro.id}`}
-                          className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors ${!selectedLibro.audioanalisis_https && !selectedLibro.audio_https ? "sm:col-span-3" : ""}`}
-                        >
-                          <Brain className="w-4 h-4" />
-                          Quiz
-                        </a>
-                      </div>
-
-                      <div className="prose prose-stone max-w-none">
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          rehypePlugins={[rehypeRaw]}
-                        >
-                          {selectedLibro.contenido}
-                        </ReactMarkdown>
-                      </div>
+                    <div className="flex items-center text-sm text-stone-500">
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      <span>{libro.casa_nombre}</span>
                     </div>
-                  </div>
-                </div>
-              </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          ) : null}
-        </main>
+          )}
+        </div>
 
-        {/* Floating Action Button */}
-        {hasTextSelection && (
-          <div className="fixed bottom-8 right-8 z-40 animate-in fade-in slide-in-from-bottom-5 duration-300">
-            <Button
-              size="lg"
-              onClick={handleCreateNote}
-              className="h-14 w-14 rounded-full shadow-lg bg-amber-600 hover:bg-amber-700 text-white hover:scale-105 transition-all duration-300"
-              title="Crear nota con texto seleccionado"
-            >
-              <MessageCircle className="h-6 w-6" />
-            </Button>
+        {/* Tarjetas de navegación al pie - Solo iconos cuadrados */}
+        <div className="fixed bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/80 to-transparent py-6">
+          <div className="container mx-auto px-4">
+            <div className="flex justify-center gap-4">
+              {/* Mensajes */}
+              <button
+                onClick={() => router.push("/mensajes")}
+                className="w-16 h-16 bg-white/95 hover:bg-white rounded-lg shadow-lg flex items-center justify-center transition-all hover:scale-110 group"
+                title="Mensajes"
+              >
+                <MessageSquare className="h-7 w-7 text-purple-600 group-hover:text-purple-700" />
+              </button>
+
+              {/* Biblioteca (activo) */}
+              <button
+                className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg shadow-lg flex items-center justify-center scale-110"
+                title="Biblioteca (página actual)"
+              >
+                <BookOpen className="h-7 w-7 text-white" />
+              </button>
+
+              {/* Settings */}
+              <button
+                onClick={() => router.push("/settings")}
+                className="w-16 h-16 bg-white/95 hover:bg-white rounded-lg shadow-lg flex items-center justify-center transition-all hover:scale-110 group"
+                title="Configuración"
+              >
+                <Settings className="h-7 w-7 text-stone-600 group-hover:text-stone-900" />
+              </button>
+
+              {/* Logout */}
+              <button
+                onClick={handleLogout}
+                className="w-16 h-16 bg-white/95 hover:bg-red-50 rounded-lg shadow-lg flex items-center justify-center transition-all hover:scale-110 group"
+                title="Cerrar sesión"
+              >
+                <LogOut className="h-7 w-7 text-red-600 group-hover:text-red-700" />
+              </button>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </>
   );
