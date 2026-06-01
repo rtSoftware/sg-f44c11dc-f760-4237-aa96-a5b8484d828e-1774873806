@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/link";
 import { BookOpen, Settings, LogOut, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { authService } from "@/services/authService";
 import { getAllLibros } from "@/services/libroService";
 import { useCasa } from "@/contexts/CasaContext";
 import type { Libro } from "@/services/libroService";
+import Link from "next/link";
 
 export default function Biblioteca() {
   const router = useRouter();

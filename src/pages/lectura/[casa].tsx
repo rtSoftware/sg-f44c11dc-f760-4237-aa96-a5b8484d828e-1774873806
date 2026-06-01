@@ -37,19 +37,28 @@ type Libro = Tables<"libro">;
 
 export default function LecturaCasa() {
   const router = useRouter();
-  const { casa: casaNombre, libro: libroIdParam } = router.query;
-
-  const [codigo, setCodigo] = useState("");
-  const [isValidating, setIsValidating] = useState(false);
-  const [error, setError] = useState("");
-  const [casa, setCasa] = useState<Casa | null>(null);
+  const { casa: casaSlug, libro: libroIdFromQuery } = router.query;
+  const { casaId, casaNombre, loading: casaLoading } = useCasa();
+  
+  // Detectar si se viene desde biblioteca
+  const fromBiblioteca = router.query.from === 'biblioteca';
+  
+  const [libros, setLibros] = useState<Libro[]>([]);
+  const [libroId, setLibroId] = useState<string | null>(
+    typeof libroIdFromQuery === "string" ? libroIdFromQuery : null
+  );
   const [libro, setLibro] = useState<Libro | null>(null);
   const [showBook, setShowBook] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // Modo lectura: true si NO viene desde biblioteca (entrada directa)
+  const [modoLectura, setModoLectura] = useState(!fromBiblioteca);
+  const [isValidating, setIsValidating] = useState(false);
+  const [error, setError] = useState("");
+  const [casa, setCasa] = useState<Casa | null>(null);
   const [notas, setNotas] = useState<NotaWithLibro[]>([]);
   const [selectedNota, setSelectedNota] = useState<NotaWithLibro | null>(null);
   const [librosDisponibles, setLibrosDisponibles] = useState<Libro[]>([]);
-  const [modoLectura, setModoLectura] = useState(false); // true = modo lectura externa, false = modo biblioteca
 
   useEffect(() => {
     if (!casaNombre || typeof casaNombre !== "string") return;
@@ -262,14 +271,27 @@ export default function LecturaCasa() {
           {/* Header fijo minimalista */}
           <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-stone-200">
             <div className="max-w-4xl mx-auto px-4 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <BookOpen className="w-5 h-5 text-stone-900" />
-                  <h1 className="text-lg font-semibold text-stone-900">{libro.titulo}</h1>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-stone-600">
-                  <Lock className="w-4 h-4" />
-                  <span>Modo Lectura</span>
+              {/* Header con navegación */}
+              <div className="flex items-center justify-between mb-6">
+                {fromBiblioteca && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => router.push('/biblioteca')}
+                    className="flex items-center gap-2 text-stone-600 hover:text-stone-900"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Volver a Biblioteca
+                  </Button>
+                )}
+                
+                <div className="flex gap-2 ml-auto">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => router.push('/dashboard')}
+                  >
+                    <BookOpen className="h-5 w-5" />
+                  </Button>
                 </div>
               </div>
               {libro.autor && (
