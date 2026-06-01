@@ -185,30 +185,30 @@ export default function DashboardPage() {
             <div className="absolute inset-0 bg-white/30 backdrop-blur-sm" />
           )}
 
-          {/* Feature Cards Grid - minimalistas y discretos */}
-          <div className="relative z-10 grid gap-6 grid-cols-2 max-w-sm mx-auto">
+          {/* Feature Cards Grid - extremadamente discretos y minimalistas */}
+          <div className="relative z-10 grid gap-8 grid-cols-2 max-w-xs mx-auto pt-20">
             {/* Biblioteca Digital */}
             <Link href="/biblioteca">
-              <div className="aspect-square rounded-2xl bg-white/40 backdrop-blur-md hover:bg-white/60 transition-all duration-300 cursor-pointer group flex items-center justify-center border border-white/20 hover:border-white/40">
-                <BookOpen className="h-12 w-12 text-stone-700 group-hover:text-stone-900 transition-colors" strokeWidth={1.5} />
+              <div className="aspect-square flex items-center justify-center cursor-pointer group">
+                <BookOpen className="h-16 w-16 text-stone-400/60 group-hover:text-stone-600 transition-colors duration-300" strokeWidth={1} />
               </div>
             </Link>
 
             {/* Notas */}
             <Link href="/notas">
-              <div className="aspect-square rounded-2xl bg-white/40 backdrop-blur-md hover:bg-white/60 transition-all duration-300 cursor-pointer group flex items-center justify-center border border-white/20 hover:border-white/40">
-                <FileText className="h-12 w-12 text-stone-700 group-hover:text-stone-900 transition-colors" strokeWidth={1.5} />
+              <div className="aspect-square flex items-center justify-center cursor-pointer group">
+                <FileText className="h-16 w-16 text-stone-400/60 group-hover:text-stone-600 transition-colors duration-300" strokeWidth={1} />
               </div>
             </Link>
 
             {/* Ejercicios - Coming Soon */}
-            <div className="aspect-square rounded-2xl bg-white/20 backdrop-blur-md cursor-not-allowed flex items-center justify-center border border-white/10 opacity-50">
-              <Brain className="h-12 w-12 text-stone-500" strokeWidth={1.5} />
+            <div className="aspect-square flex items-center justify-center cursor-not-allowed">
+                <Brain className="h-16 w-16 text-stone-300/40" strokeWidth={1} />
             </div>
 
             {/* Mentorías - Coming Soon */}
-            <div className="aspect-square rounded-2xl bg-white/20 backdrop-blur-md cursor-not-allowed flex items-center justify-center border border-white/10 opacity-50">
-              <MessageSquare className="h-12 w-12 text-stone-500" strokeWidth={1.5} />
+            <div className="aspect-square flex items-center justify-center cursor-not-allowed">
+                <MessageSquare className="h-16 w-16 text-stone-300/40" strokeWidth={1} />
             </div>
           </div>
         </main>
