@@ -73,8 +73,7 @@ export default function Biblioteca() {
                 size="sm"
                 className="border-stone-300 hover:bg-stone-100"
               >
-                <Settings className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Dashboard</span>
+                <Settings className="w-4 h-4" />
               </Button>
               <Button
                 variant="outline"
