@@ -53,19 +53,19 @@ export default function Biblioteca() {
       <div className="min-h-screen bg-gradient-to-b from-stone-50 to-stone-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-4xl font-bold text-stone-900 flex items-center gap-3">
-              <BookOpen className="h-10 w-10 text-purple-600" />
-              Mi Biblioteca
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-3xl sm:text-4xl font-serif text-stone-900">
+              Biblioteca {casaNombre}
             </h1>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <Button
+                onClick={handleLogout}
                 variant="outline"
-                onClick={() => router.push("/mensajes")}
-                className="flex items-center gap-2"
+                size="sm"
+                className="border-stone-300 hover:bg-stone-100"
               >
-                <MessageSquare className="h-4 w-4" />
-                Mensajes
+                <LogOut className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Salir</span>
               </Button>
               <Button
                 onClick={() => router.push('/dashboard')}
@@ -74,14 +74,6 @@ export default function Biblioteca() {
                 className="border-stone-300 hover:bg-stone-100"
               >
                 <Settings className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                className="flex items-center gap-2 text-red-600 hover:text-red-700"
-              >
-                <LogOut className="h-4 w-4" />
-                Salir
               </Button>
             </div>
           </div>
