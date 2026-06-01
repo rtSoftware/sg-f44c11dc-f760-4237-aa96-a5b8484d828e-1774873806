@@ -80,90 +80,39 @@ export default function DashboardPage() {
       
       <div className="min-h-screen">
         {/* Header */}
-        <header className="bg-white border-b border-stone-200 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              {/* Logo */}
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-amber-600 to-orange-600 rounded-lg flex items-center justify-center">
-                  <BookOpen className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-lg font-bold text-stone-900">
-                    Experiencia Miguel
-                  </h1>
-                  <p className="text-xs text-stone-600">Comunidad de Oratoria</p>
-                </div>
+        <header className="bg-white border-b border-stone-200 relative z-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-serif text-stone-900">
+                  {casaNombre || "Dashboard"}
+                </h1>
+                {fullName && (
+                  <p className="text-sm text-stone-600 mt-1">
+                    Bienvenido, {fullName}
+                  </p>
+                )}
               </div>
-
-              {/* User Menu */}
-              <div className="flex items-center gap-3">
-                {/* User Account Popover */}
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      className="flex items-center gap-2 text-stone-700 hover:text-amber-700 hover:bg-amber-50"
-                    >
-                      <User className="w-5 h-5" />
-                      <span className="font-medium">{fullName || "Usuario"}</span>
-                      <ChevronDown className="w-4 h-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80 p-6" align="end">
-                    <div>
-                      <h4 className="font-semibold text-stone-900 mb-4 flex items-center gap-2">
-                        <User className="w-5 h-5 text-amber-600" />
-                        Información de tu cuenta
-                      </h4>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center py-2 border-b border-stone-100">
-                          <span className="text-sm text-stone-600">Nombre:</span>
-                          <span className="text-sm font-medium text-stone-900">
-                            {user?.user_metadata?.full_name || "No especificado"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-2 border-b border-stone-100">
-                          <span className="text-sm text-stone-600">Email:</span>
-                          <span className="text-sm font-medium text-stone-900 truncate max-w-[180px]" title={user?.email}>
-                            {user?.email}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-2 border-b border-stone-100">
-                          <span className="text-sm text-stone-600 flex items-center gap-1">
-                            <Home className="w-4 h-4" />
-                            Casa:
-                          </span>
-                          <span className="text-sm font-medium text-blue-600">
-                            {casaNombre || "No asignada"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-2 border-b border-stone-100">
-                          <span className="text-sm text-stone-600">Alias:</span>
-                          <span className="text-sm font-medium text-stone-900">
-                            {fullName || "No especificado"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-sm text-stone-600">Miembro desde:</span>
-                          <span className="text-sm font-medium text-stone-900">
-                            {user?.created_at ? new Date(user.created_at).toLocaleDateString("es-MX") : "Hoy"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-
+              <div className="flex items-center gap-2">
                 <Button
-                  onClick={handleLogout}
-                  variant="outline"
+                  onClick={() => router.push('/settings')}
+                  variant="ghost"
                   size="sm"
-                  className="border-stone-300 hover:bg-stone-100"
+                  className="text-stone-600 hover:text-stone-900"
                 >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  <span className="hidden sm:inline">Cerrar Sesión</span>
-                  <span className="sm:hidden">Salir</span>
+                  <Settings className="h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    router.push("/auth");
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="text-stone-600 hover:text-stone-900"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Salir</span>
                 </Button>
               </div>
             </div>
@@ -212,16 +161,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </main>
-
-        {/* Icono Settings super discreto - esquina superior derecha */}
-        <Link href="/settings">
-          <button
-            className="fixed top-4 right-4 w-6 h-6 flex items-center justify-center text-stone-300/40 hover:text-stone-400/60 transition-colors duration-300"
-            title="Configuración"
-          >
-            <Settings className="w-4 h-4" strokeWidth={1} />
-          </button>
-        </Link>
       </div>
     </>
   );
