@@ -57,82 +57,96 @@ export default function LecturaCasa() {
     const fetchCasa = async () => {
       try {
         setLoading(true);
-        const { data, error } = await getCasaByNombre(casaNombre);
+        setError("");
+
+        // 1. Obtener casa
+        const { data: casaData, error: casaError } = await getCasaByNombre(casaNombre);
         
-        if (error || !data) {
+        if (casaError || !casaData) {
           setError("Casa no encontrada");
-          return;
-        }
-
-        setCasa(data);
-
-        // Guardar casa_id en localStorage para que esté disponible en modo lectura
-        if (typeof window !== "undefined") {
-          localStorage.setItem("casa_id", data.id);
-        }
-
-        // Verificar si el usuario está autenticado
-        const { data: { user } } = await supabase.auth.getUser();
-        const isAuthenticated = !!user;
-
-        const { data: librosData, error: librosError } = await getLibrosPorCasa(data.id);
-        if (librosError) {
-          console.error("Error loading libros:", librosError);
-          setError("Error al cargar los libros");
           setLoading(false);
           return;
         }
+
+        setCasa(casaData);
+
+        // Guardar casa_id en localStorage
+        if (typeof window !== "undefined") {
+          localStorage.setItem("casa_id", casaData.id);
+        }
+
+        // 2. Verificar autenticación (sin bloquear si falla)
+        let isAuthenticated = false;
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          isAuthenticated = !!user;
+          console.log("🔐 Usuario autenticado:", isAuthenticated);
+        } catch (authErr) {
+          console.warn("Error verificando autenticación:", authErr);
+          // Continuar sin autenticación
+        }
+
+        // 3. Cargar libros de la casa
+        const { data: librosData, error: librosError } = await getLibrosPorCasa(casaData.id);
         
-        if (librosData && librosData.length > 0) {
-          console.log("📚 Libros disponibles en la casa:", librosData);
+        if (librosError) {
+          console.error("❌ Error loading libros:", librosError);
+          setError("Error al cargar los libros. Por favor, intenta recargar la página.");
+          setLoading(false);
+          return;
+        }
+
+        if (!librosData || librosData.length === 0) {
+          setError("No hay libros disponibles en esta casa");
+          setLoading(false);
+          return;
+        }
+
+        console.log("📚 Libros cargados:", librosData.length);
+        
+        // 4. Detectar modo y filtrar libros
+        if (libroIdParam && typeof libroIdParam === "string") {
+          // MODO LECTURA EXTERNA - libro específico
+          console.log("🔒 MODO LECTURA EXTERNA - libro:", libroIdParam);
+          setModoLectura(true);
+          const libroEspecifico = librosData.find(l => l.id === libroIdParam);
           
-          // Detectar modo: si viene libro={id} en query = modo lectura externa
-          if (libroIdParam && typeof libroIdParam === "string") {
-            console.log("🔒 MODO LECTURA EXTERNA - libro específico:", libroIdParam);
-            setModoLectura(true);
-            const libroEspecifico = librosData.find(l => l.id === libroIdParam);
-            if (libroEspecifico) {
-              setLibrosDisponibles([libroEspecifico]); // Solo este libro
-              setLibro(libroEspecifico);
-              setShowBook(true); // Mostrar libro directamente
-            } else {
-              setError("Libro no encontrado en esta casa");
-            }
-          } else if (isAuthenticated) {
-            // Usuario autenticado desde biblioteca: mostrar todos los libros visibles directamente
-            console.log("📚 MODO BIBLIOTECA - usuario autenticado, mostrando libros directamente");
-            setModoLectura(false);
-            const librosActivos = librosData.filter(l => l.visible);
-            setLibrosDisponibles(librosActivos);
-            
-            if (librosActivos.length > 0) {
-              setLibro(librosActivos[0]);
-              setShowBook(true); // Mostrar libro directamente sin pedir código
-            } else {
-              setError("No hay libros visibles en esta casa");
-            }
+          if (libroEspecifico) {
+            setLibrosDisponibles([libroEspecifico]);
+            setLibro(libroEspecifico);
+            setShowBook(true);
           } else {
-            // Usuario NO autenticado: preparar libros pero mostrar formulario de código
-            console.log("🔐 Usuario no autenticado - mostrar formulario de código");
-            setModoLectura(false);
-            const librosActivos = librosData.filter(l => l.visible);
-            setLibrosDisponibles(librosActivos);
-            
-            if (librosActivos.length > 0) {
-              setLibro(librosActivos[0]);
-              // NO setShowBook(true) - dejar que se muestre el formulario
-            } else {
-              setError("No hay libros visibles en esta casa");
-            }
+            setError("Libro no encontrado en esta casa");
           }
         } else {
-          setError("No hay libros disponibles en esta casa");
+          // MODO BIBLIOTECA - todos los libros visibles
+          console.log("📚 MODO BIBLIOTECA");
+          setModoLectura(false);
+          const librosVisibles = librosData.filter(l => l.visible);
+          
+          if (librosVisibles.length === 0) {
+            setError("No hay libros visibles en esta casa");
+            setLoading(false);
+            return;
+          }
+
+          setLibrosDisponibles(librosVisibles);
+          setLibro(librosVisibles[0]);
+          
+          // Si usuario autenticado, mostrar directamente; si no, pedir código
+          if (isAuthenticated) {
+            console.log("✅ Usuario autenticado - mostrando libros directamente");
+            setShowBook(true);
+          } else {
+            console.log("🔐 Usuario NO autenticado - mostrar formulario de código");
+            // showBook permanece false, se mostrará formulario
+          }
         }
 
         setLoading(false);
       } catch (err) {
-        console.error("Error fetching casa:", err);
-        setError("Error al cargar la casa");
+        console.error("❌ Error general:", err);
+        setError("Error al cargar la página. Por favor, intenta recargar.");
         setLoading(false);
       }
     };
