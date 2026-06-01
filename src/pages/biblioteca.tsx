@@ -108,7 +108,7 @@ export default function Biblioteca() {
                   className="cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => {
                     if (casaNombre) {
-                      router.push(`/lectura/${casaNombre}?libro=${libro.id}`);
+                      router.push(`/lectura/${casaNombre}`);
                     }
                   }}
                 >
