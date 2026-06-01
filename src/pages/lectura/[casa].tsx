@@ -297,32 +297,29 @@ export default function LecturaCasa() {
                   <h1 className="text-3xl font-bold text-stone-900">{libro.titulo}</h1>
                 </div>
 
-                {/* Selector de libros de la casa - SOLO EN MODO BIBLIOTECA */}
-                {!modoLectura && librosDisponibles.length > 1 && (
-                  <div className="mb-6 p-4 bg-stone-50 border border-stone-200 rounded-lg">
-                    <label className="block text-sm font-medium text-stone-700 mb-2">
-                      Cambiar a otro libro de esta casa
+                {/* Selector de libro - visible tanto en modo biblioteca como en modo lectura */}
+                {showBook && librosDisponibles.length > 1 && libro && (
+                  <div className="mb-6 flex items-center gap-4">
+                    <label className="text-sm font-medium text-stone-700 whitespace-nowrap">
+                      Cambiar a otro libro de esta casa:
                     </label>
                     <Select
                       value={libro.id}
-                      onValueChange={(libroId) => {
-                        console.log("📖 Cambiando a libro:", libroId);
-                        const nuevoLibro = librosDisponibles.find(l => l.id === libroId);
+                      onValueChange={(nuevoLibroId) => {
+                        const nuevoLibro = librosDisponibles.find(l => l.id === nuevoLibroId);
                         if (nuevoLibro) {
-                          console.log("✅ Libro seleccionado:", nuevoLibro.titulo);
                           setLibro(nuevoLibro);
-                          // Scroll to top al cambiar de libro
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                          setSelectedNota(null);
                         }
                       }}
                     >
-                      <SelectTrigger className="w-full bg-white border-stone-300">
-                        <SelectValue placeholder="Seleccionar libro..." />
+                      <SelectTrigger className="w-[300px]">
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {librosDisponibles.map((libroItem) => (
-                          <SelectItem key={libroItem.id} value={libroItem.id}>
-                            {libroItem.titulo}
+                        {librosDisponibles.map((l) => (
+                          <SelectItem key={l.id} value={l.id}>
+                            {l.titulo} (Cap. {l.orden + 1})
                           </SelectItem>
                         ))}
                       </SelectContent>
