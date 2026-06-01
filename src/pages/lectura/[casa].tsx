@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Lock, Headphones, FileText } from "lucide-react";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
+import { supabase } from "@/integrations/supabase/client";
 import { getCasaByNombre } from "@/services/casaService";
 import { getLibrosPorCasa } from "@/services/libroService";
 import { getNotasByLibroId } from "@/services/notasService";
@@ -70,10 +71,19 @@ export default function LecturaCasa() {
           localStorage.setItem("casa_id", data.id);
         }
 
+        // Verificar si el usuario está autenticado
+        const { data: { user } } = await supabase.auth.getUser();
+        const isAuthenticated = !!user;
+
         const { data: librosData, error: librosError } = await getLibrosPorCasa(data.id);
         if (librosError) {
           console.error("Error loading libros:", librosError);
-        } else if (librosData && librosData.length > 0) {
+          setError("Error al cargar los libros");
+          setLoading(false);
+          return;
+        }
+        
+        if (librosData && librosData.length > 0) {
           console.log("📚 Libros disponibles en la casa:", librosData);
           
           // Detectar modo: si viene libro={id} en query = modo lectura externa
@@ -84,29 +94,45 @@ export default function LecturaCasa() {
             if (libroEspecifico) {
               setLibrosDisponibles([libroEspecifico]); // Solo este libro
               setLibro(libroEspecifico);
+              setShowBook(true); // Mostrar libro directamente
             } else {
               setError("Libro no encontrado en esta casa");
             }
-          } else {
-            // Modo biblioteca: mostrar todos los libros activos
-            console.log("📚 MODO BIBLIOTECA - todos los libros activos");
+          } else if (isAuthenticated) {
+            // Usuario autenticado desde biblioteca: mostrar todos los libros visibles directamente
+            console.log("📚 MODO BIBLIOTECA - usuario autenticado, mostrando libros directamente");
             setModoLectura(false);
             const librosActivos = librosData.filter(l => l.visible);
             setLibrosDisponibles(librosActivos);
             
             if (librosActivos.length > 0) {
               setLibro(librosActivos[0]);
+              setShowBook(true); // Mostrar libro directamente sin pedir código
             } else {
-              setError("No hay libros activos en esta casa");
+              setError("No hay libros visibles en esta casa");
+            }
+          } else {
+            // Usuario NO autenticado: preparar libros pero mostrar formulario de código
+            console.log("🔐 Usuario no autenticado - mostrar formulario de código");
+            setModoLectura(false);
+            const librosActivos = librosData.filter(l => l.visible);
+            setLibrosDisponibles(librosActivos);
+            
+            if (librosActivos.length > 0) {
+              setLibro(librosActivos[0]);
+              // NO setShowBook(true) - dejar que se muestre el formulario
+            } else {
+              setError("No hay libros visibles en esta casa");
             }
           }
+        } else {
+          setError("No hay libros disponibles en esta casa");
         }
 
         setLoading(false);
       } catch (err) {
         console.error("Error fetching casa:", err);
         setError("Error al cargar la casa");
-      } finally {
         setLoading(false);
       }
     };
