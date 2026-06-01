@@ -40,6 +40,9 @@ export default function LecturaCasa() {
   const { casa: casaSlug, libro: libroIdFromQuery } = router.query;
   const { casaId, casaNombre } = useCasa();
   
+  // Usar el parámetro de la URL como nombre de casa (prioridad sobre el contexto)
+  const casaFromUrl = typeof casaSlug === "string" ? casaSlug : null;
+  
   // Detectar si se viene desde biblioteca
   const fromBiblioteca = router.query.from === 'biblioteca';
   
@@ -62,15 +65,18 @@ export default function LecturaCasa() {
   const [librosDisponibles, setLibrosDisponibles] = useState<Libro[]>([]);
 
   useEffect(() => {
-    if (!casaNombre || typeof casaNombre !== "string") return;
+    // Usar el parámetro de la URL, no el contexto
+    if (!casaFromUrl) return;
 
     const fetchCasa = async () => {
       try {
         setLoading(true);
         setError("");
 
-        // 1. Obtener casa por nombre
-        const { data: casaData, error: casaError } = await getCasaByNombre(casaNombre);
+        console.log("🏠 Buscando casa desde URL:", casaFromUrl);
+
+        // 1. Obtener casa por nombre desde la URL
+        const { data: casaData, error: casaError } = await getCasaByNombre(casaFromUrl);
         
         if (casaError || !casaData) {
           setError("Casa no encontrada");
@@ -78,6 +84,7 @@ export default function LecturaCasa() {
           return;
         }
 
+        console.log("✅ Casa encontrada:", casaData.casa_nombre);
         setCasa(casaData);
 
         // IMPORTANTE: Guardar casa_id en localStorage (variable global permanente)
@@ -172,7 +179,7 @@ export default function LecturaCasa() {
     };
 
     fetchCasa();
-  }, [casaNombre, libroIdFromQuery]);
+  }, [casaFromUrl, libroIdFromQuery]);
 
   useEffect(() => {
     if (!libro) return;
@@ -253,7 +260,7 @@ export default function LecturaCasa() {
           <CardHeader>
             <CardTitle className="text-stone-900">Casa no encontrada</CardTitle>
             <CardDescription className="text-stone-600">
-              La casa "{casaNombre}" no existe en el sistema.
+              La casa "{casaFromUrl}" no existe en el sistema.
             </CardDescription>
           </CardHeader>
         </Card>
