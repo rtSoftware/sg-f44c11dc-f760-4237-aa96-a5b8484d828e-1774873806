@@ -213,15 +213,14 @@ export default function DashboardPage() {
           </div>
         </main>
 
-        {/* Floating Settings Button */}
+        {/* Icono Settings super discreto - esquina superior derecha */}
         <Link href="/settings">
-          <Button
-            size="icon"
-            className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-gradient-to-br from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+          <button
+            className="fixed top-4 right-4 w-6 h-6 flex items-center justify-center text-stone-300/40 hover:text-stone-400/60 transition-colors duration-300"
             title="Configuración"
           >
-            <Settings className="w-5 h-5 text-white" />
-          </Button>
+            <Settings className="w-4 h-4" strokeWidth={1} />
+          </button>
         </Link>
       </div>
     </>

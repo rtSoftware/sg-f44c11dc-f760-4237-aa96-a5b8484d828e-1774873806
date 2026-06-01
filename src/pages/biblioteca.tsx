@@ -68,12 +68,13 @@ export default function Biblioteca() {
                 Mensajes
               </Button>
               <Button
+                onClick={() => router.push('/dashboard')}
                 variant="outline"
-                onClick={() => router.push("/settings")}
-                className="flex items-center gap-2"
+                size="sm"
+                className="border-stone-300 hover:bg-stone-100"
               >
-                <Settings className="h-4 w-4" />
-                Settings
+                <Settings className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Dashboard</span>
               </Button>
               <Button
                 variant="outline"

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { Plus, ArrowLeft, Trash2, Maximize2, BookOpen, FileText, Search, Loader2 } from "lucide-react";
+import { Plus, ArrowLeft, Trash2, Maximize2, BookOpen, FileText, Search, Loader2, Settings } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -176,6 +176,15 @@ export default function NotasPage() {
                     Volver
                   </Button>
                 </Link>
+                <Button
+                  onClick={() => router.push('/dashboard')}
+                  variant="outline"
+                  size="sm"
+                  className="border-stone-300 hover:bg-stone-100"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Dashboard</span>
+                </Button>
                 <Button
                   onClick={() => setShowNewNotaDialog(true)}
                   className="bg-stone-900 hover:bg-stone-800 text-white"
