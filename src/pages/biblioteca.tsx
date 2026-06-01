@@ -98,7 +98,7 @@ export default function Biblioteca() {
               {libros.map((libro) => (
                 <Link
                   key={libro.id}
-                  href={`/lectura/${libro.casa}?libro=${libro.id}&from=biblioteca`}
+                  href={`/lectura/${casaNombre}?libro=${libro.id}&from=biblioteca`}
                   className="block"
                 >
                   <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full">

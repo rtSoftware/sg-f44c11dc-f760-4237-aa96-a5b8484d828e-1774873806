@@ -38,7 +38,7 @@ type Libro = Tables<"libro">;
 export default function LecturaCasa() {
   const router = useRouter();
   const { casa: casaSlug, libro: libroIdFromQuery } = router.query;
-  const { casaId, casaNombre, loading: casaLoading } = useCasa();
+  const { casaId, casaNombre } = useCasa();
   
   // Detectar si se viene desde biblioteca
   const fromBiblioteca = router.query.from === 'biblioteca';
