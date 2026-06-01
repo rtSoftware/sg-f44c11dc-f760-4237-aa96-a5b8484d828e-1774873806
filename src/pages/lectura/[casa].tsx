@@ -59,7 +59,7 @@ export default function LecturaCasa() {
         setLoading(true);
         setError("");
 
-        // 1. Obtener casa
+        // 1. Obtener casa por nombre
         const { data: casaData, error: casaError } = await getCasaByNombre(casaNombre);
         
         if (casaError || !casaData) {
@@ -70,12 +70,12 @@ export default function LecturaCasa() {
 
         setCasa(casaData);
 
-        // Guardar casa_id en localStorage
+        // IMPORTANTE: Guardar casa_id en localStorage (variable global permanente)
         if (typeof window !== "undefined") {
           localStorage.setItem("casa_id", casaData.id);
         }
 
-        // 2. Verificar autenticación (sin bloquear si falla)
+        // 2. Verificar autenticación
         let isAuthenticated = false;
         try {
           const { data: { user } } = await supabase.auth.getUser();
@@ -83,10 +83,9 @@ export default function LecturaCasa() {
           console.log("🔐 Usuario autenticado:", isAuthenticated);
         } catch (authErr) {
           console.warn("Error verificando autenticación:", authErr);
-          // Continuar sin autenticación
         }
 
-        // 3. Cargar libros de la casa
+        // 3. Cargar libros de esta casa
         const { data: librosData, error: librosError } = await getLibrosPorCasa(casaData.id);
         
         if (librosError) {
@@ -104,24 +103,35 @@ export default function LecturaCasa() {
 
         console.log("📚 Libros cargados:", librosData.length);
         
-        // 4. Detectar modo y filtrar libros
+        // 4. LÓGICA PRINCIPAL: Detectar si viene libro_id en la URL
         if (libroIdParam && typeof libroIdParam === "string") {
-          // MODO LECTURA EXTERNA - libro específico
-          console.log("🔒 MODO LECTURA EXTERNA - libro:", libroIdParam);
-          setModoLectura(true);
+          // Viene libro_id en query → buscar ese libro específico
+          console.log("📖 Buscando libro específico:", libroIdParam);
           const libroEspecifico = librosData.find(l => l.id === libroIdParam);
           
-          if (libroEspecifico) {
-            setLibrosDisponibles([libroEspecifico]);
-            setLibro(libroEspecifico);
-            setShowBook(true);
-          } else {
+          if (!libroEspecifico) {
             setError("Libro no encontrado en esta casa");
+            setLoading(false);
+            return;
+          }
+
+          setLibro(libroEspecifico);
+          setLibrosDisponibles(librosData.filter(l => l.visible)); // Guardar todos para el selector
+          
+          // Si usuario autenticado (viene desde biblioteca) → mostrar contenido directamente
+          // Si NO autenticado (URL externa) → pedir código
+          if (isAuthenticated) {
+            console.log("✅ Usuario autenticado desde biblioteca → mostrar libro directamente");
+            setShowBook(true);
+            setModoLectura(false); // Modo biblioteca: permitir cambiar de libro
+          } else {
+            console.log("🔒 Usuario NO autenticado → mostrar formulario de código");
+            setModoLectura(true); // Modo lectura externa: solo este libro
+            // showBook = false, se mostrará formulario de código
           }
         } else {
-          // MODO BIBLIOTECA - todos los libros visibles
-          console.log("📚 MODO BIBLIOTECA");
-          setModoLectura(false);
+          // NO viene libro_id → mostrar selector de libros visibles (solo si autenticado)
+          console.log("📚 Sin libro específico → modo biblioteca");
           const librosVisibles = librosData.filter(l => l.visible);
           
           if (librosVisibles.length === 0) {
@@ -132,14 +142,14 @@ export default function LecturaCasa() {
 
           setLibrosDisponibles(librosVisibles);
           setLibro(librosVisibles[0]);
+          setModoLectura(false);
           
-          // Si usuario autenticado, mostrar directamente; si no, pedir código
           if (isAuthenticated) {
-            console.log("✅ Usuario autenticado - mostrando libros directamente");
+            console.log("✅ Usuario autenticado → mostrar primer libro");
             setShowBook(true);
           } else {
-            console.log("🔐 Usuario NO autenticado - mostrar formulario de código");
-            // showBook permanece false, se mostrará formulario
+            console.log("🔐 Usuario NO autenticado → pedir código");
+            // showBook = false
           }
         }
 

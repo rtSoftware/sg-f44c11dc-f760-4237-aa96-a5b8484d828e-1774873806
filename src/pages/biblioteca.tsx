@@ -108,7 +108,8 @@ export default function Biblioteca() {
                   className="cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => {
                     if (casaNombre) {
-                      router.push(`/lectura/${casaNombre}`);
+                      // Navegar pasando el ID del libro para mostrar su contenido
+                      router.push(`/lectura/${casaNombre}?libro=${libro.id}`);
                     }
                   }}
                 >
@@ -116,6 +117,13 @@ export default function Biblioteca() {
                     <CardTitle className="text-xl">{libro.titulo}</CardTitle>
                   </CardHeader>
                   <CardContent>
+                    {libro.portada_url && (
+                      <img 
+                        src={libro.portada_url} 
+                        alt={libro.titulo}
+                        className="w-full h-48 object-cover rounded-lg mb-4"
+                      />
+                    )}
                     <p className="text-stone-600 line-clamp-3 mb-4">
                       {libro.descripcion || "Sin descripción"}
                     </p>
