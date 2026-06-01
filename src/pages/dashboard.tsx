@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { SEO } from "@/components/SEO";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, LogOut, Loader2, User, Settings, ChevronDown, Home } from "lucide-react";
 import Link from "next/link";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { BookOpen, Settings, LogOut, FileText, Brain, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SEO } from "@/components/SEO";
 import { useCasa } from "@/contexts/CasaContext";
+import { supabase } from "@/integrations/supabase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ChevronDown, Home, Loader2, User } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -184,30 +185,30 @@ export default function DashboardPage() {
             <div className="absolute inset-0 bg-white/30 backdrop-blur-sm" />
           )}
 
-          {/* Feature Cards Grid - cuadrados discretos */}
-          <div className="relative z-10 grid gap-4 grid-cols-2 max-w-md mx-auto">
-            {/* Biblioteca Digital - Active */}
+          {/* Feature Cards Grid - minimalistas y discretos */}
+          <div className="relative z-10 grid gap-6 grid-cols-2 max-w-sm mx-auto">
+            {/* Biblioteca Digital */}
             <Link href="/biblioteca">
-              <div className="aspect-square p-6 bg-white/95 backdrop-blur-sm rounded-xl border border-stone-200 hover:border-stone-300 hover:shadow-xl transition-all duration-300 cursor-pointer group active:scale-95 flex items-center justify-center">
-                <div className="text-6xl group-hover:scale-110 transition-transform duration-300">📚</div>
+              <div className="aspect-square rounded-2xl bg-white/40 backdrop-blur-md hover:bg-white/60 transition-all duration-300 cursor-pointer group flex items-center justify-center border border-white/20 hover:border-white/40">
+                <BookOpen className="h-12 w-12 text-stone-700 group-hover:text-stone-900 transition-colors" strokeWidth={1.5} />
               </div>
             </Link>
 
-            {/* Notas - Active */}
+            {/* Notas */}
             <Link href="/notas">
-              <div className="aspect-square p-6 bg-white/95 backdrop-blur-sm rounded-xl border border-stone-200 hover:border-stone-300 hover:shadow-xl transition-all duration-300 cursor-pointer group active:scale-95 flex items-center justify-center">
-                <div className="text-6xl group-hover:scale-110 transition-transform duration-300">📝</div>
+              <div className="aspect-square rounded-2xl bg-white/40 backdrop-blur-md hover:bg-white/60 transition-all duration-300 cursor-pointer group flex items-center justify-center border border-white/20 hover:border-white/40">
+                <FileText className="h-12 w-12 text-stone-700 group-hover:text-stone-900 transition-colors" strokeWidth={1.5} />
               </div>
             </Link>
 
             {/* Ejercicios - Coming Soon */}
-            <div className="aspect-square p-6 bg-white/60 backdrop-blur-sm rounded-xl border border-stone-200 opacity-60 cursor-not-allowed flex items-center justify-center">
-              <div className="text-6xl">🎯</div>
+            <div className="aspect-square rounded-2xl bg-white/20 backdrop-blur-md cursor-not-allowed flex items-center justify-center border border-white/10 opacity-50">
+              <Brain className="h-12 w-12 text-stone-500" strokeWidth={1.5} />
             </div>
 
             {/* Mentorías - Coming Soon */}
-            <div className="aspect-square p-6 bg-white/60 backdrop-blur-sm rounded-xl border border-stone-200 opacity-60 cursor-not-allowed flex items-center justify-center">
-              <div className="text-6xl">🎓</div>
+            <div className="aspect-square rounded-2xl bg-white/20 backdrop-blur-md cursor-not-allowed flex items-center justify-center border border-white/10 opacity-50">
+              <MessageSquare className="h-12 w-12 text-stone-500" strokeWidth={1.5} />
             </div>
           </div>
         </main>
