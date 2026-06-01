@@ -85,6 +85,10 @@ export default function Settings() {
     avatar_url: "",
   });
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [dashboardBgUrl, setDashboardBgUrl] = useState("");
   
   // Estados para mover libros
   const [showMoverLibroDialog, setShowMoverLibroDialog] = useState(false);
@@ -176,29 +180,24 @@ export default function Settings() {
   };
 
   const fetchProfile = async () => {
-    try {
-      setLoadingProfile(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("full_name, avatar_url")
-        .eq("id", user.id)
-        .single();
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("full_name, email, user_memo")
+      .eq("id", user.id)
+      .single();
 
-      if (error) throw error;
-
-      if (data) {
-        setProfileData({
-          full_name: data.full_name || "",
-          avatar_url: data.avatar_url || "",
-        });
+    if (!error && data) {
+      setFullName(data.full_name || "");
+      setEmail(data.email || "");
+      
+      // Cargar dashboard_bg desde user_memo
+      if (data.user_memo && typeof data.user_memo === 'object') {
+        const memo = data.user_memo as any;
+        setDashboardBgUrl(memo.dashboard_bg || "");
       }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setLoadingProfile(false);
     }
   };
 
@@ -383,31 +382,54 @@ export default function Settings() {
     }
   };
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-
-    setLoadingProfile(true);
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          full_name: profileData.full_name,
-          avatar_url: profileData.avatar_url,
-        })
-        .eq("id", user.id);
-
-      if (error) throw error;
-
-      setMessage({ type: "success", text: "Perfil actualizado exitosamente" });
-      setTimeout(() => setMessage(null), 3000);
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      setMessage({ type: "error", text: "Error al actualizar el perfil" });
-      setTimeout(() => setMessage(null), 3000);
-    } finally {
-      setLoadingProfile(false);
+  const handleSaveProfile = async () => {
+    setSavingProfile(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Usuario no autenticado",
+        variant: "destructive",
+      });
+      setSavingProfile(false);
+      return;
     }
+
+    // Obtener user_memo actual
+    const { data: currentProfile } = await supabase
+      .from("profiles")
+      .select("user_memo")
+      .eq("id", user.id)
+      .single();
+
+    const currentMemo = (currentProfile?.user_memo as any) || {};
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ 
+        full_name: fullName,
+        user_memo: {
+          ...currentMemo,
+          dashboard_bg: dashboardBgUrl
+        }
+      })
+      .eq("id", user.id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el perfil",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Perfil actualizado",
+        description: "Tus cambios se han guardado correctamente",
+      });
+    }
+
+    setSavingProfile(false);
   };
 
   const confirmarMoverLibro = async (e: React.FormEvent) => {
@@ -1267,82 +1289,103 @@ export default function Settings() {
                     Editar Perfil
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <form onSubmit={handleUpdateProfile} className="space-y-6">
-                    {/* Avatar Display */}
-                    <div className="flex flex-col items-center gap-4 pb-6 border-b border-amber-100">
-                      <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
-                        {profileData.avatar_url ? (
-                          <img 
-                            src={profileData.avatar_url} 
-                            alt="Avatar" 
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.src = "";
-                              e.currentTarget.style.display = "none";
-                            }}
-                          />
-                        ) : (
-                          <User className="w-16 h-16 text-purple-400" />
-                        )}
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-stone-700">
+                      Nombre Completo
+                    </label>
+                    <Input
+                      value={profileData.full_name}
+                      onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
+                      placeholder="Tu nombre completo"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-stone-700">
+                      Email
+                    </label>
+                    <Input
+                      value={user?.user_metadata?.email || ""}
+                      disabled
+                      className="bg-stone-100"
+                    />
+                  </div>
+
+                  {/* Fondo del Dashboard - Personalizado por usuario */}
+                  <div className="space-y-2 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <label className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+                      <Upload className="h-4 w-4" />
+                      Fondo de tu Dashboard
+                    </label>
+                    <Input
+                      type="url"
+                      placeholder="URL de la imagen de fondo"
+                      value={(user?.user_metadata as any)?.dashboard_bg || ""}
+                      onChange={(e) => {
+                        const newUrl = e.target.value;
+                        setProfileData({
+                          ...profileData,
+                          full_name: profileData.full_name,
+                          avatar_url: profileData.avatar_url,
+                        });
+                        setSaving(true);
+                        try {
+                          const { error } = await supabase
+                            .from("profiles")
+                            .update({
+                              full_name: profileData.full_name,
+                              avatar_url: profileData.avatar_url,
+                              user_memo: {
+                                ...(user?.user_metadata as any || {}),
+                                dashboard_bg: newUrl
+                              }
+                            })
+                            .eq("id", user.id);
+                          
+                          if (!error) {
+                            await fetchProfile();
+                            toast({
+                              title: "Fondo actualizado",
+                              description: "La imagen de fondo se ha guardado correctamente.",
+                            });
+                          }
+                        } catch (error) {
+                          console.error("Error updating dashboard bg:", error);
+                        } finally {
+                          setSaving(false);
+                        }
+                      }}
+                      className="border-blue-300 text-sm"
+                    />
+                    {(user?.user_metadata as any)?.dashboard_bg && (
+                      <div className="relative w-full h-24 rounded overflow-hidden border border-blue-300">
+                        <img 
+                          src={(user?.user_metadata as any).dashboard_bg} 
+                          alt="Vista previa del fondo" 
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      <p className="text-sm text-amber-600">
-                        Imagen de perfil actual
-                      </p>
-                    </div>
+                    )}
+                    <p className="text-xs text-blue-700">
+                      Esta imagen se usará como fondo en tu dashboard personal
+                    </p>
+                  </div>
 
-                    {/* Full Name Field */}
-                    <div className="space-y-2">
-                      <Label htmlFor="full_name" className="text-amber-900 font-semibold">
-                        Nombre Completo
-                      </Label>
-                      <Input
-                        id="full_name"
-                        value={profileData.full_name}
-                        onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
-                        placeholder="Tu nombre completo"
-                        className="border-amber-200 focus:border-purple-400 focus:ring-purple-400"
-                      />
-                    </div>
-
-                    {/* Avatar URL Field */}
-                    <div className="space-y-2">
-                      <Label htmlFor="avatar_url" className="text-amber-900 font-semibold">
-                        URL del Avatar
-                      </Label>
-                      <Input
-                        id="avatar_url"
-                        value={profileData.avatar_url}
-                        onChange={(e) => setProfileData({ ...profileData, avatar_url: e.target.value })}
-                        placeholder="https://ejemplo.com/mi-avatar.jpg"
-                        type="url"
-                        className="border-amber-200 focus:border-purple-400 focus:ring-purple-400"
-                      />
-                      <p className="text-sm text-amber-600">
-                        URL de la imagen que deseas usar como avatar
-                      </p>
-                    </div>
-
-                    <div className="flex justify-end gap-3 pt-4">
-                      <Button 
-                        type="submit" 
-                        disabled={loadingProfile}
-                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-                      >
-                        {loadingProfile ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Guardando...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="mr-2 h-4 w-4" />
-                            Guardar Cambios
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </form>
+                  <Button 
+                    onClick={handleSaveProfile}
+                    className="w-full"
+                    disabled={loadingProfile}
+                  >
+                    {loadingProfile ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Guardando...
+                      </>
+                    ) : (
+                      "Guardar Cambios"
+                    )}
+                  </Button>
                 </CardContent>
               </Card>
             </div>

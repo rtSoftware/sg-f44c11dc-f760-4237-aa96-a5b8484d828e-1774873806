@@ -20,7 +20,7 @@ export default function DashboardPage() {
   useEffect(() => {
     checkUser();
     loadDashboardBg();
-  }, [casaId]);
+  }, []);
 
   const checkUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -35,17 +35,18 @@ export default function DashboardPage() {
   };
 
   const loadDashboardBg = async () => {
-    if (!casaId) return;
-    
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
       const { data, error } = await supabase
-        .from("casas")
-        .select("casa_memo")
-        .eq("id", casaId)
+        .from("profiles")
+        .select("user_memo")
+        .eq("id", user.id)
         .single();
       
-      if (!error && data && data.casa_memo) {
-        const memo = data.casa_memo as any;
+      if (!error && data && data.user_memo) {
+        const memo = data.user_memo as any;
         if (memo.dashboard_bg) {
           setDashboardBg(memo.dashboard_bg);
         }
