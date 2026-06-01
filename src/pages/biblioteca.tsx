@@ -11,7 +11,7 @@ import type { Libro } from "@/services/libroService";
 
 export default function Biblioteca() {
   const router = useRouter();
-  const { casaNombre } = useCasa();
+  const { casaNombre, casaId } = useCasa();
   const [libros, setLibros] = useState<Libro[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -108,7 +108,7 @@ export default function Biblioteca() {
                   className="cursor-pointer hover:shadow-lg transition-shadow"
                   onClick={() => {
                     if (casaNombre) {
-                      router.push(`/lectura/${casaNombre}`);
+                      router.push(`/lectura/${casaNombre}?libro=${libro.id}`);
                     }
                   }}
                 >
@@ -120,8 +120,8 @@ export default function Biblioteca() {
                       {libro.descripcion || "Sin descripción"}
                     </p>
                     <div className="text-sm text-stone-500">
-                      <p>Casa: {casaNombre || "Sin casa"}</p>
-                      <p>Orden: {libro.orden}</p>
+                      <p>Capítulo {libro.orden + 1}</p>
+                      {libro.autor && <p>Por {libro.autor}</p>}
                     </div>
                   </CardContent>
                 </Card>
