@@ -11,13 +11,15 @@ import { useCasa } from "@/contexts/CasaContext";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { casaNombre, fullName } = useCasa();
+  const { casaNombre, casaId, fullName } = useCasa();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dashboardBg, setDashboardBg] = useState<string>("");
 
   useEffect(() => {
     checkUser();
-  }, []);
+    loadDashboardBg();
+  }, [casaId]);
 
   const checkUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -29,6 +31,27 @@ export default function DashboardPage() {
 
     setUser(session.user);
     setLoading(false);
+  };
+
+  const loadDashboardBg = async () => {
+    if (!casaId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("casas")
+        .select("casa_memo")
+        .eq("id", casaId)
+        .single();
+      
+      if (!error && data && data.casa_memo) {
+        const memo = data.casa_memo as any;
+        if (memo.dashboard_bg) {
+          setDashboardBg(memo.dashboard_bg);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading dashboard bg:", error);
+    }
   };
 
   const handleLogout = async () => {
@@ -147,51 +170,44 @@ export default function DashboardPage() {
         </header>
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-          {/* Feature Cards Grid */}
-          <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 max-w-3xl mx-auto">
+        <main 
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 min-h-[calc(100vh-64px)] relative"
+          style={dashboardBg ? {
+            backgroundImage: `url(${dashboardBg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          } : undefined}
+        >
+          {/* Overlay si hay imagen de fondo */}
+          {dashboardBg && (
+            <div className="absolute inset-0 bg-white/30 backdrop-blur-sm" />
+          )}
+
+          {/* Feature Cards Grid - cuadrados discretos */}
+          <div className="relative z-10 grid gap-4 grid-cols-2 max-w-md mx-auto">
             {/* Biblioteca Digital - Active */}
             <Link href="/biblioteca">
-              <div className="p-8 sm:p-6 bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-xl border border-stone-200 hover:border-stone-300 hover:shadow-lg transition-all duration-300 cursor-pointer group active:scale-95 min-h-[160px] sm:min-h-0 flex flex-col justify-center">
-                <div className="text-5xl sm:text-4xl mb-4 sm:mb-3 group-hover:scale-110 transition-transform duration-300">📚</div>
-                <h4 className="font-bold text-stone-900 mb-2 text-xl sm:text-lg">Biblioteca Digital</h4>
-                <p className="text-base sm:text-sm text-stone-600">Acceso completo al libro</p>
-                <div className="mt-4 sm:mt-3 text-stone-900 text-base sm:text-sm font-semibold group-hover:translate-x-1 transition-transform duration-300">
-                  Acceder →
-                </div>
+              <div className="aspect-square p-6 bg-white/95 backdrop-blur-sm rounded-xl border border-stone-200 hover:border-stone-300 hover:shadow-xl transition-all duration-300 cursor-pointer group active:scale-95 flex items-center justify-center">
+                <div className="text-6xl group-hover:scale-110 transition-transform duration-300">📚</div>
               </div>
             </Link>
 
             {/* Notas - Active */}
             <Link href="/notas">
-              <div className="p-8 sm:p-6 bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-xl border border-stone-200 hover:border-stone-300 hover:shadow-lg transition-all duration-300 cursor-pointer group active:scale-95 min-h-[160px] sm:min-h-0 flex flex-col justify-center">
-                <div className="text-5xl sm:text-4xl mb-4 sm:mb-3 group-hover:scale-110 transition-transform duration-300">📝</div>
-                <h4 className="font-bold text-stone-900 mb-2 text-xl sm:text-lg">Notas</h4>
-                <p className="text-base sm:text-sm text-stone-600">Tus anotaciones personales</p>
-                <div className="mt-4 sm:mt-3 text-stone-900 text-base sm:text-sm font-semibold group-hover:translate-x-1 transition-transform duration-300">
-                  Acceder →
-                </div>
+              <div className="aspect-square p-6 bg-white/95 backdrop-blur-sm rounded-xl border border-stone-200 hover:border-stone-300 hover:shadow-xl transition-all duration-300 cursor-pointer group active:scale-95 flex items-center justify-center">
+                <div className="text-6xl group-hover:scale-110 transition-transform duration-300">📝</div>
               </div>
             </Link>
 
             {/* Ejercicios - Coming Soon */}
-            <div className="p-8 sm:p-6 bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-xl border border-stone-200 opacity-60 cursor-not-allowed min-h-[160px] sm:min-h-0 flex flex-col justify-center">
-              <div className="text-5xl sm:text-4xl mb-4 sm:mb-3">🎯</div>
-              <h4 className="font-bold text-stone-900 mb-2 text-xl sm:text-lg">Ejercicios</h4>
-              <p className="text-base sm:text-sm text-stone-600">Próximamente</p>
-              <div className="mt-4 sm:mt-3 text-stone-400 text-base sm:text-sm font-semibold">
-                En desarrollo...
-              </div>
+            <div className="aspect-square p-6 bg-white/60 backdrop-blur-sm rounded-xl border border-stone-200 opacity-60 cursor-not-allowed flex items-center justify-center">
+              <div className="text-6xl">🎯</div>
             </div>
 
             {/* Mentorías - Coming Soon */}
-            <div className="p-8 sm:p-6 bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-xl border border-stone-200 opacity-60 cursor-not-allowed min-h-[160px] sm:min-h-0 flex flex-col justify-center">
-              <div className="text-5xl sm:text-4xl mb-4 sm:mb-3">🎓</div>
-              <h4 className="font-bold text-stone-900 mb-2 text-xl sm:text-lg">Mentorías</h4>
-              <p className="text-base sm:text-sm text-stone-600">Próximamente</p>
-              <div className="mt-4 sm:mt-3 text-stone-400 text-base sm:text-sm font-semibold">
-                En desarrollo...
-              </div>
+            <div className="aspect-square p-6 bg-white/60 backdrop-blur-sm rounded-xl border border-stone-200 opacity-60 cursor-not-allowed flex items-center justify-center">
+              <div className="text-6xl">🎓</div>
             </div>
           </div>
         </main>

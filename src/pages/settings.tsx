@@ -1165,6 +1165,60 @@ export default function Settings() {
                             </p>
                           )}
                         </div>
+
+                        {/* Sección de fondo del dashboard */}
+                        {casa.id === casaId && (
+                          <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <h4 className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                              <Upload className="h-4 w-4" />
+                              Fondo del Dashboard
+                            </h4>
+                            <div className="space-y-2">
+                              <Input
+                                type="url"
+                                placeholder="URL de la imagen de fondo"
+                                value={(casa.casa_memo as any)?.dashboard_bg || ""}
+                                onChange={async (e) => {
+                                  const newUrl = e.target.value;
+                                  try {
+                                    const { error } = await supabase
+                                      .from("casas")
+                                      .update({
+                                        casa_memo: {
+                                          ...(casa.casa_memo as any || {}),
+                                          dashboard_bg: newUrl
+                                        }
+                                      })
+                                      .eq("id", casa.id);
+                                    
+                                    if (!error) {
+                                      await fetchCasas();
+                                      toast({
+                                        title: "Fondo actualizado",
+                                        description: "La imagen de fondo se ha guardado correctamente.",
+                                      });
+                                    }
+                                  } catch (error) {
+                                    console.error("Error updating dashboard bg:", error);
+                                  }
+                                }}
+                                className="border-blue-300 text-sm"
+                              />
+                              {(casa.casa_memo as any)?.dashboard_bg && (
+                                <div className="relative w-full h-20 rounded overflow-hidden">
+                                  <img 
+                                    src={(casa.casa_memo as any).dashboard_bg} 
+                                    alt="Vista previa" 
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              )}
+                              <p className="text-xs text-blue-700">
+                                Esta imagen se usará como fondo en tu dashboard
+                              </p>
+                            </div>
+                          </div>
+                        )}
                         
                         <div className="text-center py-2 text-stone-600 text-sm border-t border-amber-100">
                           {casa.id === casaId ? (
