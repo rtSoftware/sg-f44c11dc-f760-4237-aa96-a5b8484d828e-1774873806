@@ -87,43 +87,27 @@ export default function LecturaCasa() {
         console.log("✅ Casa encontrada:", casaData.casa_nombre);
         setCasa(casaData);
 
-        // IMPORTANTE: Guardar casa_id en localStorage (variable global permanente)
-        if (typeof window !== "undefined") {
-          localStorage.setItem("casa_id", casaData.id);
-        }
-
         // 2. Verificar autenticación
-        let isAuthenticated = false;
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          isAuthenticated = !!user;
-          console.log("🔐 Usuario autenticado:", isAuthenticated);
-        } catch (authErr) {
-          console.warn("Error verificando autenticación:", authErr);
-        }
+        const { data: { user } } = await supabase.auth.getUser();
+        const isAuthenticated = !!user;
+        console.log("🔐 Usuario autenticado:", isAuthenticated);
 
-        // 3. Cargar libros de esta casa
+        // 3. Obtener libros de la casa
         const { data: librosData, error: librosError } = await getLibrosPorCasa(casaData.id);
         
-        if (librosError) {
-          console.error("❌ Error loading libros:", librosError);
-          setError("Error al cargar los libros. Por favor, intenta recargar la página.");
+        if (librosError || !librosData) {
+          setError("No se pudieron cargar los libros");
           setLoading(false);
           return;
         }
 
-        if (!librosData || librosData.length === 0) {
-          setError("No hay libros disponibles en esta casa");
-          setLoading(false);
-          return;
-        }
+        setLibros(librosData);
+        console.log(`📚 Total libros cargados: ${librosData.length}`);
 
-        console.log("📚 Libros cargados:", librosData.length);
-        
-        // 4. LÓGICA PRINCIPAL: Detectar si viene libro_id en la URL
-        if (libroIdFromQuery && typeof libroIdFromQuery === "string") {
-          // Viene libro_id en query → buscar ese libro específico
-          console.log("📖 Buscando libro específico:", libroIdFromQuery);
+        // 4. LÓGICA PRINCIPAL: Si viene desde biblioteca, usar libro específico; si no, usar primer libro
+        if (fromBiblioteca && libroIdFromQuery && typeof libroIdFromQuery === "string") {
+          // Viene desde biblioteca con libro específico
+          console.log("📖 Desde biblioteca: Buscando libro específico:", libroIdFromQuery);
           const libroEspecifico = librosData.find(l => l.id === libroIdFromQuery);
           
           if (!libroEspecifico) {
@@ -133,53 +117,38 @@ export default function LecturaCasa() {
           }
 
           setLibro(libroEspecifico);
-          setLibrosDisponibles(librosData.filter(l => l.visible)); // Guardar todos para el selector
-          
-          // Si usuario autenticado (viene desde biblioteca) → mostrar contenido directamente
-          // Si NO autenticado (URL externa) → pedir código
-          if (isAuthenticated) {
-            console.log("✅ Usuario autenticado desde biblioteca → mostrar libro directamente");
-            setShowBook(true);
-            setModoLectura(false); // Modo biblioteca: permitir cambiar de libro
-          } else {
-            console.log("🔒 Usuario NO autenticado → mostrar formulario de código");
-            setModoLectura(true); // Modo lectura externa: solo este libro
-            // showBook = false, se mostrará formulario de código
-          }
+          setLibrosDisponibles(librosData.filter(l => l.visible));
+          setShowBook(true);
+          setModoLectura(false); // Modo biblioteca: permitir cambiar de libro
         } else {
-          // NO viene libro_id → mostrar selector de libros visibles (solo si autenticado)
-          console.log("📚 Sin libro específico → modo biblioteca");
-          const librosVisibles = librosData.filter(l => l.visible);
+          // Entrada directa: cargar primer libro de la casa (por orden)
+          console.log("🔗 Entrada directa: Cargando primer libro de la casa");
+          const librosOrdenados = [...librosData].sort((a, b) => a.orden - b.orden);
+          const primerLibro = librosOrdenados[0];
           
-          if (librosVisibles.length === 0) {
-            setError("No hay libros visibles en esta casa");
+          if (!primerLibro) {
+            setError("Esta casa no tiene libros disponibles");
             setLoading(false);
             return;
           }
 
-          setLibrosDisponibles(librosVisibles);
-          setLibro(librosVisibles[0]);
-          setModoLectura(false);
-          
-          if (isAuthenticated) {
-            console.log("✅ Usuario autenticado → mostrar primer libro");
-            setShowBook(true);
-          } else {
-            console.log("🔐 Usuario NO autenticado → pedir código");
-            // showBook = false
-          }
+          console.log("📖 Primer libro encontrado:", primerLibro.titulo);
+          setLibro(primerLibro);
+          setLibrosDisponibles(librosOrdenados.filter(l => l.visible));
+          setModoLectura(true); // Modo lectura externa: requiere código
+          // showBook = false, se mostrará formulario de código
         }
 
         setLoading(false);
       } catch (err) {
-        console.error("❌ Error general:", err);
-        setError("Error al cargar la página. Por favor, intenta recargar.");
+        console.error("Error al cargar la casa:", err);
+        setError("Error al cargar la información");
         setLoading(false);
       }
     };
 
     fetchCasa();
-  }, [casaFromUrl, libroIdFromQuery]);
+  }, [casaFromUrl, fromBiblioteca, libroIdFromQuery]);
 
   useEffect(() => {
     if (!libro) return;
