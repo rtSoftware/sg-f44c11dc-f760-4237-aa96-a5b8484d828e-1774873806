@@ -91,7 +91,7 @@ export default function LecturaCasa() {
             // Modo biblioteca: mostrar todos los libros activos
             console.log("📚 MODO BIBLIOTECA - todos los libros activos");
             setModoLectura(false);
-            const librosActivos = librosData.filter(l => l.activo);
+            const librosActivos = librosData.filter(l => l.visible);
             setLibrosDisponibles(librosActivos);
             
             if (librosActivos.length > 0) {
