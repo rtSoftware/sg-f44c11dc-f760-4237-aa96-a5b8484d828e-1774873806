@@ -285,15 +285,17 @@ export default function LecturaCasa() {
                   </Button>
                 )}
                 
-                <div className="flex gap-2 ml-auto">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => router.push('/dashboard')}
-                  >
-                    <BookOpen className="h-5 w-5" />
-                  </Button>
-                </div>
+                {!modoLectura && (
+                  <div className="flex gap-2 ml-auto">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => router.push('/dashboard')}
+                    >
+                      <BookOpen className="h-5 w-5" />
+                    </Button>
+                  </div>
+                )}
               </div>
               {libro.autor && (
                 <p className="text-sm text-stone-600 mt-1 ml-8">por {libro.autor}</p>
