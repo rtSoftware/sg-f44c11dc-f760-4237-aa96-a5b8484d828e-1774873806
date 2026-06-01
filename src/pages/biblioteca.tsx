@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useRouter } from "next/link";
+import { useRouter } from "next/router";
+import Link from "next/link";
 import { BookOpen, Settings, LogOut, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,6 @@ import { authService } from "@/services/authService";
 import { getAllLibros } from "@/services/libroService";
 import { useCasa } from "@/contexts/CasaContext";
 import type { Libro } from "@/services/libroService";
-import Link from "next/link";
 
 export default function Biblioteca() {
   const router = useRouter();
@@ -96,36 +96,33 @@ export default function Biblioteca() {
           {!loading && libros.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {libros.map((libro) => (
-                <Card 
-                  key={libro.id} 
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => {
-                    if (casaNombre) {
-                      // Navegar pasando el ID del libro para mostrar su contenido
-                      router.push(`/lectura/${casaNombre}?libro=${libro.id}`);
-                    }
-                  }}
+                <Link
+                  key={libro.id}
+                  href={`/lectura/${libro.casa}?libro=${libro.id}&from=biblioteca`}
+                  className="block"
                 >
-                  <CardHeader>
-                    <CardTitle className="text-xl">{libro.titulo}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {libro.portada_url && (
-                      <img 
-                        src={libro.portada_url} 
-                        alt={libro.titulo}
-                        className="w-full h-48 object-cover rounded-lg mb-4"
-                      />
-                    )}
-                    <p className="text-stone-600 line-clamp-3 mb-4">
-                      {libro.descripcion || "Sin descripción"}
-                    </p>
-                    <div className="text-sm text-stone-500">
-                      <p>Capítulo {libro.orden + 1}</p>
-                      {libro.autor && <p>Por {libro.autor}</p>}
-                    </div>
-                  </CardContent>
-                </Card>
+                  <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full">
+                    <CardHeader>
+                      <CardTitle className="text-xl">{libro.titulo}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {libro.portada_url && (
+                        <img 
+                          src={libro.portada_url} 
+                          alt={libro.titulo}
+                          className="w-full h-48 object-cover rounded-lg mb-4"
+                        />
+                      )}
+                      <p className="text-stone-600 line-clamp-3 mb-4">
+                        {libro.descripcion || "Sin descripción"}
+                      </p>
+                      <div className="text-sm text-stone-500">
+                        <p>Capítulo {libro.orden + 1}</p>
+                        {libro.autor && <p>Por {libro.autor}</p>}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           )}

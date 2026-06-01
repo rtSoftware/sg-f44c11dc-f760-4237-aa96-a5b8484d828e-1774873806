@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { BookOpen, ArrowLeft, ChevronLeft, ChevronRight, Brain } from "lucide-react";
+import Link from "next/link";
+import { BookOpen, ArrowLeft, ChevronLeft, ChevronRight, Brain, Loader2, Lock, Headphones, FileText } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -8,10 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Lock, Headphones, FileText } from "lucide-react";
-import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
+import { useCasa } from "@/contexts/CasaContext";
 import { getCasaByNombre } from "@/services/casaService";
 import { getLibrosPorCasa } from "@/services/libroService";
 import { getNotasByLibroId } from "@/services/notasService";
@@ -50,6 +50,7 @@ export default function LecturaCasa() {
   const [libro, setLibro] = useState<Libro | null>(null);
   const [showBook, setShowBook] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [codigo, setCodigo] = useState("");
   
   // Modo lectura: true si NO viene desde biblioteca (entrada directa)
   const [modoLectura, setModoLectura] = useState(!fromBiblioteca);
@@ -113,10 +114,10 @@ export default function LecturaCasa() {
         console.log("📚 Libros cargados:", librosData.length);
         
         // 4. LÓGICA PRINCIPAL: Detectar si viene libro_id en la URL
-        if (libroIdParam && typeof libroIdParam === "string") {
+        if (libroIdFromQuery && typeof libroIdFromQuery === "string") {
           // Viene libro_id en query → buscar ese libro específico
-          console.log("📖 Buscando libro específico:", libroIdParam);
-          const libroEspecifico = librosData.find(l => l.id === libroIdParam);
+          console.log("📖 Buscando libro específico:", libroIdFromQuery);
+          const libroEspecifico = librosData.find(l => l.id === libroIdFromQuery);
           
           if (!libroEspecifico) {
             setError("Libro no encontrado en esta casa");
@@ -171,7 +172,7 @@ export default function LecturaCasa() {
     };
 
     fetchCasa();
-  }, [casaNombre, libroIdParam]);
+  }, [casaNombre, libroIdFromQuery]);
 
   useEffect(() => {
     if (!libro) return;
