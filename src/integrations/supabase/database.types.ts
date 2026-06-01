@@ -229,6 +229,7 @@ export type Database = {
           full_name: string | null
           id: string
           updated_at: string | null
+          user_memo: Json | null
         }
         Insert: {
           avatar_url?: string | null
@@ -238,6 +239,7 @@ export type Database = {
           full_name?: string | null
           id: string
           updated_at?: string | null
+          user_memo?: Json | null
         }
         Update: {
           avatar_url?: string | null
@@ -247,6 +249,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string | null
+          user_memo?: Json | null
         }
         Relationships: [
           {

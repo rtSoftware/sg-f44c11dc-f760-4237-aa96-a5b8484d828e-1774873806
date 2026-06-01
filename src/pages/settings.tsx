@@ -1295,8 +1295,8 @@ export default function Settings() {
                       Nombre Completo
                     </label>
                     <Input
-                      value={profileData.full_name}
-                      onChange={(e) => setProfileData({ ...profileData, full_name: e.target.value })}
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
                       placeholder="Tu nombre completo"
                     />
                   </div>
@@ -1306,7 +1306,7 @@ export default function Settings() {
                       Email
                     </label>
                     <Input
-                      value={user?.user_metadata?.email || ""}
+                      value={email}
                       disabled
                       className="bg-stone-100"
                     />
@@ -1321,47 +1321,14 @@ export default function Settings() {
                     <Input
                       type="url"
                       placeholder="URL de la imagen de fondo"
-                      value={(user?.user_metadata as any)?.dashboard_bg || ""}
-                      onChange={(e) => {
-                        const newUrl = e.target.value;
-                        setProfileData({
-                          ...profileData,
-                          full_name: profileData.full_name,
-                          avatar_url: profileData.avatar_url,
-                        });
-                        setSaving(true);
-                        try {
-                          const { error } = await supabase
-                            .from("profiles")
-                            .update({
-                              full_name: profileData.full_name,
-                              avatar_url: profileData.avatar_url,
-                              user_memo: {
-                                ...(user?.user_metadata as any || {}),
-                                dashboard_bg: newUrl
-                              }
-                            })
-                            .eq("id", user.id);
-                          
-                          if (!error) {
-                            await fetchProfile();
-                            toast({
-                              title: "Fondo actualizado",
-                              description: "La imagen de fondo se ha guardado correctamente.",
-                            });
-                          }
-                        } catch (error) {
-                          console.error("Error updating dashboard bg:", error);
-                        } finally {
-                          setSaving(false);
-                        }
-                      }}
+                      value={dashboardBgUrl}
+                      onChange={(e) => setDashboardBgUrl(e.target.value)}
                       className="border-blue-300 text-sm"
                     />
-                    {(user?.user_metadata as any)?.dashboard_bg && (
+                    {dashboardBgUrl && (
                       <div className="relative w-full h-24 rounded overflow-hidden border border-blue-300">
                         <img 
-                          src={(user?.user_metadata as any).dashboard_bg} 
+                          src={dashboardBgUrl} 
                           alt="Vista previa del fondo" 
                           className="w-full h-full object-cover"
                         />
@@ -1375,9 +1342,9 @@ export default function Settings() {
                   <Button 
                     onClick={handleSaveProfile}
                     className="w-full"
-                    disabled={loadingProfile}
+                    disabled={savingProfile}
                   >
-                    {loadingProfile ? (
+                    {savingProfile ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Guardando...
