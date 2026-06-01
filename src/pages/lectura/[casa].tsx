@@ -36,7 +36,7 @@ type Libro = Tables<"libro">;
 
 export default function LecturaCasa() {
   const router = useRouter();
-  const { casa: casaNombre } = router.query;
+  const { casa: casaNombre, libro: libroIdParam } = router.query;
 
   const [codigo, setCodigo] = useState("");
   const [isValidating, setIsValidating] = useState(false);
@@ -48,6 +48,7 @@ export default function LecturaCasa() {
   const [notas, setNotas] = useState<NotaWithLibro[]>([]);
   const [selectedNota, setSelectedNota] = useState<NotaWithLibro | null>(null);
   const [librosDisponibles, setLibrosDisponibles] = useState<Libro[]>([]);
+  const [modoLectura, setModoLectura] = useState(false); // true = modo lectura externa, false = modo biblioteca
 
   useEffect(() => {
     if (!casaNombre || typeof casaNombre !== "string") return;
@@ -74,12 +75,31 @@ export default function LecturaCasa() {
           console.error("Error loading libros:", librosError);
         } else if (librosData && librosData.length > 0) {
           console.log("📚 Libros disponibles en la casa:", librosData);
-          setLibrosDisponibles(librosData);
           
-          // Establecer el primer libro como activo
-          const libroActivo = librosData[0];
-          console.log("📖 Libro activo inicial:", libroActivo.titulo);
-          setLibro(libroActivo);
+          // Detectar modo: si viene libro={id} en query = modo lectura externa
+          if (libroIdParam && typeof libroIdParam === "string") {
+            console.log("🔒 MODO LECTURA EXTERNA - libro específico:", libroIdParam);
+            setModoLectura(true);
+            const libroEspecifico = librosData.find(l => l.id === libroIdParam);
+            if (libroEspecifico) {
+              setLibrosDisponibles([libroEspecifico]); // Solo este libro
+              setLibro(libroEspecifico);
+            } else {
+              setError("Libro no encontrado en esta casa");
+            }
+          } else {
+            // Modo biblioteca: mostrar todos los libros activos
+            console.log("📚 MODO BIBLIOTECA - todos los libros activos");
+            setModoLectura(false);
+            const librosActivos = librosData.filter(l => l.activo);
+            setLibrosDisponibles(librosActivos);
+            
+            if (librosActivos.length > 0) {
+              setLibro(librosActivos[0]);
+            } else {
+              setError("No hay libros activos en esta casa");
+            }
+          }
         }
 
         setLoading(false);
@@ -92,7 +112,7 @@ export default function LecturaCasa() {
     };
 
     fetchCasa();
-  }, [casaNombre]);
+  }, [casaNombre, libroIdParam]);
 
   useEffect(() => {
     if (!libro) return;
@@ -226,8 +246,8 @@ export default function LecturaCasa() {
                   <h1 className="text-3xl font-bold text-stone-900">{libro.titulo}</h1>
                 </div>
 
-                {/* Selector de libros de la casa */}
-                {librosDisponibles.length > 1 && (
+                {/* Selector de libros de la casa - SOLO EN MODO BIBLIOTECA */}
+                {!modoLectura && librosDisponibles.length > 1 && (
                   <div className="mb-6 p-4 bg-stone-50 border border-stone-200 rounded-lg">
                     <label className="block text-sm font-medium text-stone-700 mb-2">
                       Cambiar a otro libro de esta casa
