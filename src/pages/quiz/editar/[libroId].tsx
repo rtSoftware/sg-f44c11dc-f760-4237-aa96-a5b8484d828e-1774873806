@@ -27,6 +27,8 @@ import {
   FileJson,
   AlertCircle,
   Save,
+  Copy,
+  Check,
 } from "lucide-react";
 import { getLibroById } from "@/services/libroService";
 import {
@@ -70,6 +72,7 @@ export default function EditarQuiz() {
   const [jsonInput, setJsonInput] = useState("");
   const [procesandoJson, setProcesandoJson] = useState(false);
   const [showPreguntaDialog, setShowPreguntaDialog] = useState(false);
+  const [promptCopiado, setPromptCopiado] = useState(false);
 
   // Verificar autenticación
   useEffect(() => {
@@ -82,7 +85,22 @@ export default function EditarQuiz() {
     checkAuth();
   }, []);
 
-  const ejemploJson = `{
+  const promptGeneracion = `Genera un cuestionario de 9 preguntas de opción múltiple sobre el siguiente contenido del libro "${libro?.titulo || 'mi libro'}".
+
+REQUISITOS:
+- Exactamente 9 preguntas numeradas del 1 al 9
+- Cada pregunta debe tener 5 opciones de respuesta
+- Indica cuál es la respuesta correcta (número del 1 al 5)
+- Las preguntas deben cubrir los conceptos clave del contenido
+- Varía el nivel de dificultad entre preguntas
+
+CONTENIDO DEL LIBRO:
+${libro?.contenido || '[Pega aquí el contenido del libro]'}
+
+FORMATO DE SALIDA (JSON):
+Devuelve ÚNICAMENTE el siguiente JSON sin texto adicional:
+
+{
   "preguntas": [
     {
       "numero_pregunta": 1,
@@ -110,6 +128,24 @@ export default function EditarQuiz() {
     }
   ]
 }`;
+
+  const handleCopiarPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(promptGeneracion);
+      setPromptCopiado(true);
+      toast({
+        title: "Prompt copiado",
+        description: "El prompt se copió al portapapeles. Pégalo en tu IA favorita.",
+      });
+      setTimeout(() => setPromptCopiado(false), 2000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo copiar al portapapeles.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleProcesarJsonSemiAuto = async () => {
     if (!quiz) return;
@@ -673,34 +709,55 @@ export default function EditarQuiz() {
               Importar Preguntas desde JSON
             </DialogTitle>
             <DialogDescription>
-              Pega el JSON con las preguntas y respuestas. El formato de ejemplo muestra la estructura correcta.
+              Copia el prompt a tu IA favorita, genera las preguntas, y pega el JSON aquí.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-stone-700">
+                  📋 Prompt para IA
+                </label>
+                <Button
+                  onClick={handleCopiarPrompt}
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                >
+                  {promptCopiado ? (
+                    <>
+                      <Check className="w-4 h-4 text-green-600" />
+                      Copiado
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      Copiar Prompt
+                    </>
+                  )}
+                </Button>
+              </div>
+              <div className="bg-stone-50 border border-stone-300 rounded-lg p-4 max-h-64 overflow-y-auto">
+                <pre className="text-xs font-mono text-stone-700 whitespace-pre-wrap">
+                  {promptGeneracion}
+                </pre>
+              </div>
+              <p className="text-xs text-stone-500">
+                Copia este prompt, pégalo en ChatGPT/Claude/Gemini, y pega el JSON generado abajo.
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <label className="text-sm font-medium text-stone-700">
-                JSON de Preguntas
+                JSON Generado (pega aquí)
               </label>
               <textarea
                 value={jsonInput}
                 onChange={(e) => setJsonInput(e.target.value)}
-                className="w-full h-96 p-4 font-mono text-sm border border-stone-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Pega tu JSON aquí..."
+                className="w-full h-64 p-4 font-mono text-sm border border-stone-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder='Pega el JSON generado por la IA aquí...'
               />
-              <p className="text-xs text-stone-500">
-                Formato: JSON con array "preguntas", cada pregunta debe tener numero_pregunta, texto_pregunta, respuestas (array de 5), y respuesta_correcta (1-5)
-              </p>
-            </div>
-
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-amber-900 mb-2">📋 Instrucciones:</h4>
-              <ul className="text-xs text-amber-800 space-y-1 list-disc list-inside">
-                <li>Cada pregunta debe tener exactamente 5 respuestas</li>
-                <li>La respuesta_correcta debe ser un número del 1 al 5</li>
-                <li>Puedes importar entre 1 y 9 preguntas</li>
-                <li>Las preguntas existentes serán reemplazadas</li>
-              </ul>
             </div>
           </div>
 
