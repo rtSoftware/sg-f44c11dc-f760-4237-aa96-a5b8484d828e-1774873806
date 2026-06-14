@@ -1046,7 +1046,7 @@ export default function Settings() {
                       <Button
                         type="button"
                         onClick={() => {
-                          router.push(`/quiz/${selectedLibroId}`);
+                          router.push(`/quiz/editar/${selectedLibroId}`);
                         }}
                         className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
                       >
