@@ -151,44 +151,6 @@ export async function deletePregunta(preguntaId: string): Promise<{ error: Error
 }
 
 /**
- * Generar preguntas con IA basadas en el contenido del libro
- */
-export async function generarPreguntasIA(
-  contenidoLibro: string,
-  cantidadPreguntas: number = 9
-): Promise<{
-  data: Array<{
-    texto_pregunta: string;
-    respuestas: string[];
-    respuesta_correcta: number;
-  }> | null;
-  error: Error | null;
-}> {
-  try {
-    const response = await fetch("/api/generar-preguntas", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contenido: contenidoLibro,
-        cantidad: cantidadPreguntas,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Error al generar preguntas con IA");
-    }
-
-    const data = await response.json();
-    return { data: data.preguntas, error: null };
-  } catch (error) {
-    console.error("Error generando preguntas con IA:", error);
-    return { data: null, error: error as Error };
-  }
-}
-
-/**
  * Eliminar todas las preguntas de un quiz
  */
 export async function deleteAllPreguntas(quizId: string): Promise<{ error: Error | null }> {

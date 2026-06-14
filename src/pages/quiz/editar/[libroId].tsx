@@ -27,7 +27,6 @@ import {
   FileJson,
   AlertCircle,
   Save,
-  Sparkles,
 } from "lucide-react";
 import { getLibroById } from "@/services/libroService";
 import {
@@ -38,7 +37,6 @@ import {
   updatePregunta,
   deletePregunta,
   deleteAllPreguntas,
-  generarPreguntasIA,
 } from "@/services/quizService";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -72,7 +70,6 @@ export default function EditarQuiz() {
   const [jsonInput, setJsonInput] = useState("");
   const [procesandoJson, setProcesandoJson] = useState(false);
   const [showPreguntaDialog, setShowPreguntaDialog] = useState(false);
-  const [generandoIA, setGenerandoIA] = useState(false);
 
   // Verificar autenticación
   useEffect(() => {
@@ -219,77 +216,6 @@ export default function EditarQuiz() {
       });
     } finally {
       setProcesandoJson(false);
-    }
-  };
-
-  const handleGenerarConIA = async () => {
-    if (!libro || !quiz) return;
-
-    if (!libro.contenido || libro.contenido.trim().length < 100) {
-      toast({
-        title: "Contenido insuficiente",
-        description: "El libro necesita tener al menos 100 caracteres de contenido para generar preguntas.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      setGenerandoIA(true);
-
-      toast({
-        title: "Generando preguntas...",
-        description: "Esto puede tomar entre 10-30 segundos.",
-      });
-
-      const { data: preguntasGeneradas, error } = await generarPreguntasIA(
-        libro.contenido,
-        9
-      );
-
-      if (error || !preguntasGeneradas) {
-        throw error || new Error("No se generaron preguntas");
-      }
-
-      if (preguntas.length > 0) {
-        const { error: deleteError } = await deleteAllPreguntas(quiz.id);
-        if (deleteError) {
-          throw new Error("Error al eliminar preguntas existentes");
-        }
-      }
-
-      for (let i = 0; i < preguntasGeneradas.length; i++) {
-        const p = preguntasGeneradas[i];
-        const { error: createError } = await createPregunta(
-          quiz.id,
-          i + 1,
-          p.texto_pregunta,
-          p.respuestas,
-          p.respuesta_correcta
-        );
-
-        if (createError) {
-          throw new Error(`Error al guardar pregunta ${i + 1}`);
-        }
-      }
-
-      toast({
-        title: "Preguntas generadas exitosamente",
-        description: `Se generaron ${preguntasGeneradas.length} preguntas con IA.`,
-      });
-
-      const { data: preguntasData } = await getPreguntasByQuizId(quiz.id);
-      setPreguntas(preguntasData || []);
-
-    } catch (error) {
-      console.error("Error generando preguntas con IA:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "No se pudieron generar las preguntas con IA.",
-        variant: "destructive",
-      });
-    } finally {
-      setGenerandoIA(false);
     }
   };
 
@@ -546,23 +472,6 @@ export default function EditarQuiz() {
             >
               <Plus className="w-5 h-5 mr-2" />
               Nueva Pregunta
-            </Button>
-            <Button
-              onClick={handleGenerarConIA}
-              disabled={generandoIA || !libro?.contenido}
-              className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white"
-            >
-              {generandoIA ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Generando...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Generar con IA
-                </>
-              )}
             </Button>
             <Button
               onClick={() => setShowSemiAutoDialog(true)}
