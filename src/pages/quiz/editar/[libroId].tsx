@@ -87,6 +87,12 @@ export default function EditarQuiz() {
 
   const promptGeneracion = `Genera un cuestionario de 9 preguntas de opción múltiple sobre el siguiente contenido del libro "${libro?.titulo || 'mi libro'}".
 
+INSTRUCCIÓN IMPORTANTE SOBRE FUENTE DE CONTENIDO:
+${libro?.pdf_url ? `- Este libro tiene un PDF anexo. DEBES usar el contenido de ese PDF como fuente principal para las preguntas.
+- URL del PDF: ${libro.pdf_url}
+- Descarga y analiza el PDF completo antes de generar las preguntas.
+- El contenido de texto a continuación es solo referencia secundaria.` : '- Este libro NO tiene PDF anexo. Usa el contenido de texto proporcionado a continuación como fuente.'}
+
 REQUISITOS:
 - Exactamente 9 preguntas numeradas del 1 al 9
 - Cada pregunta debe tener 5 opciones de respuesta
@@ -94,7 +100,7 @@ REQUISITOS:
 - Las preguntas deben cubrir los conceptos clave del contenido
 - Varía el nivel de dificultad entre preguntas
 
-CONTENIDO DEL LIBRO:
+CONTENIDO DEL LIBRO ${libro?.pdf_url ? '(Referencia secundaria)' : '(Fuente principal)'}:
 ${libro?.contenido || '[Pega aquí el contenido del libro]'}
 
 FORMATO DE SALIDA (JSON):
