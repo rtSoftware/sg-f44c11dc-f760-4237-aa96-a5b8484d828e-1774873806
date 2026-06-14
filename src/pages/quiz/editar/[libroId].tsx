@@ -91,7 +91,7 @@ INSTRUCCIÓN IMPORTANTE SOBRE FUENTE DE CONTENIDO:
 ${libro?.pdf_url ? `- Este libro tiene un PDF anexo. DEBES usar el contenido de ese PDF como fuente principal para las preguntas.
 - URL del PDF: ${libro.pdf_url}
 - Descarga y analiza el PDF completo antes de generar las preguntas.
-- El contenido de texto a continuación es solo referencia secundaria.` : '- Este libro NO tiene PDF anexo. Usa el contenido de texto proporcionado a continuación como fuente.'}
+- El contenido de texto a continuación es solo referencia secundaria.` : '- NO existe PDF anexo. Usa el contenido de texto proporcionado a continuación como fuente.'}
 
 REQUISITOS:
 - Exactamente 9 preguntas numeradas del 1 al 9
