@@ -428,7 +428,10 @@ export default function LecturaCasa() {
                     prose-pre:bg-stone-900 prose-pre:text-stone-100 prose-pre:p-4 prose-pre:rounded-lg prose-pre:overflow-x-auto
                     prose-img:rounded-lg prose-img:shadow-md prose-img:my-6
                     prose-hr:border-stone-300 prose-hr:my-8">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw as any]}
+                  >
                     {libro.contenido || "Este libro aún no tiene contenido."}
                   </ReactMarkdown>
                 </div>
