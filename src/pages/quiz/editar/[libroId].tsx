@@ -256,12 +256,6 @@ Devuelve ÚNICAMENTE el siguiente JSON sin texto adicional:
   };
 
   useEffect(() => {
-    if (showSemiAutoDialog && !jsonInput) {
-      setJsonInput(ejemploJson);
-    }
-  }, [showSemiAutoDialog]);
-
-  useEffect(() => {
     if (!libroId || typeof libroId !== "string") return;
 
     const fetchData = async () => {
