@@ -128,6 +128,90 @@ Devuelve ÚNICAMENTE el siguiente JSON sin texto adicional:
         "Respuesta incorrecta 4"
       ],
       "respuesta_correcta": 2
+    },
+    {
+      "numero_pregunta": 3,
+      "texto_pregunta": "Según el texto, ¿cuál es la definición de...?",
+      "respuestas": [
+        "Opción incorrecta A",
+        "Opción incorrecta B",
+        "Definición correcta",
+        "Opción incorrecta C",
+        "Opción incorrecta D"
+      ],
+      "respuesta_correcta": 3
+    },
+    {
+      "numero_pregunta": 4,
+      "texto_pregunta": "¿Qué ejemplo se menciona en el capítulo 2?",
+      "respuestas": [
+        "Ejemplo incorrecto 1",
+        "Ejemplo incorrecto 2",
+        "Ejemplo incorrecto 3",
+        "Ejemplo correcto",
+        "Ejemplo incorrecto 4"
+      ],
+      "respuesta_correcta": 4
+    },
+    {
+      "numero_pregunta": 5,
+      "texto_pregunta": "¿Cuál es la conclusión principal del autor?",
+      "respuestas": [
+        "Conclusión incorrecta A",
+        "Conclusión incorrecta B",
+        "Conclusión incorrecta C",
+        "Conclusión incorrecta D",
+        "Conclusión correcta aquí"
+      ],
+      "respuesta_correcta": 5
+    },
+    {
+      "numero_pregunta": 6,
+      "texto_pregunta": "¿Qué relación existe entre los conceptos A y B?",
+      "respuestas": [
+        "Relación correcta explicada",
+        "Relación incorrecta 1",
+        "Relación incorrecta 2",
+        "Relación incorrecta 3",
+        "Relación incorrecta 4"
+      ],
+      "respuesta_correcta": 1
+    },
+    {
+      "numero_pregunta": 7,
+      "texto_pregunta": "¿Cuál es la aplicación práctica mencionada?",
+      "respuestas": [
+        "Aplicación incorrecta 1",
+        "Aplicación correcta detallada",
+        "Aplicación incorrecta 2",
+        "Aplicación incorrecta 3",
+        "Aplicación incorrecta 4"
+      ],
+      "respuesta_correcta": 2
+    },
+    {
+      "numero_pregunta": 8,
+      "texto_pregunta": "Según el capítulo final, ¿qué se recomienda?",
+      "respuestas": [
+        "Recomendación incorrecta A",
+        "Recomendación incorrecta B",
+        "Recomendación correcta",
+        "Recomendación incorrecta C",
+        "Recomendación incorrecta D"
+      ],
+      "respuesta_correcta": 3
+    },
+    {
+      "numero_pregunta": 9,
+      "texto_pregunta": "¿Qué error común se menciona en el texto?",
+      "respuestas": [
+        "Error común no mencionado 1",
+        "Error común no mencionado 2",
+        "Error común no mencionado 3",
+        "Error común correcto identificado",
+        "Error común no mencionado 4"
+      ],
+      "respuesta_correcta": 4
     }
   ]
 }`;
