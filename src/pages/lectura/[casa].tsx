@@ -328,7 +328,14 @@ export default function LecturaCasa() {
                 )}
 
                 {libro.descripcion && (
-                  <p className="text-lg text-stone-600 mb-4">{libro.descripcion}</p>
+                  <div className="text-lg text-stone-600 mb-4 prose prose-stone max-w-none">
+                    <ReactMarkdown 
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw as any]}
+                    >
+                      {libro.descripcion}
+                    </ReactMarkdown>
+                  </div>
                 )}
               </div>
 

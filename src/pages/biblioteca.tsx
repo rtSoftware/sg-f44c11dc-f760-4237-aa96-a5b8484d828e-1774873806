@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { BookOpen, Settings, LogOut, MessageSquare } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SEO } from "@/components/SEO";
@@ -113,9 +116,14 @@ export default function Biblioteca() {
                           className="w-full h-48 object-cover rounded-lg mb-4"
                         />
                       )}
-                      <p className="text-stone-600 line-clamp-3 mb-4">
-                        {libro.descripcion || "Sin descripción"}
-                      </p>
+                      <div className="text-stone-600 line-clamp-3 mb-4 prose prose-sm max-w-none">
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[rehypeRaw as any]}
+                        >
+                          {libro.descripcion || "Sin descripción"}
+                        </ReactMarkdown>
+                      </div>
                       <div className="text-sm text-stone-500">
                         <p>Capítulo {libro.orden + 1}</p>
                         {libro.autor && <p>Por {libro.autor}</p>}

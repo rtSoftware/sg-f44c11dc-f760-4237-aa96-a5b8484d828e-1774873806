@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -763,9 +766,14 @@ export default function Settings() {
                       </CardHeader>
                       <CardContent className="pt-4">
                         {libro.descripcion && (
-                          <p className="text-sm text-amber-800 mb-4 line-clamp-3">
-                            {libro.descripcion}
-                          </p>
+                          <div className="text-sm text-amber-800 mb-4 line-clamp-3 prose prose-sm max-w-none">
+                            <ReactMarkdown 
+                              remarkPlugins={[remarkGfm]}
+                              rehypePlugins={[rehypeRaw as any]}
+                            >
+                              {libro.descripcion}
+                            </ReactMarkdown>
+                          </div>
                         )}
                         <div className="flex gap-2 flex-wrap">
                           <Button
