@@ -29,10 +29,10 @@ export function CasaProvider({ children }: { children: React.ReactNode }) {
     setError(null);
 
     try {
-      // Obtener usuario autenticado
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      // Obtener sesión actual (no lanza error si no hay sesión)
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!currentUser) {
+      if (!session?.user) {
         console.log("No authenticated user found");
         setCasaIdState(null);
         setUserId(null);
@@ -41,15 +41,15 @@ export function CasaProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      console.log("User authenticated:", currentUser.id);
-      setUser(currentUser);
-      setUserId(currentUser.id);
+      console.log("User authenticated:", session.user.id);
+      setUser(session.user);
+      setUserId(session.user.id);
 
       // Obtener casa_id y nombre desde el perfil del usuario
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("casa_id, full_name, casas(casa_nombre)")
-        .eq("id", currentUser.id)
+        .eq("id", session.user.id)
         .single();
 
       if (profileError) {
