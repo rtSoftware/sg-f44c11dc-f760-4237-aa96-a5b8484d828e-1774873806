@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -16,6 +17,7 @@ interface CasaContextType {
 const CasaContext = createContext<CasaContextType | undefined>(undefined);
 
 export function CasaProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [casaId, setCasaIdState] = useState<string | null>(null);
   const [casaNombre, setCasaNombre] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -38,6 +40,16 @@ export function CasaProvider({ children }: { children: React.ReactNode }) {
         setUserId(null);
         setUser(null);
         setIsLoading(false);
+        
+        // Redirigir a login solo si NO estamos en páginas públicas
+        const publicRoutes = ["/", "/auth"];
+        const currentPath = router.pathname;
+        
+        if (!publicRoutes.includes(currentPath)) {
+          console.log("Session missing, redirecting to /auth");
+          router.push("/auth");
+        }
+        
         return;
       }
 
