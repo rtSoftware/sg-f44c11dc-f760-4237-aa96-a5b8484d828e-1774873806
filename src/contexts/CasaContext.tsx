@@ -45,7 +45,10 @@ export function CasaProvider({ children }: { children: React.ReactNode }) {
         const publicRoutes = ["/", "/auth"];
         const currentPath = router.pathname;
         
-        if (!publicRoutes.includes(currentPath)) {
+        // Permitir acceso a rutas de lectura sin autenticación
+        const isLecturaRoute = currentPath.startsWith("/lectura/");
+        
+        if (!publicRoutes.includes(currentPath) && !isLecturaRoute) {
           console.log("Session missing, redirecting to /auth");
           router.push("/auth");
         }
