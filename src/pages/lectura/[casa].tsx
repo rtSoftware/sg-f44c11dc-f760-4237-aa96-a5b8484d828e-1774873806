@@ -194,25 +194,21 @@ export default function LecturaCasa() {
       return;
     }
 
+    if (!libro) {
+      setError("No hay libro disponible");
+      return;
+    }
+
     try {
       setIsValidating(true);
       setError("");
 
-      // Aceptar cualquier código - sin validación
-      // Solo cargar el primer libro disponible de la casa
-      const { data: libros, error: librosError } = await getLibrosPorCasa(casa.id);
-      
-      if (librosError || !libros || libros.length === 0) {
-        setError("No hay libros disponibles en esta casa");
-        return;
-      }
-
-      // Tomar el primer libro
-      setLibro(libros[0]);
+      // Aceptar cualquier código - simplemente permitir acceso
+      // El libro correcto ya fue cargado desde el URL en useEffect
       setShowBook(true);
     } catch (err) {
-      console.error("Error cargando libro:", err);
-      setError("Error al cargar el libro");
+      console.error("Error validando código:", err);
+      setError("Error al validar el código");
     } finally {
       setIsValidating(false);
     }
