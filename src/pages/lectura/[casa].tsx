@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { BookOpen, ArrowLeft, ChevronLeft, ChevronRight, Brain, Loader2, Lock, Headphones, FileText } from "lucide-react";
+import { BookOpen, ArrowLeft, ChevronLeft, ChevronRight, Brain, Loader2, Lock, Headphones, FileText, QrCode } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import QRCode from "react-qr-code";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,10 +105,10 @@ export default function LecturaCasa() {
         setLibros(librosData);
         console.log(`📚 Total libros cargados: ${librosData.length}`);
 
-        // 4. LÓGICA PRINCIPAL: Si viene desde biblioteca, usar libro específico; si no, usar primer libro
-        if (fromBiblioteca && libroIdFromQuery && typeof libroIdFromQuery === "string") {
-          // Viene desde biblioteca con libro específico
-          console.log("📖 Desde biblioteca: Buscando libro específico:", libroIdFromQuery);
+        // 4. LÓGICA PRINCIPAL: Priorizar parámetro libro en URL
+        if (libroIdFromQuery && typeof libroIdFromQuery === "string") {
+          // Hay un libro específico en la URL (compartido o desde biblioteca)
+          console.log("📖 Libro específico en URL:", libroIdFromQuery);
           const libroEspecifico = librosData.find(l => l.id === libroIdFromQuery);
           
           if (!libroEspecifico) {
@@ -118,11 +119,20 @@ export default function LecturaCasa() {
 
           setLibro(libroEspecifico);
           setLibrosDisponibles(librosData.filter(l => l.visible));
-          setShowBook(true);
-          setModoLectura(false); // Modo biblioteca: permitir cambiar de libro
+          
+          // Si viene desde biblioteca, modo biblioteca; si no, modo lectura (requiere código)
+          if (fromBiblioteca) {
+            console.log("Modo: Biblioteca (autenticado)");
+            setShowBook(true);
+            setModoLectura(false);
+          } else {
+            console.log("Modo: Lectura compartida (requiere código)");
+            setModoLectura(true);
+            // showBook = false, mostrará formulario de código
+          }
         } else {
-          // Entrada directa: cargar primer libro de la casa (por orden)
-          console.log("🔗 Entrada directa: Cargando primer libro de la casa");
+          // Entrada directa sin libro específico: cargar primer libro de la casa
+          console.log("🔗 Entrada directa sin libro: Cargando primer libro de la casa");
           const librosOrdenados = [...librosData].sort((a, b) => a.orden - b.orden);
           const primerLibro = librosOrdenados[0];
           
@@ -377,6 +387,43 @@ export default function LecturaCasa() {
                   Quiz
                 </a>
               </div>
+
+              {/* Código QR para compartir */}
+              {casa && (
+                <div className="mb-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl shadow-sm">
+                  <div className="flex flex-col md:flex-row gap-6 items-center">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-3">
+                        <QrCode className="w-5 h-5 text-green-600" />
+                        <h3 className="text-lg font-bold text-green-900">
+                          Compartir este libro
+                        </h3>
+                      </div>
+                      <p className="text-sm text-green-700 mb-3">
+                        Escanea el código QR o comparte el enlace para que otros puedan leer este libro sin necesidad de crear una cuenta.
+                      </p>
+                      <div className="bg-white p-3 rounded border border-green-300">
+                        <code className="text-xs text-green-800 break-all">
+                          {typeof window !== "undefined" 
+                            ? `${window.location.origin}/lectura/${casa.casa_nombre}?libro=${libro.id}`
+                            : `https://experienciamiguel.com/lectura/${casa.casa_nombre}?libro=${libro.id}`
+                          }
+                        </code>
+                      </div>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg shadow-md">
+                      <QRCode
+                        value={typeof window !== "undefined" 
+                          ? `${window.location.origin}/lectura/${casa.casa_nombre}?libro=${libro.id}`
+                          : `https://experienciamiguel.com/lectura/${casa.casa_nombre}?libro=${libro.id}`
+                        }
+                        size={160}
+                        level="M"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Renglón exclusivo para el Select de notas vinculadas al libro */}
               <div className="mb-8 p-6 bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl shadow-sm">
