@@ -120,16 +120,10 @@ export default function LecturaCasa() {
           setLibro(libroEspecifico);
           setLibrosDisponibles(librosData.filter(l => l.visible));
           
-          // Si viene desde biblioteca, modo biblioteca; si no, modo lectura (requiere código)
-          if (fromBiblioteca) {
-            console.log("Modo: Biblioteca (autenticado)");
-            setShowBook(true);
-            setModoLectura(false);
-          } else {
-            console.log("Modo: Lectura compartida (requiere código)");
-            setModoLectura(true);
-            // showBook = false, mostrará formulario de código
-          }
+          // Si viene libro en URL, siempre mostrar - no pedir código
+          console.log("📖 Acceso directo al libro desde URL compartida");
+          setShowBook(true);
+          setModoLectura(!fromBiblioteca); // true si es compartido, false si es desde biblioteca
         } else {
           // Entrada directa sin libro específico: cargar primer libro de la casa
           console.log("🔗 Entrada directa sin libro: Cargando primer libro de la casa");
